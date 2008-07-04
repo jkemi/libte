@@ -3,7 +3,7 @@
 
 #include <FL/Fl.H>
 #include <FL/Fl_Box.H>
-#include <Fl/fl_draw.H>
+#include <FL/fl_draw.H>
 #include <FL/fl_ask.H>
 
 #include "gterm/gterm.hpp"
@@ -25,6 +25,8 @@ public:
 
 	// Implement methods needed by GTerm
 	void DrawText(int fg_color, int bg_color, int flags, int x, int y, int len, unsigned char *string);
+	void DrawStyledText(int x, int y, int len, symbol_t* symbols);
+
 	void DrawCursor(int fg_color, int bg_color, int flags, int x, int y, unsigned char c);
 	void MoveChars(int sx, int sy, int dx, int dy, int w, int h);
 	void ClearChars(int bg_color, int x, int y, int w, int h);
@@ -71,6 +73,7 @@ public:
 
 	// basic text drawing
 	void DrawText(int fg_color, int bg_color, int flags, int x, int y, int len, unsigned char *string);
+	void DrawStyledText(int x, int y, int len, symbol_t* symbols);
 	void ClearChars(int bg_color, int x, int y, int w, int h);
 	void MoveChars(int sx, int sy, int dx, int dy, int w, int h);
 	void DrawCursor(int fg_color, int bg_color, int flags, int x, int y, unsigned char c);

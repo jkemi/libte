@@ -56,7 +56,6 @@ int spawn(const char *exe)
 	gid = getgid();
 
 #ifdef __APPLE__ /* or other BSD's? */
-#warning Is APPLE
 	pid = forkpty(&mfd, pty_name, NULL, NULL);
 	if (pid < 0)
 	{

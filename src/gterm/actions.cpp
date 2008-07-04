@@ -2,39 +2,40 @@
 
 #include "gterm.hpp"
 
+#include "Buffer.h"
+
 // For efficiency, this grabs all printing characters from buffer, up to
 // the end of the line or end of buffer
 void GTerm::normal_input()
 {
-	int n, n_taken, i, c, y;
+	int n, n_taken, i;
 #if 0
 char str[100];
 #endif
 
 	if (*input_data < 32) return;
 
-	if (cursor_x >= width) 
-	{
-		if (mode_flags & NOEOLWRAP)
-		{
+	if (cursor_x >= width) {
+		if (mode_flags & NOEOLWRAP) {
 			cursor_x = width-1;
-		}
-		else
-		{
+		} else {
 			next_line();
 		}
 	}
 
 	n = 0;
-	if (mode_flags & NOEOLWRAP)
-	{
-		while ((input_data[n] > 31) && (n < data_len)) n++;
+	if (mode_flags & NOEOLWRAP) {
+		while ((input_data[n] > 31) && (n < data_len)) {
+			n++;
+		}
 		n_taken = n;
-		if (cursor_x+n >= width) n = width-cursor_x;
-	} 
-	else 
-	{
-		while ((input_data[n] > 31) && (n < data_len) && (cursor_x + n<width)) n++;
+		if (cursor_x+n >= width) {
+			n = width-cursor_x;
+		}
+	} else {
+		while ((input_data[n] > 31) && (n < data_len) && (cursor_x + n<width)) {
+			n++;
+		}
 		n_taken = n;
 	}
 
@@ -43,32 +44,25 @@ memcpy(str, input_data, n);
 str[n] = 0;
 //printf("Processing %d characters (%d): %s\n", n, str[0], str);
 #endif
-	
-	if (mode_flags & INSERT) 
-	{
-		changed_line(cursor_y, cursor_x, width-1);
+
+	// TODO: fixup
+	symbol_t syms[n];
+	symbol_t style = symbol_make_style(fg_color, bg_color, mode_flags);
+	for (i = 0; i < n; i++) {
+		const symbol_t sym = style | input_data[i];
+		syms[i] = sym;
 	}
-	else
-	{
-		changed_line(cursor_y, cursor_x, cursor_x+n-1);
-	}
-	
-	y = linenumbers[cursor_y] * GT_MAXWIDTH;
-	if (mode_flags & INSERT) 
-	{
-		for (i = width-1; i >= cursor_x+n; i--) {
-			text[y+i] = text[y+i-n];
-			color[y+i] = color[y+i-n];
-		}
+	BufferRow* row = buffer->getRow(cursor_y);
+
+	if (mode_flags & INSERT) {
+		row->insert(cursor_x, syms, n);
+		changed_line(cursor_y, cursor_x, width);
+	} else {
+		row->replace(cursor_x, syms, n);
+		changed_line(cursor_y, cursor_x, cursor_x+n);
 	}
 
-	c = calc_color(fg_color, bg_color, mode_flags);
-//	int sv = y+cursor_x;
-	for (i = 0; i < n; i++) {
-		text[y+cursor_x] = input_data[i];
-		color[y+cursor_x] = c;
-		cursor_x++;
-	}
+	cursor_x += n;
 #if 0
 printf("Processing %d characters (%d) [x%03x]: %s\n", n, str[0], c, str);
 //snprintf(str, n+1, "%s", &text[sv]);
@@ -180,22 +174,18 @@ void GTerm::index_up()
 
 void GTerm::reset()
 {
-	int i;
-
 	pending_scroll = 0;
 	bg_color = 0;
 	fg_color = 7;
 	scroll_top = 0;
 	scroll_bot = height-1;
-	for (i = 0; i < GT_MAXHEIGHT; i++)
-		linenumbers[i] = i;
 	memset(tab_stops, 0, sizeof(tab_stops));
 	current_state = GTerm::normal_state;
 
 	clear_mode_flag(NOEOLWRAP | CURSORAPPMODE | CURSORRELATIVE |
 		NEWLINE | INSERT | UNDERLINE | BLINK | KEYAPPMODE | CURSORINVISIBLE);
 
-	clear_area(0, 0, width-1, height-1);
+	clear_area(0, 0, width, height-1);
 	move_cursor(0, 0);
 }
 
@@ -204,7 +194,7 @@ void GTerm::set_q_mode()
 	q_mode = 1;
 }
 
-// The verification test used some strange sequence which was 
+// The verification test used some strange sequence which was
 // ^[[61"p
 // in a function called set_level,
 // but it didn't explain the meaning.  Just in case I ever find out,
@@ -298,8 +288,8 @@ void GTerm::set_mode()  // h
 		case 1003:	RequestSizeChange(132, height);	break;
 		case 20:	set_mode_flag(NEWLINE);		break;
 		case 12:	clear_mode_flag(LOCALECHO);	break;
-		case 1025:	
-			clear_mode_flag(CURSORINVISIBLE); 
+		case 1025:
+			clear_mode_flag(CURSORINVISIBLE);
 			move_cursor(cursor_x, cursor_y);
 			break;
 	}
@@ -316,7 +306,7 @@ void GTerm::clear_mode()  // l
 		case 20:	clear_mode_flag(NEWLINE);	break;
 		case 1002:	current_state = vt52_normal_state; break;
 		case 12:	set_mode_flag(LOCALECHO);	break;
-		case 1025:	
+		case 1025:
 			set_mode_flag(CURSORINVISIBLE);	break;
 			move_cursor(cursor_x, cursor_y);
 			break;
@@ -339,7 +329,7 @@ void GTerm::set_margins()
 	b = param[1];
 	if (b<1) b = height;
 	if (b>height) b = height;
-	
+
 	if (pending_scroll) update_changes();
 
 	scroll_top = t-1;
@@ -394,13 +384,13 @@ void GTerm::erase_line()
 {
 	switch (param[0]) {
 	case 0:
-		clear_area(cursor_x, cursor_y, width-1, cursor_y);
+		clear_area(cursor_x, cursor_y, width, cursor_y);
 		break;
 	case 1:
 		clear_area(0, cursor_y, cursor_x, cursor_y);
 		break;
 	case 2:
-		clear_area(0, cursor_y, width-1, cursor_y);
+		clear_area(0, cursor_y, width, cursor_y);
 		break;
 	}
 }
@@ -421,7 +411,7 @@ void GTerm::set_colors() // imm: note - affects more than just colours...
 {
 	int n;
 
-	if (!nparam && param[0] == 0) 
+	if (!nparam && param[0] == 0)
 	{
 		clear_mode_flag(15);
 		fg_color = 7;
@@ -430,21 +420,21 @@ void GTerm::set_colors() // imm: note - affects more than just colours...
 	}
 
 	clear_mode_flag(15); // imm... linux console seems to leave underline on. This "fixes" that...
-	for (n = 0; n <= nparam; n++) 
+	for (n = 0; n <= nparam; n++)
 	{
-		if (param[n]/10 == 4) 
+		if (param[n]/10 == 4)
 		{
 			bg_color = param[n]%10;
 			if (bg_color > 7) bg_color = 0;
-		} 
-		else if (param[n]/10 == 3) 
+		}
+		else if (param[n]/10 == 3)
 		{
 			fg_color = param[n]%10;
 			if (fg_color > 7) fg_color = 7;
-		} 
+		}
 		else
 		{
-			switch (param[n]) 
+			switch (param[n])
 			{
 			case 0:
 				clear_mode_flag(15);
@@ -491,16 +481,22 @@ void GTerm::insert_char()
 
 void GTerm::screen_align()
 {
-	int y, yp, x, c;
+	int y, c;
+
+	const symbol_t style = symbol_make_style(7,0,0);
+	const symbol_t sym = 'E' | style;
+
+	// TODO: fixup
+	symbol_t syms[width];
+	for (int x = 0; x < width; x++) {
+		syms[x] = sym;
+	}
 
 	c = calc_color(7, 0, 0);
 	for (y=0; y<height; y++) {
-		yp = linenumbers[y] * GT_MAXWIDTH;
+		BufferRow* row = buffer->getRow(y);
 		changed_line(y, 0, width-1);
-		for (x=0; x<width; x++) {
-			text[yp+x] = 'E';
-			color[yp+x] = c;
-		}
+		row->replace(0, syms, width);
 	}
 }
 

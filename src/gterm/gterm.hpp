@@ -5,16 +5,15 @@
 
 #include <string.h>
 #include <stdio.h>
+#include "buffersymbol.h"
+
+class Buffer;
+class Dirty;
+
 
 #define GT_MAXWIDTH 200
 #define GT_MAXHEIGHT 100
 
-#ifndef min
-#define min(x,y) ((x)<(y)?(x):(y))
-#endif
-#ifndef max
-#define max(x,y) ((x)<(y)?(y):(x))
-#endif
 
 class GTerm;
 typedef void (GTerm::*StateFunc)();
@@ -48,10 +47,8 @@ public:
 private:
 	// terminal info
 	int width, height, scroll_top, scroll_bot;
-	unsigned char *text;
-	unsigned short *color;
-	short linenumbers[GT_MAXHEIGHT]; // text at text[linenumbers[y]*GT_MAXWIDTH]
-	unsigned char dirty_startx[GT_MAXHEIGHT], dirty_endx[GT_MAXHEIGHT];
+	Buffer*	buffer;
+	Dirty* dirty;
 	int pending_scroll; // >0 means scroll up
 	int doing_update;
 
@@ -154,9 +151,13 @@ public:
 	void set_mode_flag(int flag);
 	void clear_mode_flag(int flag);
 
-	// manditory child-supplied functions
+	// mandatory child-supplied functions
 	virtual void DrawText(int fg_color, int bg_color, int flags,
 		int x, int y, int len, unsigned char *string) = 0;
+
+	virtual void DrawStyledText(
+		int x, int y, int len, symbol_t* symbols) = 0;
+
 
 	virtual void DrawCursor(int fg_color, int bg_color, int flags,
 		int x, int y, unsigned char c) = 0;

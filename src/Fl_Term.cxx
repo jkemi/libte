@@ -1,3 +1,6 @@
+
+#include "Fl_Term.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -435,6 +438,57 @@ void Fl_Term::DrawText(int fg_color, int bg_color, int flags,
 	redraw();
 } // DrawText
 
+void Fl_Term::DrawStyledText(int x, int y, int len, symbol_t* symbols) {
+/*	if(fg_color == bg_color)
+	{
+		bg_color = (bg_color - 1) & 7;
+		flags |= GTerm::BOLD;
+	}
+
+	if ((fg_color == 0) && (flags & GTerm::BOLD))
+	{
+		fg_color = 7;
+		flags &= ~GTerm::BOLD;
+	}
+
+	if (flags & GTerm::INVERSE)
+	{
+		int t = fg_color;
+		fg_color = bg_color;
+		bg_color = t;
+	}*/
+
+	// find line in TQ buffer
+	int lineIdx = topvis + y;
+	lineIdx = lineIdx & TQ_MASK;
+
+	// limit line length
+	int last = len + x;
+	if(last > GT_MAXWIDTH)
+	{
+		last = GT_MAXWIDTH;
+		len = GT_MAXWIDTH - x;
+	}
+
+	// set style buffer values
+	for(int idx = x; idx < last; idx++)
+	{
+		const symbol_t sym = symbols[idx];
+
+		const symbol_color_t fg_color = symbol_get_fg(sym);
+		const symbol_color_t bg_color = symbol_get_bg(sym);
+		const symbol_attributes_t attrs = symbol_get_attributes(sym);
+		const unsigned int cp = symbol_get_codepoint(sym);
+
+		lines[lineIdx][idx] = cp;
+		style[lineIdx][idx].fg = fg_color;
+		style[lineIdx][idx].bg = bg_color;
+		style[lineIdx][idx].flags = attrs;
+	}
+
+	redraw();
+}
+
 /************************************************************************/
 void Fl_Term::ClearChars(int bg_color, int x, int y, int w, int h)
 {
@@ -494,6 +548,12 @@ void gterm_if::DrawCursor(int fg_color, int bg_color, int flags,
                 int x, int y, unsigned char c)
 {
 	termBox->DrawCursor(fg_color, bg_color, flags, x, y, c);
+}
+
+/************************************************************************/
+
+void gterm_if::DrawStyledText(int x, int y, int len, symbol_t* symbols) {
+	termBox->DrawStyledText(x, y, len, symbols);
 }
 
 /************************************************************************/

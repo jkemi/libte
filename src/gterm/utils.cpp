@@ -1,7 +1,12 @@
 // Copyright Timothy Miller, 1999
 
 #include "gterm.hpp"
+#include "Buffer.h"
+#include "Dirty.h"
 #include <stdlib.h>
+
+static inline int int_min(int a, int b) {return a < b ? a : b;}
+static inline int int_max(int a, int b) {return a > b ? a : b;}
 
 int GTerm::calc_color(int fg, int bg, int flags)
 {
@@ -11,78 +16,58 @@ int GTerm::calc_color(int fg, int bg, int flags)
 
 void GTerm::update_changes()
 {
-    int yp, start_x, mx;
-    int blank, c, x, y;
+    int blank;
 
     // prevent recursion for scrolls which cause exposures
-    if (doing_update) return;
+    if (doing_update) {
+		return;
+    }
     doing_update = 1;
 
     // first perform scroll-copy
-    mx = scroll_bot-scroll_top+1;
-    if (!(mode_flags & TEXTONLY) && pending_scroll && (pending_scroll < mx) && (-pending_scroll < mx))
-	{
-		if (pending_scroll < 0)
-		{
+    int mx = scroll_bot-scroll_top+1;
+    if (!(mode_flags & TEXTONLY) && pending_scroll && (pending_scroll < mx) && (-pending_scroll < mx)) {
+		if (pending_scroll < 0) {
 		    MoveChars(0, scroll_top, 0, (scroll_top - pending_scroll), width, scroll_bot-scroll_top+pending_scroll+1);
-		}
-		else
-		{
+		} else {
 		    MoveChars(0, (scroll_top + pending_scroll), 0, scroll_top, width, scroll_bot-scroll_top-pending_scroll+1);
 		}
     }
     pending_scroll = 0;
 
     // then update characters
-    for (y = 0; y < height; y++)
-    {
-		if (dirty_startx[y] >= GT_MAXWIDTH) continue;
-		yp = linenumbers[y] * GT_MAXWIDTH;
+    for (int y = 0; y < height; y++) {
+		BufferRow* row = buffer->getRow(y);
+
+		const int dirtstart = dirty->start[y];
+		const int dirtend = dirty->end[y];
+
+		if (dirtend-dirtstart == 0) {
+			continue;
+		}
 
 		blank = !(mode_flags & TEXTONLY);
-		start_x = dirty_startx[y];
-		c = color[yp+start_x];
-		for (x = start_x; x <= dirty_endx[y]; x++)
-		{
-			if ((text[yp+x] != 32) && (text[yp+x]))
-				blank = 0;
-			if (c != color[yp+x])
-			{
-				if (!blank)
-				{
-					DrawText((c>>4)&7, (c>>8)&7, c&15, start_x, y, x-start_x, text+yp+start_x);
-				}
-				else
-				{
-					ClearChars((c>>8)&7, start_x, y, x-start_x, 1);
-				}
-				start_x = x;
-				c = color[yp+x];
-				blank = !(mode_flags & TEXTONLY);
-				if ((text[yp+x] != 32) && (text[yp+x]))
-					blank = 0;
-			}
-		}
-		if (!blank)
-		{
-			DrawText((c>>4)&7, (c>>8)&7, c&15, start_x, y, x-start_x, text+yp+start_x);
-		}
-		else
-		{
-			ClearChars((c>>8)&7, start_x, y, x-start_x, 1);
-		}
-		dirty_endx[y] = 0;
-		dirty_startx[y] = GT_MAXWIDTH;
+
+		DrawStyledText(dirtstart, y, dirtend-dirtstart, row->data+dirtstart);
+
+		dirty->cleanse(y);
     }
 
 	if (!(mode_flags & CURSORINVISIBLE))
 	{
-		x = cursor_x;
-		if (x >= width)
+		int x = cursor_x;
+		if (x >= width) {
 			x = width-1;
-		yp = linenumbers[cursor_y] * GT_MAXWIDTH + x;
-		c = color[yp];
-		DrawCursor((c>>4)&7, (c>>8)&7, c&15, x, cursor_y, text[yp]);
+		}
+
+		const symbol_t sym = buffer->getRow(cursor_y)->data[x];
+
+		const symbol_color_t fg = symbol_get_fg(sym);
+		const symbol_color_t bg = symbol_get_fg(sym);
+		const symbol_attributes_t attrs = symbol_get_attributes(sym);
+		const unsigned int cp = symbol_get_codepoint(sym);
+
+		DrawCursor(fg, bg, attrs, x, cursor_y, cp);
 	}
 
     doing_update = 0;
@@ -90,6 +75,7 @@ void GTerm::update_changes()
 
 void GTerm::scroll_region(int start_y, int end_y, int num)
 {
+/*
 	int y, takey, fast_scroll, mx, clr, x, yp, c;
 	short temp[GT_MAXHEIGHT];
 	unsigned char temp_sx[GT_MAXHEIGHT], temp_ex[GT_MAXHEIGHT];
@@ -104,8 +90,7 @@ void GTerm::scroll_region(int start_y, int end_y, int num)
 	if (fast_scroll) pending_scroll += num;
 
 	memcpy(temp, linenumbers, sizeof(linenumbers));
-	if (fast_scroll)
-	{
+	if (fast_scroll) {
 		memcpy(temp_sx, dirty_startx, sizeof(dirty_startx));
 		memcpy(temp_ex, dirty_endx, sizeof(dirty_endx));
 	}
@@ -140,71 +125,38 @@ void GTerm::scroll_region(int start_y, int end_y, int num)
 			}
 		}
 	}
+
+	*/
 }
 
 void GTerm::shift_text(int y, int start_x, int end_x, int num) {
-	int x, yp, mx, c;
-
 	if (!num)
 		return;
 
-	yp = linenumbers[y] * GT_MAXWIDTH;
-
-	mx = end_x - start_x + 1;
-	if (num > mx)
-		num = mx;
-	if (-num > mx)
-		num = -mx;
-
-	if (num < mx && -num < mx) {
-		if (num < 0) {
-			memmove(text + yp + start_x, text + yp + start_x - num, mx + num);
-			memmove(color + yp + start_x, color + yp + start_x - num,
-					(mx + num) << 1);
-		} else {
-			memmove(text + yp + start_x + num, text + yp + start_x, mx - num);
-			memmove(color + yp + start_x + num, color + yp + start_x,
-					(mx - num) << 1);
-		}
-	}
-
-	if (num < 0) {
-		x = yp + end_x + num + 1;
-	} else {
-		x = yp + start_x;
-	}
-	num = abs(num);
-	memset(text + x, 32, num);
-	c = calc_color(fg_color, bg_color, mode_flags);
-	while (num--)
-		color[x++] = c;
+	buffer->getRow(y)->remove(start_x,num);
 
 	changed_line(y, start_x, end_x);
 }
 
 void GTerm::clear_area(int start_x, int start_y, int end_x, int end_y)
 {
-	int x, y, c, yp, w;
+	const symbol_t style = symbol_make_style(fg_color, bg_color, mode_flags);
+	const symbol_t sym = ' ' | style;
 
-    	c = calc_color(fg_color, bg_color, mode_flags);
+	int w = end_x - start_x + 1;
+	if (w<1) {
+		return;
+	}
 
-	w = end_x - start_x + 1;
-	if (w<1) return;
-
-	for (y=start_y; y<=end_y; y++) {
-		yp = linenumbers[y]*GT_MAXWIDTH;
-		memset(text+yp+start_x, 32, w);
-		for (x=start_x; x<=end_x; x++) {
-			color[yp+x] = c;
-		}
+	for (int y=start_y; y<=end_y; y++) {
+		buffer->getRow(y)->fill(start_x, sym, w);
 		changed_line(y, start_x, end_x);
 	}
 }
 
 void GTerm::changed_line(int y, int start_x, int end_x)
 {
-	if (dirty_startx[y] > start_x) dirty_startx[y] = start_x;
-	if (dirty_endx[y] < end_x) dirty_endx[y] = end_x;
+	dirty->setDirty(y, start_x, end_x);
 }
 
 void GTerm::move_cursor(int x, int y)

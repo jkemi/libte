@@ -1,6 +1,12 @@
 // Copyright Timothy Miller, 1999
 
+#include "misc.h"
+#include "Buffer.h"
+#include "Dirty.h"
+
 #include "gterm.hpp"
+
+
 
 void GTerm::Update()
 {
@@ -42,41 +48,35 @@ void GTerm::Reset()
 void GTerm::ExposeArea(int x, int y, int w, int h)
 {
 	int i;
-	for (i=0; i<h; i++) changed_line(i+y, x, x+w-1);
+	for (i=0; i<h; i++) {
+		changed_line(i+y, x, x+w);
+	}
 	if (!(mode_flags & DEFERUPDATE)) update_changes();
 }
 
 void GTerm::ResizeTerminal(int w, int h)
 {
 	int cx, cy;
-	clear_area(min(width,w), 0, GT_MAXWIDTH-1, GT_MAXHEIGHT-1);
-	clear_area(0, min(height,h), min(width,w)-1, GT_MAXHEIGHT-1);
+	clear_area(int_min(width,w), 0, GT_MAXWIDTH-1, GT_MAXHEIGHT-1);
+	clear_area(0, int_min(height,h), int_min(width,w)-1, GT_MAXHEIGHT-1);
 	width = w;
 	height = h;
 	scroll_bot = height-1;
 	if (scroll_top >= height) scroll_top = 0;
-	cx = min(width-1, cursor_x);
-	cy = min(height-1, cursor_y);
+	cx = int_min(width-1, cursor_x);
+	cy = int_min(height-1, cursor_y);
 	move_cursor(cx, cy);
+
+	buffer->reshape(h, w);
+	dirty->reshape(h, w);
 }
 
 GTerm::GTerm(int w, int h) : width(w), height(h)
 {
-	int i;
-
 	doing_update = 0;
 
-	// could make this dynamic
-	text = new unsigned char[GT_MAXWIDTH*GT_MAXHEIGHT];
-	memset(text, 0, sizeof(text));
-	color = new unsigned short[GT_MAXWIDTH*GT_MAXHEIGHT];
-	memset(color, 0, sizeof(color));
-
-	for (i=0; i<GT_MAXHEIGHT; i++) {
-		// make it draw whole terminal to start
-		dirty_startx[i] = 0;
-		dirty_endx[i] = GT_MAXWIDTH-1;
-	}
+	buffer = new Buffer(h, w);
+	dirty = new Dirty(h, w);
 
 	cursor_x = 0;
 	cursor_y = 0;
@@ -88,8 +88,8 @@ GTerm::GTerm(int w, int h) : width(w), height(h)
 
 GTerm::~GTerm()
 {
-	delete text;
-	delete color;
+	delete buffer;
+	delete dirty;
 }
 
 /* End of File */
