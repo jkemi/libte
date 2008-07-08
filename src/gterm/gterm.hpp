@@ -26,22 +26,23 @@ struct StateOption {
 class GTerm {
 public:
 	// mode flags
-	enum {	BOLD=1,
-			BLINK=2,
-			UNDERLINE=4,
-			INVERSE=8,
-			NOEOLWRAP=16,
-			CURSORAPPMODE=32,
-			CURSORRELATIVE=64,
-			NEWLINE=128,
-			INSERT=256,
-			KEYAPPMODE=512,
-			DEFERUPDATE=1024,
-			DESTRUCTBS=2048,
-			TEXTONLY=4096,
-			LOCALECHO=8192,
-			CURSORINVISIBLE=16384
-		} MODES;
+	enum {
+		BOLD			= (1<<0),
+		BLINK			= (1<<1),
+		UNDERLINE		= (1<<2),
+		INVERSE			= (1<<3),
+		NOEOLWRAP		= (1<<4),
+		CURSORAPPMODE	= (1<<5),
+		CURSORRELATIVE	= (1<<6),
+		NEWLINE			= (1<<7),
+		INSERT			= (1<<8),
+		KEYAPPMODE		= (1<<9),
+		DEFERUPDATE		= (1<<10),
+		DESTRUCTBS		= (1<<11),
+		TEXTONLY		= (1<<12),
+		LOCALECHO		= (1<<13),
+		CURSORINVISIBLE	= (1<<14),
+	} MODES;
 
 private:
 	// terminal info
