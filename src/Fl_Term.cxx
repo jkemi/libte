@@ -9,32 +9,14 @@
 
 #include "flkeys.h"
 
-#define TXT_QUEUE	64
-#define TQ_MASK     (TXT_QUEUE-1)
-
-struct stval {
-	char fg;
-	char bg;
-	int flags;
-};
-
-/* VT100 colour table - map Colors to FL-colors:
-0 - black
-1 - red
-2 - green
-3 - yellow
-4 - blue
-5 - magenta
-6 - cyan
-7 - white
-*/
+// VT100 color table - map Colors to FL-colors:
 static Fl_Color col_table[] =
 {	FL_BLACK,
 	FL_RED,
 	FL_GREEN,
 	FL_YELLOW,
 	FL_BLUE,
-	FL_DARK_MAGENTA,
+	FL_MAGENTA,
 	FL_CYAN,
 	FL_WHITE,
 	FL_DARK_BLUE,
@@ -42,11 +24,11 @@ static Fl_Color col_table[] =
 	FL_DARK_RED,
 	FL_DARK_YELLOW,
 	FL_DARK_GREEN,
-	FL_MAGENTA };
+	FL_DARK_MAGENTA };
 
 
 /************************************************************************/
-// This is the implementaton of the user-facing parts of the widget...
+// This is the implementation of the user-facing parts of the widget...
 /************************************************************************/
 Fl_Term::Fl_Term(int sz, int X, int Y, int W, int H, const char *L) : Fl_Box(X,Y,W,H,L)
 {
@@ -200,9 +182,6 @@ void Fl_Term::DrawText(int fg_color, int bg_color, int flags,
 
 void Fl_Term::DrawStyledText(int xpos, int ypos, int len, const symbol_t* symbols) {
 	// TODO: this border width/height hack must die!
-	int wd = w() - 4;
-	int ht = h() - 4;
-
 	int xo = x() + 2;
 	int yo = y() + 2;
 
@@ -230,7 +209,7 @@ void Fl_Term::DrawStyledText(int xpos, int ypos, int len, const symbol_t* symbol
 		fl_color(bg);
 		fl_rectf(xp, yp, fw, fh);
 
-		if (attrs & (SYMBOL_BOLD|SYMBOL_BLINK) == (SYMBOL_BOLD|SYMBOL_BLINK)) {
+		if ((attrs & (SYMBOL_BOLD|SYMBOL_BLINK)) == (SYMBOL_BOLD|SYMBOL_BLINK)) {
 			fl_font(FL_COURIER_BOLD_ITALIC, (def_fnt_size));
 		} else if (attrs & SYMBOL_BOLD) {
 			fl_font(FL_COURIER_BOLD, (def_fnt_size));
@@ -268,9 +247,6 @@ void Fl_Term::DrawCursor(int fg_color, int bg_color, int flags,
                 int xpos, int ypos, unsigned char c)
 {
 	// TODO: this border width/height hack must die!
-	int wd = w() - 4;
-	int ht = h() - 4;
-
 	int xo = x() + 2;
 	int yo = y() + 2;
 
