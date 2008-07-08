@@ -6,6 +6,9 @@
 
 #include "gterm.hpp"
 
+// these are documented here:
+// http://www.xfree86.org/current/ctlseqs.html
+
 // state machine transition tables
 StateOption GTerm::normal_state[] = {
     { 13, &GTerm::cr,		normal_state },

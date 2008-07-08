@@ -10,6 +10,9 @@
 // engineering a VT100 verification test program.
 
 
+// At least some of these are described here
+// http://www.berkhan-software.de/basic/manual_7/manual_e/data/chap7-1.html
+
 // state machine transition tables
 StateOption GTerm::vt52_normal_state[] = {
 	{ 13, &GTerm::cr,				vt52_normal_state },
