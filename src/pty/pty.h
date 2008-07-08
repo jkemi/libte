@@ -1,5 +1,9 @@
-#ifndef PSEUDO_HPP_
-#define PSEUDO_HPP_
+#ifndef PTY_H_
+#define PPTY_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * Spawns program 'exe' in a new pseudo-terminal
@@ -7,5 +11,10 @@
  */
 int			spawn(const char* exe);
 void		restore_ttyp();
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif /* PSEUDO_HPP_ */

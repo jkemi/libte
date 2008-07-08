@@ -14,7 +14,7 @@
 
 #include "Fl_Term.h"
 
-#include "pseudo/pseudo.hpp"
+#include "pty/pty.h"
 
 #ifdef __APPLE__
 	static int def_fnt_size = 16;
