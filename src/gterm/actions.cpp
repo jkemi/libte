@@ -3,6 +3,7 @@
 #include "gterm.hpp"
 
 #include "Buffer.h"
+#include "misc.h"
 
 // For efficiency, this grabs all printing characters from buffer, up to
 // the end of the line or end of buffer
@@ -490,8 +491,6 @@ void GTerm::insert_char()
 
 void GTerm::screen_align()
 {
-	int y, c;
-
 	const symbol_t style = symbol_make_style(7,0,0);
 	const symbol_t sym = 'E' | style;
 
@@ -501,8 +500,7 @@ void GTerm::screen_align()
 		syms[x] = sym;
 	}
 
-	c = calc_color(7, 0, 0);
-	for (y=0; y<height; y++) {
+	for (int y=0; y<height; y++) {
 		BufferRow* row = buffer->getRow(y);
 		changed_line(y, 0, width-1);
 		row->replace(0, syms, width);
@@ -511,30 +509,22 @@ void GTerm::screen_align()
 
 void GTerm::erase_char()
 {
-	int n, mx;
-	n = param[0]; if (n<1) n = 1;
-	mx = width-cursor_x;
-	if (n>mx) n = mx;
+	// number of characters to erase
+	const int n = int_clamp(param[0], 1, width-cursor_x);
 	clear_area(cursor_x, cursor_y, cursor_x+n-1, cursor_y);
 }
 
 void GTerm::vt52_cursory()
 {
-	// store y coordinate
-	param[0] = (*input_data) - 32;
-//	if (param[0]<0) param[0] = 0;
-	if (param[0]<1) param[0] = 1;
-	if (param[0]>=height) param[0] = height-1;
+	const int y = int_clamp(*input_data-32, 0, height-1);
+	param[0] = y;
 }
 
 void GTerm::vt52_cursorx()
 {
-	int x;
-	x = (*input_data)-32;
-//	if (x<0) x = 0;
-	if (x<1) x = 1;
-	if (x>=width) x = width-1;
-	move_cursor(x, param[0]);
+	const int x = int_clamp(*input_data-32, 0, width-1);
+	const int y = param[0];
+	move_cursor(x, y);
 }
 
 void GTerm::vt52_ident()
