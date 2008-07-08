@@ -25,6 +25,7 @@ struct StateOption {
 
 class GTerm {
 public:
+
 	// mode flags
 	enum {
 		BOLD			= (1<<0),
@@ -42,7 +43,7 @@ public:
 		TEXTONLY		= (1<<12),
 		LOCALECHO		= (1<<13),
 		CURSORINVISIBLE	= (1<<14),
-	} MODES;
+	} mode_t;
 
 private:
 	// terminal info
@@ -50,7 +51,7 @@ private:
 	Buffer*	buffer;
 	Dirty* dirty;
 	int pending_scroll; // >0 means scroll up
-	int doing_update;
+	bool doing_update;
 
 	// terminal state
 	int cursor_x, cursor_y;
@@ -59,6 +60,7 @@ private:
 	int mode_flags;
 	bool* tab_stops;
 	const StateOption* current_state;
+
 
 	static StateOption normal_state[];
 	static StateOption esc_state[];
@@ -78,7 +80,6 @@ private:
 	void clear_area(int start_x, int start_y, int end_x, int end_y);
 	void changed_line(int y, int start_x, int end_x);
 	void move_cursor(int x, int y);
-	int calc_color(int fg, int bg, int flags);
 
 	// action parameters
 	int nparam, param[30];

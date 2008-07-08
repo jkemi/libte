@@ -83,7 +83,7 @@ void GTerm::ResizeTerminal(int w, int h)
 
 GTerm::GTerm(int w, int h) : width(w), height(h)
 {
-	doing_update = 0;
+	doing_update = false;
 
 	buffer = new Buffer(h, w);
 	dirty = new Dirty(h, w);

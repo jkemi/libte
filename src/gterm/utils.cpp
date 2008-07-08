@@ -8,19 +8,13 @@
 
 #include <stdlib.h>
 
-int GTerm::calc_color(int fg, int bg, int flags)
-{
-	fg = fg & 0x7; bg = bg & 0x7;
-	return (flags & 0xF) | (fg << 4) | (bg << 8);
-}
-
 void GTerm::RequestRedraw(int x, int y, int w, int h, bool force) {
 	if (doing_update) {
 		printf("bad update!\n");
 		return;
 	}
 
-	doing_update = 1;
+	doing_update = true;
 
 	y = int_clamp(y, 0, height-1);
 	h = int_clamp(h, 0, height-y);
@@ -93,18 +87,16 @@ void GTerm::RequestRedraw(int x, int y, int w, int h, bool force) {
 		}
 	}
 
-	doing_update = 0;
+	doing_update = false;
 }
 
 void GTerm::update_changes()
 {
-    int blank;
-
     // prevent recursion for scrolls which cause exposures
     if (doing_update) {
 		return;
     }
-    doing_update = 1;
+    doing_update = true;
 
     // first perform scroll-copy
     int mx = scroll_bot-scroll_top+1;
@@ -120,7 +112,7 @@ void GTerm::update_changes()
     UpdateNotification();
 
 
-    doing_update = 0;
+    doing_update = false;
 }
 
 void GTerm::scroll_region(int start_y, int end_y, int num)
