@@ -6,6 +6,8 @@
 #include <fcntl.h>
 #include <errno.h>
 
+#include <stdint.h>
+
 #include <FL/Fl.H>
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_Button.H>
@@ -40,8 +42,8 @@ int pty_fd = -1;
 void mfd_cb(int mfd, void *v)
 {
 	gterm_if *termIO = (gterm_if *)v;
-	unsigned char buf[1000];
-	int i = read(mfd, buf, 1000);
+	uint8_t buf[4096];
+	int i = read(mfd, buf, 4096);
 	if (i > 0)
 		termIO->ProcessInput(i, buf);
 
