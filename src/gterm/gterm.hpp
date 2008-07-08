@@ -27,7 +27,7 @@ class GTerm {
 public:
 
 	// mode flags
-	enum {
+	typedef enum {
 		BOLD			= (1<<0),
 		BLINK			= (1<<1),
 		UNDERLINE		= (1<<2),
@@ -74,6 +74,7 @@ private:
 	static StateOption vt52_cursorx_state[];
 
 	// utility functions
+	bool is_mode_set(mode_t mode) {return mode_flags & mode;}
 	void update_changes();
 	void scroll_region(int start_y, int end_y, int num);	// does clear
 	void shift_text(int y, int start_x, int end_x, int num); // ditto
@@ -157,8 +158,9 @@ public:
 
 	int GetMode() { return mode_flags; }
 	void SetMode(int mode) { mode_flags = mode; }
-	void set_mode_flag(int flag);
-	void clear_mode_flag(int flag);
+	void set_mode_flag(mode_t flag);
+	void clear_mode_flag(mode_t flag);
+	void clear_mode_flags(int flags);
 
 	/**
 	 * Sent from GUI to terminal to request a redraw.

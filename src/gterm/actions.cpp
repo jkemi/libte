@@ -19,7 +19,7 @@ char str[100];
 	}
 
 	if (cursor_x >= width) {
-		if (mode_flags & NOEOLWRAP) {
+		if (is_mode_set(NOEOLWRAP)) {
 			cursor_x = width-1;
 		} else {
 			next_line();
@@ -27,7 +27,7 @@ char str[100];
 	}
 
 	n = 0;
-	if (mode_flags & NOEOLWRAP) {
+	if (is_mode_set(NOEOLWRAP)) {
 		while ((input_data[n] > 31) && (n < input_remaining)) {
 			n++;
 		}
@@ -57,7 +57,7 @@ str[n] = 0;
 	}
 	BufferRow* row = buffer->getRow(cursor_y);
 
-	if (mode_flags & INSERT) {
+	if (is_mode_set(INSERT)) {
 		row->insert(cursor_x, syms, n);
 		changed_line(cursor_y, cursor_x, width);
 	} else {
@@ -113,7 +113,7 @@ void GTerm::tab()
 	if (x < width) {
 		move_cursor(x, cursor_y);
 	} else {
-		if (mode_flags & NOEOLWRAP) {
+		if (is_mode_set(NOEOLWRAP)) {
 			move_cursor(width-1, cursor_y);
 		} else {
 			next_line();
@@ -124,7 +124,7 @@ void GTerm::tab()
 void GTerm::bs()
 {
 	if (cursor_x>0) move_cursor(cursor_x-1, cursor_y);
-	if (mode_flags & DESTRUCTBS) {
+	if (is_mode_set(DESTRUCTBS)) {
 	    clear_area(cursor_x, cursor_y, cursor_x, cursor_y);
 	}
 }
@@ -192,7 +192,7 @@ void GTerm::reset()
 	memset(tab_stops, 0, sizeof(bool)*width);
 	current_state = GTerm::normal_state;
 
-	clear_mode_flag(NOEOLWRAP | CURSORAPPMODE | CURSORRELATIVE |
+	clear_mode_flags(NOEOLWRAP | CURSORAPPMODE | CURSORRELATIVE |
 		NEWLINE | INSERT | UNDERLINE | BLINK | KEYAPPMODE | CURSORINVISIBLE);
 
 	clear_area(0, 0, width, height-1);
@@ -264,7 +264,7 @@ void GTerm::cursor_position()
 	int x, y;
 	x = param[1];	if (x<1) x=1; if (x>=width) x = width-1;
 	y = param[0];	if (y<1) y=1; if (y>=height) y = height-1;
-	if (mode_flags & CURSORRELATIVE) {
+	if (is_mode_set(CURSORRELATIVE)) {
 		move_cursor(x-1, y-1+scroll_top);
 	} else {
 		move_cursor(x-1, y-1);
@@ -421,15 +421,17 @@ void GTerm::set_colors() // imm: note - affects more than just colours...
 {
 	int n;
 
+	const int attrs = BOLD | BLINK | UNDERLINE | INVERSE;
+
 	if (!nparam && param[0] == 0)
 	{
-		clear_mode_flag(15);
+		clear_mode_flags(attrs);
 		fg_color = 7;
 		bg_color = 0;
 		return;
 	}
 
-	clear_mode_flag(15); // imm... linux console seems to leave underline on. This "fixes" that...
+	clear_mode_flags(attrs); // imm... linux console seems to leave underline on. This "fixes" that...
 	for (n = 0; n <= nparam; n++)
 	{
 		if (param[n]/10 == 4)
@@ -447,7 +449,7 @@ void GTerm::set_colors() // imm: note - affects more than just colours...
 			switch (param[n])
 			{
 			case 0:
-				clear_mode_flag(15);
+				clear_mode_flags(attrs);
 				fg_color = 7;
 				bg_color = 0;
 				break;

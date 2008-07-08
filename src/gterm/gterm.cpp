@@ -36,7 +36,7 @@ void GTerm::ProcessInput(int len, const unsigned char *data)
 		input_remaining--;
 	}
 
-	if (!(mode_flags & DEFERUPDATE) || (pending_scroll > scroll_bot-scroll_top))
+	if (!is_mode_set(DEFERUPDATE) || (pending_scroll > scroll_bot-scroll_top))
 		update_changes();
 }
 
@@ -50,7 +50,7 @@ void GTerm::ExposeArea(int x, int y, int w, int h)
 	for (int i=0; i<h; i++) {
 		changed_line(i+y, x, x+w);
 	}
-	if (!(mode_flags & DEFERUPDATE)) {
+	if (!is_mode_set(DEFERUPDATE)) {
 		update_changes();
 	}
 }
