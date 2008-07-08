@@ -182,7 +182,7 @@ void GTerm::shift_text(int y, int start_x, int end_x, int num) {
 
 void GTerm::clear_area(int start_x, int start_y, int end_x, int end_y)
 {
-	const symbol_t style = symbol_make_style(fg_color, bg_color, mode_flags);
+	const symbol_t style = symbol_make_style(fg_color, bg_color, attributes);
 	const symbol_t sym = ' ' | style;
 
 	int w = end_x - start_x + 1;

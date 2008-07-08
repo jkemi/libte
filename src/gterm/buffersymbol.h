@@ -64,8 +64,8 @@ static inline symbol_t symbol_set_bg(symbol_t sym, symbol_color_t col) {
 }
 
 // TODO: don't ignore flags...
-static inline symbol_t symbol_make_style(symbol_color_t fg, symbol_color_t bg, int flags) {
-	return ((symbol_t)bg)<<25 | ((symbol_t)fg)<<22;
+static inline symbol_t symbol_make_style(symbol_color_t fg, symbol_color_t bg, symbol_attributes_t attributes) {
+	return ((symbol_t)bg)<<25 | ((symbol_t)fg)<<22 | ((symbol_t)attributes)<<28;
 }
 
 #endif

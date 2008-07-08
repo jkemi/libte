@@ -50,7 +50,7 @@ str[n] = 0;
 
 	// TODO: fixup
 	symbol_t syms[n];
-	symbol_t style = symbol_make_style(fg_color, bg_color, mode_flags);
+	symbol_t style = symbol_make_style(fg_color, bg_color, attributes);
 	for (i = 0; i < n; i++) {
 		const symbol_t sym = style | input_data[i];
 		syms[i] = sym;
@@ -192,8 +192,8 @@ void GTerm::reset()
 	memset(tab_stops, 0, sizeof(bool)*width);
 	current_state = GTerm::normal_state;
 
-	clear_mode_flags(NOEOLWRAP | CURSORAPPMODE | CURSORRELATIVE |
-		NEWLINE | INSERT | UNDERLINE | BLINK | KEYAPPMODE | CURSORINVISIBLE);
+	clear_mode_flags(NOEOLWRAP | CURSORAPPMODE | CURSORRELATIVE | KEYAPPMODE | CURSORINVISIBLE);
+	attributes = 0;
 
 	clear_area(0, 0, width, height-1);
 	move_cursor(0, 0);
@@ -421,50 +421,30 @@ void GTerm::set_colors() // imm: note - affects more than just colours...
 {
 	int n;
 
-	const int attrs = BOLD | BLINK | UNDERLINE | INVERSE;
-
-	if (!nparam && param[0] == 0)
-	{
-		clear_mode_flags(attrs);
+	if (nparam == 0 && param[0] == 0) {
+		attributes = 0;
 		fg_color = 7;
 		bg_color = 0;
 		return;
 	}
 
-	clear_mode_flags(attrs); // imm... linux console seems to leave underline on. This "fixes" that...
-	for (n = 0; n <= nparam; n++)
-	{
-		if (param[n]/10 == 4)
-		{
-			bg_color = param[n]%10;
-			if (bg_color > 7) bg_color = 0;
-		}
-		else if (param[n]/10 == 3)
-		{
-			fg_color = param[n]%10;
-			if (fg_color > 7) fg_color = 7;
-		}
-		else
-		{
-			switch (param[n])
-			{
+	attributes = 0; 	// imm... linux console seems to leave underline on. This "fixes" that...
+	for (n = 0; n <= nparam; n++) {
+		if (param[n]/10 == 4) {
+			bg_color = int_clamp(param[n]%10, 0, 7);
+		} else if (param[n]/10 == 3) {
+			fg_color = int_clamp(param[n]%10, 0, 7);
+		} else {
+			switch (param[n]) {
 			case 0:
-				clear_mode_flags(attrs);
+				attributes = 0;
 				fg_color = 7;
 				bg_color = 0;
 				break;
-			case 1:
-				set_mode_flag(BOLD);
-				break;
-			case 4:
-				set_mode_flag(UNDERLINE);
-				break;
-			case 5:
-				set_mode_flag(BLINK);
-				break;
-			case 7:
-				set_mode_flag(INVERSE);
-				break;
+			case 1: attributes |= SYMBOL_BOLD; break;
+			case 4: attributes |= SYMBOL_UNDERLINE; break;
+			case 5:	attributes |= SYMBOL_BLINK; break;
+			case 7:	attributes |= SYMBOL_INVERSE; break;
 			}
 		}
 	}

@@ -28,10 +28,6 @@ public:
 
 	// mode flags
 	typedef enum {
-		BOLD			= (1<<0),
-		BLINK			= (1<<1),
-		UNDERLINE		= (1<<2),
-		INVERSE			= (1<<3),
 		NOEOLWRAP		= (1<<4),
 		CURSORAPPMODE	= (1<<5),
 		CURSORRELATIVE	= (1<<6),
@@ -57,6 +53,7 @@ private:
 	int cursor_x, cursor_y;
 	int save_x, save_y, save_attrib;
 	int fg_color, bg_color;
+	symbol_attributes_t	attributes;
 	int mode_flags;
 	bool* tab_stops;
 	const StateOption* current_state;
