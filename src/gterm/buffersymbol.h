@@ -39,6 +39,10 @@ static inline symbol_t symbol_set_data(symbol_t sym, symbol_data_t data) {
 	return (sym & 0x3fffff) | (data<<22);
 }
 
+static inline symbol_t symbol_get_style (symbol_t sym) {
+	return (sym & ~0x3fffff);
+}
+
 static inline symbol_color_t symbol_get_fg(symbol_t sym) {
 	return symbol_get_data(sym) & 0x7;
 }

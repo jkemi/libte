@@ -47,11 +47,12 @@ void GTerm::Reset()
 
 void GTerm::ExposeArea(int x, int y, int w, int h)
 {
-	int i;
-	for (i=0; i<h; i++) {
+	for (int i=0; i<h; i++) {
 		changed_line(i+y, x, x+w);
 	}
-	if (!(mode_flags & DEFERUPDATE)) update_changes();
+	if (!(mode_flags & DEFERUPDATE)) {
+		update_changes();
+	}
 }
 
 void GTerm::ResizeTerminal(int w, int h)

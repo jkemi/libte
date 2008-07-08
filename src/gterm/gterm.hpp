@@ -5,6 +5,9 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <stdint.h>
+
+
 #include "buffersymbol.h"
 
 class Buffer;
@@ -151,13 +154,24 @@ public:
 	void set_mode_flag(int flag);
 	void clear_mode_flag(int flag);
 
+	/**
+	 * Sent from GUI to terminal to request a redraw.
+	 * This might trigger multiple calls to DrawText etc..
+	 */
+	void RequestRedraw(int x, int y, int w, int h, bool force);
+
 	// mandatory child-supplied functions
+
+	/**
+	 * Event sent from terminal when viewport is updated.
+	 */
+	virtual void UpdateNotification(void) = 0;
+
 	virtual void DrawText(int fg_color, int bg_color, int flags,
-		int x, int y, int len, unsigned char *string) = 0;
+		int x, int y, int len, const uint32_t* string) = 0;
 
 	virtual void DrawStyledText(
-		int x, int y, int len, symbol_t* symbols) = 0;
-
+		int x, int y, int len, const symbol_t* symbols) = 0;
 
 	virtual void DrawCursor(int fg_color, int bg_color, int flags,
 		int x, int y, unsigned char c) = 0;

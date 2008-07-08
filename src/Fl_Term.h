@@ -24,8 +24,10 @@ public:
 	gterm_if(Fl_Term *t, int w, int h) : GTerm(w, h) {termBox = t; write_fd = 0;}
 
 	// Implement methods needed by GTerm
-	void DrawText(int fg_color, int bg_color, int flags, int x, int y, int len, unsigned char *string);
-	void DrawStyledText(int x, int y, int len, symbol_t* symbols);
+	void UpdateNotification(void);
+
+	void DrawText(int fg_color, int bg_color, int flags, int x, int y, int len, const uint32_t* string);
+	void DrawStyledText(int x, int y, int len, const symbol_t* symbols);
 
 	void DrawCursor(int fg_color, int bg_color, int flags, int x, int y, unsigned char c);
 	void MoveChars(int sx, int sy, int dx, int dy, int w, int h);
@@ -39,16 +41,6 @@ public:
 };
 
 /************************************************************************/
-// The text_box class is only used for diagnostic purposes...
-class text_box : public Fl_Box
-{
-protected:
-	void draw(void);
-
-public:
-     text_box(int X, int Y, int W, int H, const char *L=0) : Fl_Box(X,Y,W,H,L) { }
-};
-/************************************************************************/
 // This class is what the world should use...
 class Fl_Term : public Fl_Box
 {
@@ -58,7 +50,6 @@ protected:
 	int crs_x, crs_y, crs_fg, crs_bg, crs_flags;
 	float cw;
 	int def_fnt_size;
-	text_box *listall;
 	gterm_if *gt;
 
 public:
@@ -71,9 +62,11 @@ public:
 	// handle window resizing (NOT WORKING YET)
 	void resize(int x, int y, int w, int h);
 
+	void TerminalUpdated(void);
+
 	// basic text drawing
-	void DrawText(int fg_color, int bg_color, int flags, int x, int y, int len, unsigned char *string);
-	void DrawStyledText(int x, int y, int len, symbol_t* symbols);
+	void DrawText(int fg_color, int bg_color, int flags, int x, int y, int len, const uint32_t* string);
+	void DrawStyledText(int x, int y, int len, const symbol_t* symbols);
 	void ClearChars(int bg_color, int x, int y, int w, int h);
 	void MoveChars(int sx, int sy, int dx, int dy, int w, int h);
 	void DrawCursor(int fg_color, int bg_color, int flags, int x, int y, unsigned char c);
@@ -87,9 +80,6 @@ public:
 
 	// font handling
 	void font_size(int sz) {def_fnt_size = sz;}
-
-	// diagnostic view...
-	void set_listview(text_box *l) {listall = l;}
 };
 /************************************************************************/
 

@@ -3,15 +3,88 @@
 #include "gterm.hpp"
 #include "Buffer.h"
 #include "Dirty.h"
-#include <stdlib.h>
 
-static inline int int_min(int a, int b) {return a < b ? a : b;}
-static inline int int_max(int a, int b) {return a > b ? a : b;}
+#include "misc.h"
+
+#include <stdlib.h>
 
 int GTerm::calc_color(int fg, int bg, int flags)
 {
 	fg = fg & 0x7; bg = bg & 0x7;
 	return (flags & 0xF) | (fg << 4) | (bg << 8);
+}
+
+void GTerm::RequestRedraw(int x, int y, int w, int h, bool force) {
+	y = int_clamp(y, 0, height-1);
+	h = int_clamp(h, 0, height-y);
+	x = int_clamp(x, 0, width-1);
+	w = int_clamp(w, 0, width-x);
+
+
+    // then update characters
+    for (int rowno = y; rowno < y+h; rowno++) {
+		BufferRow* row = buffer->getRow(rowno);
+
+		int dirtstart;
+		int dirtend;
+		if (force) {
+			dirtstart = x;
+			dirtend = x+w;
+		} else {
+			dirtstart = int_max(x, dirty->start[rowno]);
+			dirtend = int_min(x+w, dirty->end[rowno]);
+		}
+
+		if (dirtend-dirtstart == 0) {
+			continue;
+		}
+/*
+		symbol_t* data = row->data;
+		for (int colno = x; colno < x+w;) {
+			const symbol_t laststyle = symbol_get_style(data[colno]);
+			uint i;
+			for (i = colno+1; i < x+w; i++) {
+				const symbol_t style = symbol_get_style(data[colno]);
+				if (style != laststyle) {
+					break;
+				}
+			}
+			const uint runlen = i-colno;
+
+			const symbol_color_t fg = symbol_get_fg(laststyle);
+			const symbol_color_t bg = symbol_get_bg(laststyle);
+			const symbol_attributes_t attrs = symbol_get_attributes(laststyle);
+
+			DrawText()
+
+			colno += runlen;
+		}
+*/
+		DrawStyledText(dirtstart, y, dirtend-dirtstart, row->data+dirtstart);
+		dirty->cleanse(rowno, dirtstart, dirtend);
+    }
+
+	if (!(mode_flags & CURSORINVISIBLE))
+	{
+		int xpos = cursor_x;
+		if (xpos >= width) {
+			xpos = width-1;
+		}
+
+		int ypos = cursor_y;
+
+		// draw cursor if force or inside rectangle
+		if ( force || (xpos >= x && xpos < x+w && ypos >= y && ypos < y+h) ) {
+			const symbol_t sym = buffer->getRow(cursor_y)->data[xpos];
+
+			const symbol_color_t fg = symbol_get_fg(sym);
+			const symbol_color_t bg = symbol_get_fg(sym);
+			const symbol_attributes_t attrs = symbol_get_attributes(sym);
+			const unsigned int cp = symbol_get_codepoint(sym);
+
+			DrawCursor(fg, bg, attrs, xpos, ypos, cp);
+		}
+	}
 }
 
 void GTerm::update_changes()
@@ -50,7 +123,7 @@ void GTerm::update_changes()
 
 		DrawStyledText(dirtstart, y, dirtend-dirtstart, row->data+dirtstart);
 
-		dirty->cleanse(y);
+		dirty->cleanseRow(y);
     }
 
 	if (!(mode_flags & CURSORINVISIBLE))

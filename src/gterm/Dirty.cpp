@@ -49,3 +49,11 @@ void Dirty::setDirty(int row, int start, int end) {
 	this->end[row] = int_min(_ncols, int_max(this->end[row], end));
 }
 
+void Dirty::cleanse(int row, int start, int end) {
+	if (end >= this->end[row]) {
+		this->end[row] = int_min(this->end[row], start);
+	}
+	if (start <= this->start[row]) {
+		this->start[row] = int_max(this->start[row], end);
+	}
+}

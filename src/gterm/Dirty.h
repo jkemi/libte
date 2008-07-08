@@ -28,7 +28,8 @@ public:
 	void reshape(uint nrows, uint ncols);
 	void setRowDirt(int row) {start[row] = 0; end[row] = _ncols;}
 	void setDirty(int row, int start, int end);
-	void cleanse(int row) {start[row] = end[row] = 0;}
+	void cleanseRow(int row) {start[row] = end[row] = 0;}
+	void cleanse(int row, int start, int end);
 };
 
 #endif /* DIRTY_H_ */

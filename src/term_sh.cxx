@@ -30,7 +30,6 @@
 Fl_Double_Window *main_win = NULL;
 Fl_Double_Window *diag_win = NULL;
 Fl_Term *termBox;
-text_box *listall;
 int pty_fd = -1;
 
 /************************************************************************/
