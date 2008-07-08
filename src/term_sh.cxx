@@ -179,9 +179,6 @@ int main(int argc, char **argv)
 	// add the pty to the fltk fd list, so we can catch any output
 	Fl::add_fd(mfd, mfd_cb, (void *)termIO);
 
-	// draw the first screen
-	termIO->Update();
-
 	int exit_res = Fl::run();
 	restore_ttyp();
 	return exit_res;
