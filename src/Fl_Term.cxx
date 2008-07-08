@@ -28,7 +28,7 @@ struct stval {
 6 - cyan
 7 - white
 */
-static int col_table[] =
+static Fl_Color col_table[] =
 {	FL_BLACK,
 	FL_RED,
 	FL_GREEN,
@@ -224,8 +224,8 @@ void Fl_Term::DrawStyledText(int xpos, int ypos, int len, const symbol_t* symbol
 		const symbol_color_t fg_color = symbol_get_fg(sym);
 		const symbol_color_t bg_color = symbol_get_bg(sym);
 
-		const int fg = col_table[fg_color];
-		const int bg = col_table[bg_color];
+		const Fl_Color fg = col_table[fg_color];
+		const Fl_Color bg = col_table[bg_color];
 
 		fl_color(bg);
 		fl_rectf(xp, yp, fw, fh);
@@ -281,8 +281,8 @@ void Fl_Term::DrawCursor(int fg_color, int bg_color, int flags,
 	const int w = 10;
 	const int h = 16;
 
-	const int fg = col_table[fg_color];
-	const int bg = col_table[bg_color];
+	const Fl_Color fg = col_table[fg_color];
+	const Fl_Color bg = col_table[bg_color];
 
 
 	fl_color(bg);
