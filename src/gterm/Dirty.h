@@ -8,7 +8,9 @@
 #ifndef DIRTY_H_
 #define DIRTY_H_
 
-typedef unsigned int uint;
+#include <limits.h>
+
+#include "misc.h"
 
 class Dirty {
 private:
@@ -28,7 +30,7 @@ public:
 	void reshape(uint nrows, uint ncols);
 	void setRowDirt(int row) {start[row] = 0; end[row] = _ncols;}
 	void setDirty(int row, int start, int end);
-	void cleanseRow(int row) {start[row] = end[row] = 0;}
+	void cleanseRow(int row) {start[row] = INT_MAX; end[row] = 0;}
 	void cleanse(int row, int start, int end);
 };
 

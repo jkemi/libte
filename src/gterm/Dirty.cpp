@@ -6,6 +6,7 @@
  */
 
 #include <string.h>
+#include <limits.h>
 
 #include "misc.h"
 
@@ -20,7 +21,9 @@ void Dirty::_init(uint nrows, uint ncols) {
 	start = new int[nrows];
 	end = new int[nrows];
 
-	memset(start, 0, sizeof(int)*nrows);
+	for (uint i = 0; i < ncols; i++) {
+		start[i] = INT_MAX;
+	}
 	memset(end, 0, sizeof(int)*nrows);
 }
 

@@ -35,7 +35,7 @@ void GTerm::RequestRedraw(int x, int y, int w, int h, bool force) {
 			dirtend = int_min(x+w, dirty->end[rowno]);
 		}
 
-		if (dirtend-dirtstart == 0) {
+		if (dirtend-dirtstart <= 0) {
 			continue;
 		}
 /*
@@ -115,7 +115,7 @@ void GTerm::update_changes()
 		const int dirtstart = dirty->start[y];
 		const int dirtend = dirty->end[y];
 
-		if (dirtend-dirtstart == 0) {
+		if (dirtend-dirtstart <= 0) {
 			continue;
 		}
 
