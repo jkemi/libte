@@ -130,7 +130,7 @@ int main(int argc, char **argv)
 	Fl::focus(termBox);
 
 	/* spawn shell in pseudo terminal */
-	mfd = spawn("/bin/sh");
+	mfd = pty_spawn("/bin/sh");
 	if (mfd < 0) {
 		exit(-1);
 	}
@@ -162,7 +162,7 @@ int main(int argc, char **argv)
 	Fl::add_fd(mfd, mfd_cb, (void *)termIO);
 
 	int exit_res = Fl::run();
-	restore_ttyp();
+	pty_restore();
 	return exit_res;
 }
 

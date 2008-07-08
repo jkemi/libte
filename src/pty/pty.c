@@ -24,8 +24,8 @@
 static int master_fd;
 static char pty_name[32];
 
-void remove_utmp();
-void add_utmp(int);
+static void remove_utmp();
+static void add_utmp(int);
 
 int pts_slave(int mfd)
 {
@@ -47,7 +47,7 @@ int pts_slave(int mfd)
 
 struct stat tty_stat;
 
-int spawn(const char *exe)
+int pty_spawn(const char *exe)
 {
 	int mfd, pid, sfd;
 	int uid, gid;
@@ -132,7 +132,7 @@ int spawn(const char *exe)
 #endif /* end of "non-Apple" pts fork */
 }
 
-void restore_ttyp()
+void pty_restore()
 {
 	chown(pty_name, tty_stat.st_uid, tty_stat.st_gid);
 	chmod(pty_name, tty_stat.st_mode);
@@ -168,7 +168,7 @@ struct utmpx ut_entry;
 struct utmp ut_entry;
 #endif
 
-void add_utmp(int spid)
+static void add_utmp(int spid)
 {
 
 	ut_entry.ut_type = USER_PROCESS;
@@ -199,7 +199,7 @@ void add_utmp(int spid)
 #endif
 }
 
-void remove_utmp()
+static void remove_utmp()
 {
 	ut_entry.ut_type = DEAD_PROCESS;
 #ifdef __APPLE__

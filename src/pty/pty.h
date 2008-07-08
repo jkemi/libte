@@ -9,8 +9,8 @@ extern "C" {
  * Spawns program 'exe' in a new pseudo-terminal
  * fd is returned on success, or -1 on error.
  */
-int			spawn(const char* exe);
-void		restore_ttyp();
+int			pty_spawn(const char* exe);
+void		pty_restore(void);
 
 #ifdef __cplusplus
 }
