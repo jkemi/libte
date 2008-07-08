@@ -62,11 +62,17 @@ private:
 	int mode_flags;
 	char tab_stops[GT_MAXWIDTH];
 	const StateOption *current_state;
-	static StateOption normal_state[], esc_state[], bracket_state[];
-	static StateOption cset_shiftin_state[], cset_shiftout_state[];
+
+	static StateOption normal_state[];
+	static StateOption esc_state[];
+	static StateOption bracket_state[];
+	static StateOption cset_shiftin_state[];
+	static StateOption cset_shiftout_state[];
 	static StateOption hash_state[];
-	static StateOption vt52_normal_state[], vt52_esc_state[];
-	static StateOption vt52_cursory_state[], vt52_cursorx_state[];
+	static StateOption vt52_normal_state[];
+	static StateOption vt52_esc_state[];
+	static StateOption vt52_cursory_state[];
+	static StateOption vt52_cursorx_state[];
 
 	// utility functions
 	void update_changes();
