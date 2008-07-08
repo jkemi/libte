@@ -231,11 +231,11 @@ void Fl_Term::DrawStyledText(int xpos, int ypos, int len, const symbol_t* symbol
 		fl_rectf(xp, yp, fw, fh);
 
 		if (attrs & (SYMBOL_BOLD|SYMBOL_BLINK) == (SYMBOL_BOLD|SYMBOL_BLINK)) {
-			fl_font(FL_COURIER_BOLD_ITALIC, (def_fnt_size+2));
+			fl_font(FL_COURIER_BOLD_ITALIC, (def_fnt_size));
 		} else if (attrs & SYMBOL_BOLD) {
-			fl_font(FL_COURIER_BOLD, (def_fnt_size+2));
+			fl_font(FL_COURIER_BOLD, (def_fnt_size));
 		} else if (attrs & SYMBOL_BLINK) {
-			fl_font(FL_COURIER_ITALIC, (def_fnt_size+2));
+			fl_font(FL_COURIER_ITALIC, (def_fnt_size));
 		} else {
 			fl_font(FL_COURIER, def_fnt_size);
 		}
