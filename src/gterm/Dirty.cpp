@@ -21,7 +21,7 @@ void Dirty::_init(uint nrows, uint ncols) {
 	start = new int[nrows];
 	end = new int[nrows];
 
-	for (uint i = 0; i < ncols; i++) {
+	for (uint i = 0; i < nrows; i++) {
 		start[i] = INT_MAX;
 	}
 	memset(end, 0, sizeof(int)*nrows);
