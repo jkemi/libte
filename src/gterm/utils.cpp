@@ -15,6 +15,13 @@ int GTerm::calc_color(int fg, int bg, int flags)
 }
 
 void GTerm::RequestRedraw(int x, int y, int w, int h, bool force) {
+	if (doing_update) {
+		printf("bad update!\n");
+		return;
+	}
+
+	doing_update = 1;
+
 	y = int_clamp(y, 0, height-1);
 	h = int_clamp(h, 0, height-y);
 	x = int_clamp(x, 0, width-1);
@@ -60,7 +67,7 @@ void GTerm::RequestRedraw(int x, int y, int w, int h, bool force) {
 			colno += runlen;
 		}
 */
-		DrawStyledText(dirtstart, y, dirtend-dirtstart, row->data+dirtstart);
+		DrawStyledText(dirtstart, rowno, dirtend-dirtstart, row->data+dirtstart);
 		dirty->cleanse(rowno, dirtstart, dirtend);
     }
 
@@ -85,6 +92,8 @@ void GTerm::RequestRedraw(int x, int y, int w, int h, bool force) {
 			DrawCursor(fg, bg, attrs, xpos, ypos, cp);
 		}
 	}
+
+	doing_update = 0;
 }
 
 void GTerm::update_changes()
@@ -108,40 +117,8 @@ void GTerm::update_changes()
     }
     pending_scroll = 0;
 
-    // then update characters
-    for (int y = 0; y < height; y++) {
-		BufferRow* row = buffer->getRow(y);
+    UpdateNotification();
 
-		const int dirtstart = dirty->start[y];
-		const int dirtend = dirty->end[y];
-
-		if (dirtend-dirtstart <= 0) {
-			continue;
-		}
-
-		blank = !(mode_flags & TEXTONLY);
-
-		DrawStyledText(dirtstart, y, dirtend-dirtstart, row->data+dirtstart);
-
-		dirty->cleanseRow(y);
-    }
-
-	if (!(mode_flags & CURSORINVISIBLE))
-	{
-		int x = cursor_x;
-		if (x >= width) {
-			x = width-1;
-		}
-
-		const symbol_t sym = buffer->getRow(cursor_y)->data[x];
-
-		const symbol_color_t fg = symbol_get_fg(sym);
-		const symbol_color_t bg = symbol_get_fg(sym);
-		const symbol_attributes_t attrs = symbol_get_attributes(sym);
-		const unsigned int cp = symbol_get_codepoint(sym);
-
-		DrawCursor(fg, bg, attrs, x, cursor_y, cp);
-	}
 
     doing_update = 0;
 }
@@ -234,9 +211,14 @@ void GTerm::changed_line(int y, int start_x, int end_x)
 
 void GTerm::move_cursor(int x, int y)
 {
-	if (cursor_x>=width) cursor_x = width-1;
-	if (cursor_y>=height) cursor_y = height-1; // imm
+	if (cursor_x >= width) {
+		cursor_x = width-1;
+	}
+	if (cursor_y >= height) {
+		cursor_y = height-1;
+	}
 	changed_line(cursor_y, cursor_x, cursor_x);
+
 	cursor_x = x;
 	cursor_y = y;
 }
