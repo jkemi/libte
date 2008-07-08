@@ -133,7 +133,7 @@ void GTerm::clear_param()
 	nparam = 0;
 	memset(param, 0, sizeof(param));
 	q_mode = 0;
-	got_param = 0;
+	got_param = false;
 }
 
 void GTerm::keypad_numeric() { clear_mode_flag(KEYAPPMODE); }
@@ -213,7 +213,7 @@ void GTerm::set_quote_mode()
 // for performance, this grabs all digits
 void GTerm::param_digit()
 {
-	got_param = 1;
+	got_param = true;
 	param[nparam] = param[nparam]*10 + (*input_data)-'0';
 }
 

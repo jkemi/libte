@@ -82,7 +82,8 @@ private:
 
 	// action parameters
 	int nparam, param[30];
-	int q_mode, got_param, quote_mode;
+	int q_mode, quote_mode;
+	bool got_param;	// unused!?
 
 	const unsigned char*	input_data;
 	int						input_remaining;
