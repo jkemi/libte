@@ -97,6 +97,9 @@ GTerm::GTerm(int w, int h) : width(w), height(h)
 	save_y = 0;
 	mode_flags = 0;
 	reset();
+
+	fg_color = 7;
+	bg_color = 0;
 }
 
 GTerm::~GTerm()
