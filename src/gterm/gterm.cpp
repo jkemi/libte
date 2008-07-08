@@ -16,7 +16,7 @@ void GTerm::Update()
 void GTerm::ProcessInput(int len, const unsigned char *data)
 {
 	int i;
-	StateOption *last_state;
+	const StateOption *last_state;
 
 	data_len = len;
 	input_data = data;

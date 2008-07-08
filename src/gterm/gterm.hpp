@@ -22,9 +22,9 @@ class GTerm;
 typedef void (GTerm::*StateFunc)();
 
 struct StateOption {
-	int				byte;		// char value to look for; -1==end/default
-	StateFunc		action;
-	StateOption* 	next_state;
+	int					byte;		// char value to look for; -1==end/default
+	StateFunc			action;
+	const StateOption* 	next_state;
 };
 
 class GTerm {
@@ -61,7 +61,7 @@ private:
 	int fg_color, bg_color;
 	int mode_flags;
 	char tab_stops[GT_MAXWIDTH];
-	StateOption *current_state;
+	const StateOption *current_state;
 	static StateOption normal_state[], esc_state[], bracket_state[];
 	static StateOption cset_shiftin_state[], cset_shiftout_state[];
 	static StateOption hash_state[];
