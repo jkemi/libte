@@ -22,10 +22,7 @@
 	static int def_fnt_size = 15;
 #endif
 
-// set this to show the diagnostic raw text output view
-//#define SHOW_DIAG
-
-// Set this to use deffered rather than direct terminal updates
+// Set this to use deferred rather than direct terminal updates
 //#define USE_DEFERUPDATE
 
 /************************************************************************/
@@ -125,26 +122,9 @@ int main(int argc, char **argv)
 	// ought to be the only object the user has to see... Multiple inheritance maybe?
 	gterm_if *termIO = termBox->get_gterm();
 
-#ifdef SHOW_DIAG
-	// create the diagnostic window and list text widget
-	diag_win = new Fl_Double_Window(600, 600);
-	diag_win->begin();
-
-	listall = new text_box(5, 5, 590, 590);
-	listall->box(FL_DOWN_BOX);
-
-	diag_win->end();
-	diag_win->resizable(listall);
-
-	// Add the diagnostic window to the Fl_Term
-	termBox->set_listview(listall);
-#endif
 
 	// show the windows
 	main_win->show(argc, argv);
-#ifdef SHOW_DIAG
-	diag_win->show();
-#endif
 
 	// Give the terminal the focus by default
 	Fl::focus(termBox);
@@ -165,11 +145,11 @@ int main(int argc, char **argv)
 
 	/* configure terminal for deferred display updates */
 #ifdef USE_DEFERUPDATE
-	termIO->set_mode_flag(GTerm::DEFERUPDATE);   // enable deffered update
+	termIO->set_mode_flag(GTerm::DEFERUPDATE);   // enable deferred update
 	// basic timeout to poll the terminal for refresh - do this if we select DEFERUPDATE
 	Fl::add_timeout(0.3, upd_term_cb, (void *)termIO);
 #else
-	termIO->clear_mode_flag(GTerm::DEFERUPDATE); // disable deffered - direct updates are used
+	termIO->clear_mode_flag(GTerm::DEFERUPDATE); // disable deferred - direct updates are used
 #endif
 
 //	termIO->set_mode_flag(GTerm::TEXTONLY);    // enable "Text Only" mode
