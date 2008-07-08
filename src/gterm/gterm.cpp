@@ -15,29 +15,27 @@ void GTerm::Update()
 
 void GTerm::ProcessInput(int len, const unsigned char *data)
 {
-	int i;
-	const StateOption *last_state;
-
 	input_remaining = len;
 	input_data = data;
 
 	while (input_remaining > 0) {
-		i = 0;
-		while (current_state[i].byte != -1 &&
-		       current_state[i].byte != *input_data) i++;
+		const StateOption* state = current_state;
+		while (state->byte != -1 && state->byte != *input_data) {
+			state++;
+		}
 
 		// action must be allowed to redirect state change
-		last_state = current_state+i;
-		current_state = last_state->next_state;
-		if (last_state->action) {
-			(this->*(last_state->action))();
+		current_state = state->next_state;
+		if (state->action) {
+			(this->*(state->action))();
 		}
 		input_data++;
 		input_remaining--;
 	}
 
-	if (!is_mode_set(DEFERUPDATE) || (pending_scroll > scroll_bot-scroll_top))
+	if (!is_mode_set(DEFERUPDATE) || pending_scroll > scroll_bot-scroll_top) {
 		update_changes();
+	}
 }
 
 void GTerm::Reset()
