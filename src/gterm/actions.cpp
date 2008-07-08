@@ -13,7 +13,9 @@ void GTerm::normal_input()
 char str[100];
 #endif
 
-	if (*input_data < 32) return;
+	if (*input_data < 32) {
+		return;
+	}
 
 	if (cursor_x >= width) {
 		if (mode_flags & NOEOLWRAP) {
@@ -25,7 +27,7 @@ char str[100];
 
 	n = 0;
 	if (mode_flags & NOEOLWRAP) {
-		while ((input_data[n] > 31) && (n < data_len)) {
+		while ((input_data[n] > 31) && (n < input_remaining)) {
 			n++;
 		}
 		n_taken = n;
@@ -33,7 +35,7 @@ char str[100];
 			n = width-cursor_x;
 		}
 	} else {
-		while ((input_data[n] > 31) && (n < data_len) && (cursor_x + n<width)) {
+		while ((input_data[n] > 31) && (n < input_remaining) && (cursor_x + n<width)) {
 			n++;
 		}
 		n_taken = n;
@@ -71,7 +73,7 @@ printf("Text -%s-  (%d, %d)\n", str, cursor_x, cursor_y);
 #endif
 
 	input_data += n_taken-1;
-	data_len -= n_taken-1;
+	input_remaining -= n_taken-1;
 }
 
 void GTerm::cr()

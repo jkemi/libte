@@ -81,8 +81,10 @@ private:
 
 	// action parameters
 	int nparam, param[30];
-	const unsigned char *input_data;
-	int data_len, q_mode, got_param, quote_mode;
+	int q_mode, got_param, quote_mode;
+
+	const unsigned char*	input_data;
+	int						input_remaining;
 
 	// terminal actions
 	void normal_input();

@@ -18,10 +18,10 @@ void GTerm::ProcessInput(int len, const unsigned char *data)
 	int i;
 	const StateOption *last_state;
 
-	data_len = len;
+	input_remaining = len;
 	input_data = data;
 
-	while (data_len > 0) {
+	while (input_remaining > 0) {
 		i = 0;
 		while (current_state[i].byte != -1 &&
 		       current_state[i].byte != *input_data) i++;
@@ -33,7 +33,7 @@ void GTerm::ProcessInput(int len, const unsigned char *data)
 			(this->*(last_state->action))();
 		}
 		input_data++;
-		data_len--;
+		input_remaining--;
 	}
 
 	if (!(mode_flags & DEFERUPDATE) || (pending_scroll > scroll_bot-scroll_top))
