@@ -57,15 +57,24 @@ void GTerm::ExposeArea(int x, int y, int w, int h)
 
 void GTerm::ResizeTerminal(int w, int h)
 {
-	int cx, cy;
-	clear_area(int_min(width,w), 0, GT_MAXWIDTH-1, GT_MAXHEIGHT-1);
-	clear_area(0, int_min(height,h), int_min(width,w)-1, GT_MAXHEIGHT-1);
+	bool* newtabs = new bool[w];
+	if (w > width) {
+		memset(newtabs+width, 0, sizeof(bool)*(width-w));
+	}
+	memcpy(newtabs, tab_stops, sizeof(bool)*int_min(width,w));
+	tab_stops = newtabs;
+
+	clear_area(int_min(width,w), 0, int_max(width,w)-1, h-1);
+	clear_area(0, int_min(height,h), w-1, int_min(height,h)-1);
+
 	width = w;
 	height = h;
 	scroll_bot = height-1;
-	if (scroll_top >= height) scroll_top = 0;
-	cx = int_min(width-1, cursor_x);
-	cy = int_min(height-1, cursor_y);
+	if (scroll_top >= height) {
+		scroll_top = 0;
+	}
+	int cx = int_min(width-1, cursor_x);
+	int cy = int_min(height-1, cursor_y);
 	move_cursor(cx, cy);
 
 	buffer->reshape(h, w);
@@ -78,6 +87,9 @@ GTerm::GTerm(int w, int h) : width(w), height(h)
 
 	buffer = new Buffer(h, w);
 	dirty = new Dirty(h, w);
+
+	tab_stops = new bool[w];
+	memset(tab_stops, 0, sizeof(bool)*w);
 
 	cursor_x = 0;
 	cursor_y = 0;

@@ -157,7 +157,7 @@ void GTerm::restore_cursor()
 
 void GTerm::set_tab()
 {
-	tab_stops[cursor_x] = 1;
+	tab_stops[cursor_x] = true;
 }
 
 void GTerm::index_down()
@@ -186,7 +186,7 @@ void GTerm::reset()
 	fg_color = 7;
 	scroll_top = 0;
 	scroll_bot = height-1;
-	memset(tab_stops, 0, sizeof(tab_stops));
+	memset(tab_stops, 0, sizeof(bool)*width);
 	current_state = GTerm::normal_state;
 
 	clear_mode_flag(NOEOLWRAP | CURSORAPPMODE | CURSORRELATIVE |
@@ -470,7 +470,7 @@ void GTerm::clear_tab()
 	if (param[0] == 3) {
 		memset(tab_stops, 0, sizeof(tab_stops));
 	} else if (param[0] == 0) {
-		tab_stops[cursor_x] = 0;
+		tab_stops[cursor_x] = false;
 	}
 }
 

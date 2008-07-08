@@ -14,10 +14,6 @@ class Buffer;
 class Dirty;
 
 
-#define GT_MAXWIDTH 200
-#define GT_MAXHEIGHT 100
-
-
 class GTerm;
 typedef void (GTerm::*StateFunc)();
 
@@ -60,7 +56,7 @@ private:
 	int save_x, save_y, save_attrib;
 	int fg_color, bg_color;
 	int mode_flags;
-	char tab_stops[GT_MAXWIDTH];
+	bool* tab_stops;
 	const StateOption* current_state;
 
 	static StateOption normal_state[];
