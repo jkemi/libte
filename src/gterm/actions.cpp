@@ -9,15 +9,11 @@
 // the end of the line or end of buffer
 void GTerm::normal_input()
 {
-	int n, n_taken, i;
-#if 0
-char str[100];
-#endif
-
 	if (*input_data < 32) {
 		return;
 	}
 
+	// this check doesn't work and should probably not be here to begin with...
 	if (cursor_x >= width) {
 		if (is_mode_set(NOEOLWRAP)) {
 			cursor_x = width-1;
@@ -26,32 +22,29 @@ char str[100];
 		}
 	}
 
-	n = 0;
+	// Count number of consumed bytes and number of bytes to print
+	int n = 0;		// number of bytes to draw
+	int n_taken;	// number of bytes consumed from input data stream
 	if (is_mode_set(NOEOLWRAP)) {
-		while ((input_data[n] > 31) && (n < input_remaining)) {
+		while (n < input_remaining && input_data[n] > 31) {
 			n++;
 		}
 		n_taken = n;
-		if (cursor_x+n >= width) {
+		if (n >= width-cursor_x) {
 			n = width-cursor_x;
 		}
 	} else {
-		while ((input_data[n] > 31) && (n < input_remaining) && (cursor_x + n<width)) {
+		const int sz = int_min(input_remaining, width-cursor_x);
+		while (n < sz && input_data[n] > 31) {
 			n++;
 		}
 		n_taken = n;
 	}
 
-#if 0
-memcpy(str, input_data, n);
-str[n] = 0;
-//printf("Processing %d characters (%d): %s\n", n, str[0], str);
-#endif
-
-	// TODO: fixup
+	// TODO: remove temporary stack buffer from here..
 	symbol_t syms[n];
 	symbol_t style = symbol_make_style(fg_color, bg_color, attributes);
-	for (i = 0; i < n; i++) {
+	for (int i = 0; i < n; i++) {
 		const symbol_t sym = style | input_data[i];
 		syms[i] = sym;
 	}
@@ -66,13 +59,8 @@ str[n] = 0;
 	}
 
 	cursor_x += n;
-#if 0
-printf("Processing %d characters (%d) [x%03x]: %s\n", n, str[0], c, str);
-//snprintf(str, n+1, "%s", &text[sv]);
-snprintf(str, n_taken+1, "%s", &text[sv]);
-printf("Text -%s-  (%d, %d)\n", str, cursor_x, cursor_y);
-#endif
 
+	// TODO: why -1 ??
 	input_data += n_taken-1;
 	input_remaining -= n_taken-1;
 }
@@ -99,17 +87,21 @@ void GTerm::ff()
 
 void GTerm::tab()
 {
-	int i, x = 0;
+	int x = -1;
 
-	for (i=cursor_x+1; i<width && !x; i++) {
+	// find nearest set tab-stop
+	for (int i = cursor_x+1; i < width; i++) {
 		if (tab_stops[i]) {
 			x = i;
+			break;
 		}
 	}
 
-	if (!x) {
-		x = (cursor_x+8) & -8;
+	// set tab-stop not found, use 8 spaces
+	if (x < 0) {
+		x = (cursor_x+7) & ~0x7;
 	}
+
 	if (x < width) {
 		move_cursor(x, cursor_y);
 	} else {
@@ -123,7 +115,9 @@ void GTerm::tab()
 
 void GTerm::bs()
 {
-	if (cursor_x>0) move_cursor(cursor_x-1, cursor_y);
+	if (cursor_x > 0) {
+		move_cursor(cursor_x-1, cursor_y);
+	}
 	if (is_mode_set(DESTRUCTBS)) {
 	    clear_area(cursor_x, cursor_y, cursor_x, cursor_y);
 	}
@@ -170,7 +164,8 @@ void GTerm::index_down()
 
 void GTerm::next_line()
 {
-	lf(); cr();
+	lf();
+	cr();
 }
 
 void GTerm::index_up()
