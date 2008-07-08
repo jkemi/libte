@@ -15,7 +15,7 @@ StateOption GTerm::normal_state[] = {
     { 8,  &GTerm::bs,		normal_state },
     { 7,  &GTerm::bell,		normal_state },
 	{ 27, 0,				esc_state },
-    { -1, &GTerm::normal_input,    normal_state} };
+    { -1, &GTerm::normal_input,	normal_state} };
 
 StateOption GTerm::esc_state[] = {
     { '[', &GTerm::clear_param,			bracket_state },

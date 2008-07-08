@@ -61,7 +61,7 @@ private:
 	int fg_color, bg_color;
 	int mode_flags;
 	char tab_stops[GT_MAXWIDTH];
-	const StateOption *current_state;
+	const StateOption* current_state;
 
 	static StateOption normal_state[];
 	static StateOption esc_state[];

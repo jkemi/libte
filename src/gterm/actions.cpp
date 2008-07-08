@@ -98,8 +98,15 @@ void GTerm::tab()
 {
 	int i, x = 0;
 
-	for (i=cursor_x+1; i<width && !x; i++) if (tab_stops[i]) x = i;
-	if (!x) x = (cursor_x+8) & -8;
+	for (i=cursor_x+1; i<width && !x; i++) {
+		if (tab_stops[i]) {
+			x = i;
+		}
+	}
+
+	if (!x) {
+		x = (cursor_x+8) & -8;
+	}
 	if (x < width) {
 		move_cursor(x, cursor_y);
 	} else {
