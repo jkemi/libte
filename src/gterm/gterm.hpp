@@ -51,9 +51,10 @@ private:
 
 	// terminal state
 	int cursor_x, cursor_y;
-	int save_x, save_y, save_attrib;
+	int save_x, save_y;
 	int fg_color, bg_color;
 	symbol_attributes_t	attributes;
+	symbol_attributes_t stored_attributes;
 	int mode_flags;
 	bool* tab_stops;
 	const StateOption* current_state;

@@ -147,14 +147,14 @@ void GTerm::keypad_application() { set_mode_flag(KEYAPPMODE); }
 
 void GTerm::save_cursor()
 {
-	save_attrib = mode_flags;
+	stored_attributes = attributes;
 	save_x = cursor_x;
 	save_y = cursor_y;
 }
 
 void GTerm::restore_cursor()
 {
-	mode_flags = (mode_flags & ~15) | (save_attrib & 15);
+	attributes = stored_attributes;
 	move_cursor(save_x, save_y);
 }
 
