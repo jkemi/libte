@@ -85,8 +85,8 @@ private:
 	int q_mode, quote_mode;
 	bool got_param;	// unused!?
 
-	const unsigned char*	input_data;
-	int						input_remaining;
+	const int32_t*	input_data;
+	int				input_remaining;
 
 	// terminal actions
 	void normal_input();
@@ -146,7 +146,7 @@ public:
 	/**
 	 * Output from child program is sent here.
 	 */
-	virtual void ProcessInput(int len, const unsigned char *data);
+	virtual void ProcessInput(int len, const int32_t* data);
 
 	virtual void ResizeTerminal(int width, int height);
 	int Width() { return width; }

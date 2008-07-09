@@ -13,7 +13,7 @@ void GTerm::Update()
 	update_changes();
 }
 
-void GTerm::ProcessInput(int len, const unsigned char *data)
+void GTerm::ProcessInput(int len, const int32_t* data)
 {
 	input_remaining = len;
 	input_data = data;
@@ -24,6 +24,7 @@ void GTerm::ProcessInput(int len, const unsigned char *data)
 			state++;
 		}
 
+		// TODO: is the below comment a request, a fact or what?
 		// action must be allowed to redirect state change
 		current_state = state->next_state;
 		if (state->action) {
