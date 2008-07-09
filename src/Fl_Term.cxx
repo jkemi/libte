@@ -148,12 +148,10 @@ void Fl_Term::resize(int x, int y, int W, int H)
 /************************************************************************/
 void Fl_Term::draw(void)
 {
-	// TODO: this border width/height hack must die!
-	int wd = w() - 4;
-	int ht = h() - 4;
-
-	int xo = x() + 2;
-	int yo = y() + 2;
+	const int xo = x() + Fl::box_dx(this->box());
+	const int yo = y() + Fl::box_dy(this->box());
+	const int wd = w() - Fl::box_dw(this->box());
+	const int ht = h() - Fl::box_dh(this->box());
 
 	Fl_Box::draw();
 	fl_push_clip(xo, yo, wd, ht);
@@ -161,6 +159,7 @@ void Fl_Term::draw(void)
 	fl_color(FL_BLACK);
 	fl_rectf(xo, yo, wd, ht);
 
+	// TODO: fix nrows ncols etc here
 	this->gt->RequestRedraw(0, 0, 80, 50, true);
 
 	// restore the clipping rectangle...
@@ -181,10 +180,8 @@ void Fl_Term::DrawText(int fg_color, int bg_color, int flags,
 } // DrawText
 
 void Fl_Term::DrawStyledText(int xpos, int ypos, int len, const symbol_t* symbols) {
-	// TODO: this border width/height hack must die!
-	int xo = x() + 2;
-	int yo = y() + 2;
-
+	const int xo = x() + Fl::box_dx(this->box());
+	const int yo = y() + Fl::box_dy(this->box());
 
 	// Now prepare to draw the actual terminal text
 	fl_font(FL_COURIER, def_fnt_size);
@@ -246,9 +243,8 @@ void Fl_Term::MoveChars(int sx, int sy, int dx, int dy, int w, int h)
 void Fl_Term::DrawCursor(int fg_color, int bg_color, int flags,
                 int xpos, int ypos, unsigned char c)
 {
-	// TODO: this border width/height hack must die!
-	int xo = x() + 2;
-	int yo = y() + 2;
+	const int xo = x() + Fl::box_dx(this->box());
+	const int yo = y() + Fl::box_dy(this->box());
 
 	const int xp = (int)( xo + (float)cw * xpos);
 	const int yp = (int)( yo + (float)fh * ypos);
