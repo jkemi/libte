@@ -20,7 +20,7 @@ void GTerm::ProcessInput(int len, const int32_t* data)
 
 	while (input_remaining > 0) {
 		const StateOption* state = current_state;
-		while (state->byte != -1 && state->byte != *input_data) {
+		while (state->cp != -1 && state->cp != *input_data) {
 			state++;
 		}
 

@@ -18,7 +18,7 @@ class GTerm;
 typedef void (GTerm::*StateFunc)();
 
 struct StateOption {
-	int					byte;		// char value to look for; -1==end/default
+	int					cp;		// codepoint value to look for; -1==end/default
 	StateFunc			action;
 	const StateOption* 	next_state;
 };
