@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+// TODO: SYMBOL_UNDERLINE will exceed 32 bits.. should be fixed somehow
+
 // Contains one ISO10646 character with color information
 // and flags.
 //
@@ -63,7 +65,6 @@ static inline symbol_t symbol_set_bg(symbol_t sym, symbol_color_t col) {
 	return sym | ((symbol_t)col << 25);
 }
 
-// TODO: don't ignore flags...
 static inline symbol_t symbol_make_style(symbol_color_t fg, symbol_color_t bg, symbol_attributes_t attributes) {
 	return ((symbol_t)bg)<<25 | ((symbol_t)fg)<<22 | ((symbol_t)attributes)<<28;
 }
