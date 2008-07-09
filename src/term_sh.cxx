@@ -6,6 +6,10 @@
 #include <fcntl.h>
 #include <errno.h>
 
+#include <locale.h>
+#include <string.h>
+#include <wchar.h>
+
 #include <stdint.h>
 
 #include <FL/Fl.H>
@@ -22,44 +26,97 @@
 	static int def_fnt_size = 15;
 #endif
 
+static int str_from_locale_n(int32_t* dest, const char* locstr, size_t dest_size, size_t src_size, size_t* nwritten, size_t* nread) {
+	mbstate_t ps;
+	memset(&ps, 0, sizeof(mbstate_t));
+
+	// Convert string
+	size_t bytesleft = src_size;
+	size_t destleft = dest_size;
+	for (const char* s = locstr; destleft > 0 && bytesleft > 0; dest++) {
+		wchar_t wchar;
+		size_t nbytes = mbrtowc(&wchar, s, bytesleft, &ps);
+		if (nbytes < 0) {
+			if (nbytes == (size_t)-1) {
+				// invalid sequence
+				return -1;
+			}
+			if (nbytes == (size_t)-2) {
+				// incomplete sequence
+				break;
+			}
+		}
+		if (nbytes == 0) {
+			// L'\0' decoded
+			return -1;
+		}
+		*dest = wchar;
+		bytesleft -= nbytes;
+		s += nbytes;
+		destleft--;
+	}
+
+
+	*nwritten = dest_size-destleft;
+	*nread = src_size-bytesleft;
+
+	return 0;
+}
+
+
+
 // Set this to use deferred rather than direct terminal updates
 //#define USE_DEFERUPDATE
 
 /************************************************************************/
-Fl_Double_Window *main_win = NULL;
-Fl_Double_Window *diag_win = NULL;
-Fl_Term *termBox;
-int pty_fd = -1;
+static Fl_Double_Window *main_win = NULL;
+static Fl_Double_Window *diag_win = NULL;
+static Fl_Term *termBox;
+static int pty_fd = -1;
+
+#define BUFSIZE		1024
+static char			buf[BUFSIZE];
+static size_t		buffill = 0;
 
 /************************************************************************/
 
 /**
  * Called whenever input is received from pty process.
  */
-void mfd_cb(int mfd, void *v)
+static void mfd_cb(int mfd, void *v)
 {
 	gterm_if *termIO = (gterm_if *)v;
-	uint8_t buf[4096];
-	int i = read(mfd, buf, 4096);
-	if (i > 0)
-		termIO->ProcessInput(i, buf);
 
-	if (i <= 0) // Possible exit...
-	{
+	size_t bytesread;
+
+	bytesread = read(mfd, buf+buffill, (BUFSIZE-buffill)*sizeof(unsigned char));
+	buffill += bytesread;
+
+	int32_t	cpbuf[1024];
+	size_t cpcount;
+
+	if (str_from_locale_n(cpbuf, buf, 1024, buffill, &cpcount, &bytesread) != 0) {
 		main_win->hide();
-		if (diag_win) diag_win->hide();
+		if (diag_win) {
+			diag_win->hide();
+		}
+	} else {
+		termIO->ProcessInput(cpcount, cpbuf);
+		const size_t remaining = buffill-bytesread;
+		memcpy(buf, buf+bytesread, remaining);
+		buffill = remaining;
 	}
 }
 
 /************************************************************************/
-void upd_term_cb(void *v)
+static void upd_term_cb(void *v)
 {
 	gterm_if *termIO = (gterm_if *)v;
 	termIO->Update();
 	Fl::repeat_timeout(0.1, upd_term_cb, v);
 }
 /************************************************************************/
-void quit_cb(Fl_Button *, void *)
+static void quit_cb(Fl_Button *, void *)
 {
 	char str[] = "exit\n";
 	int count = strlen(str);
@@ -74,6 +131,8 @@ void quit_cb(Fl_Button *, void *)
 /************************************************************************/
 int main(int argc, char **argv)
 {
+	setlocale(LC_ALL, "");
+
 	int mfd; // master fd for pty
 
 	// measure the default font, determine how big to make the terminal window
