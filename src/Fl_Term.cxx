@@ -249,9 +249,8 @@ void Fl_Term::DrawCursor(int fg_color, int bg_color, int flags,
 	const int xp = (int)( xo + (float)cw * xpos);
 	const int yp = (int)( yo + (float)fh * ypos);
 
-	// TODO: use fl_width() or fl_descent() or something at least..
-	const int w = 10;
-	const int h = 16;
+	const int w = fw;
+	const int h = fh;
 
 	const Fl_Color fg = col_table[fg_color];
 	const Fl_Color bg = col_table[bg_color];
