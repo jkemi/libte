@@ -16,8 +16,8 @@ class Fl_Term;
 class gterm_if : public GTerm
 {
 protected:
-	Fl_Term *termBox; // points to parent Fl_Term instance
-	int write_fd;
+	Fl_Term		*termBox; // points to parent Fl_Term instance
+	int			write_fd;
 
 public:
 	// constructor
@@ -52,8 +52,11 @@ protected:
 	int def_fnt_size;
 	gterm_if *gt;
 
+private:
+	const char* _handle_keyevent(void);
+
 public:
-	// constrctor
+	// constructor
 	Fl_Term(int fs, int X, int Y, int W, int H, const char *L=0);
 
 	// handle keyboard etc.

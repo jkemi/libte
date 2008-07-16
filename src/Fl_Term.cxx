@@ -1,13 +1,11 @@
-
-#include "Fl_Term.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-
-#include "Fl_Term.h"
+#include <wchar.h>
 
 #include "flkeys.h"
+
+#include "Fl_Term.h"
 
 // VT100 color table - map Colors to FL-colors:
 static Fl_Color col_table[] =
@@ -54,80 +52,95 @@ Fl_Term::Fl_Term(int sz, int X, int Y, int W, int H, const char *L) : Fl_Box(X,Y
 
 } // Fl_Term constructor
 
+const char* Fl_Term::_handle_keyevent(void) {
+	const int keysym = Fl::event_key();
+
+	switch (keysym) {
+	case FL_BackSpace:
+		return "\010";		// ^H
+
+	case FL_Enter:
+		if(gt->GetMode() & GTerm::NEWLINE) {
+			return "\r\n";	// send CRLF if GTerm::NEWLINE is set
+		} else {
+			return "\r";	// ^M (CR)
+		}
+
+	case FL_Escape:
+		return "\033";		// ESC
+
+	case FL_Tab:
+		return "\t";		// ^I (tab)
+
+	}
+	// OK, still not done - lets try looking up the VT100 key mapping tables...
+	// Also - how to handle the "windows" key on PC style kbds?
+	const keyseq* tables[] = {keypadkeys, cursorkeys, otherkeys, NULL};
+
+	for (const keyseq** table = tables; *table != NULL; table++) {
+		const char* str = find_key(keysym, *table);
+		if (str) {
+			return str;
+		}
+	}
+
+	if (Fl::event_length() == 1) {
+		static char buf[8];
+		memset(buf, 0, sizeof(char)*8);
+
+		mbstate_t ps = {0};
+		uint32_t cp = Fl::event_text()[0];
+		const size_t mblen = wcrtomb(buf, cp, &ps);
+		if (mblen > 0) {
+			buf[mblen] = '\0';
+			return buf;
+		}
+	}
+
+	return NULL;
+/*
+	const int keylen = Fl::event_length();
+
+	if (el) {
+		key_c = Fl::event_text()[0]; // probably a dodgy assumption...
+	}
+	if((key >= ' ') && (key <= '~')) { // simple ASCII
+		if ((key >= 'a') && (key <= 'z')) {
+			if (Fl::event_ctrl()) { // ctrl-key
+				key_c = key - 0x60;
+			}
+		// Also need to do something about ALT and META at this point...
+		}
+		txt[0] = key_c & 0x7F;
+		gt->SendBack(txt);
+		return 1;
+	}
+	return 1; // return 1 for FL_KEYBOARD even if we don't know what they key is for!
+	*/
+
+}
+
 /************************************************************************/
 // handle keyboard focus etc
-int Fl_Term::handle(int ev)
+int Fl_Term::handle(int event)
 {
-	int key, el;
-	char key_c = 0;
-	const char *str = NULL;
-	char txt[2]; txt[1] = 0;
-	switch (ev)
-	{
+	switch (event) {
 	case FL_FOCUS:
 	case FL_UNFOCUS:
-	return 1;
-
-	case FL_KEYBOARD:
-		el = Fl::event_length();
-		key = Fl::event_key();
-
-		if(el) key_c = Fl::event_text()[0]; // probably a dodgy assumption...
-		if((key >= ' ') && (key <= '~')) // simple ASCII
-		{
-			if ((key >= 'a') && (key <= 'z'))
-			{
-				if (Fl::event_ctrl()) // ctrl-key
-					key_c = key - 0x60;
-			// Also need to do something about ALT and META at this point...
-			}
-			txt[0] = key_c & 0x7F;
-			gt->SendBack(txt);
+		return 1;
+	case FL_KEYBOARD: {
+		const char* str = _handle_keyevent();
+		if (str != NULL) {
+			gt->SendBack(str);
 			return 1;
+		} else {
+			return 0;
 		}
-		// Hmm, if we get here, it's probably not a simple printable key...
-		switch (key)
-		{
-		case FL_BackSpace:
-			gt->SendBack("\010"); // ^H
-			return 1;
-
-		case FL_Enter:
-			if(gt->GetMode() & GTerm::NEWLINE)
-				gt->SendBack("\r\n"); // send CRLF if GTerm::NEWLINE is set
-			else
-				gt->SendBack("\r"); // ^M (CR)
-			return 1;
-
-		case FL_Escape:
-			gt->SendBack("\033"); // ESC
-			return 1;
-
-		case FL_Tab:
-			gt->SendBack("\t"); // ^I (tab)
-			return 1;
-
-		// OK, still not done - lets try looking up the VT100 key mapping tables...
-		// Also - how to handle the "windows" key on PC style kbds?
-		default:
-			str = find_key(key, keypadkeys);
-			if (!str) {
-				str = find_key(key, cursorkeys);
-			}
-			if (!str) {
-				str = find_key(key, otherkeys);
-			}
-			if (str) {
-				gt->SendBack(str);
-			}
-			break;
-		} // end of "key" switch
-		return 1; // return 1 for FL_KEYBOARD even if we don't know what they key is for!
-
-	default: // Any event we don't care about
+		break;
+	}
+	default:
 		return 0;
-	}// end of event switch
-	return 0; // should never get here anyway...
+	}
 }
 
 /************************************************************************/
