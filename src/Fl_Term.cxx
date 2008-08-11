@@ -2,14 +2,15 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <wchar.h>
+#include <errno.h>
 
 #include "flkeys.h"
 
 #include "Fl_Term.h"
 
 // VT100 color table - map Colors to FL-colors:
-static Fl_Color col_table[] =
-{	FL_BLACK,
+static Fl_Color col_table[] = {
+	FL_BLACK,
 	FL_RED,
 	FL_GREEN,
 	FL_YELLOW,
@@ -22,7 +23,8 @@ static Fl_Color col_table[] =
 	FL_DARK_RED,
 	FL_DARK_YELLOW,
 	FL_DARK_GREEN,
-	FL_DARK_MAGENTA };
+	FL_DARK_MAGENTA
+};
 
 
 /************************************************************************/
@@ -47,10 +49,70 @@ Fl_Term::Fl_Term(int sz, int X, int Y, int W, int H, const char *L) : Fl_Box(X,Y
 
 	// Create the GTerm
 	// determine how big the terminal widget actually is, and create a GTerm to fit
-	printf("TS: %d %d\n", tw, th);
 	gt = new gterm_if(this, tw, th);
 
-} // Fl_Term constructor
+	// TODO: something weird here:
+	// FLTK-1.1 _should_ really return iso8859-1 in event_text() but gives us UTF8 instead
+	// also we don't want UCS-4LE on a big-endian machine...
+	_fltk_to_cp = iconv_open("UCS-4LE", "UTF8");
+	if (_fltk_to_cp == (iconv_t)-1) {
+		// TODO: handle somehow
+		exit(1);
+	}
+}
+
+Fl_Term::~Fl_Term() {
+	delete gt;
+	iconv_close(_fltk_to_cp);
+}
+
+// TODO: remove this when unused...
+static void _dump(const char* label, const char* text, size_t len) {
+	printf("%s", label);
+	for (unsigned int i = 0; i < len; i++) {
+		printf("0x%02x ", text[i]);
+	}
+	printf("\n");
+}
+
+int32_t Fl_Term::_fltkToCP(const char* text, size_t len) {
+	_dump("in: ", text, len);
+
+/*	int deleted;
+	if (Fl::compose(deleted) == false) {
+		return -1;
+	}
+
+	printf ("deleted: %d\n", deleted);*/
+
+	char* inbuf = (char*)text;
+	size_t inleft = len;
+
+	int32_t cp = -1;
+	char* outbuf = (char*)&cp;
+	size_t outleft = sizeof(int32_t);
+
+	// reinitialize iconv state
+	iconv(_fltk_to_cp, NULL, NULL, NULL, NULL);
+
+	size_t result = iconv(_fltk_to_cp, &inbuf, &inleft, &outbuf, &outleft);
+
+	if (result == (size_t)-1) {
+		int err = errno;
+		printf("not good: %d %s\n", err, strerror(err));
+		return -1;
+	}
+
+	size_t written = (size_t)((uintptr_t)outbuf - (uintptr_t)&cp);
+
+	printf ("result: %d %p, %p: %d\n", (int)result, &cp, outbuf, (int)written);
+
+	if (written > 0) {
+		return cp;
+	} else {
+		return -1;
+	}
+}
 
 const char* Fl_Term::_handle_keyevent(void) {
 	const int keysym = Fl::event_key();
@@ -84,16 +146,39 @@ const char* Fl_Term::_handle_keyevent(void) {
 		}
 	}
 
-	if (Fl::event_length() == 1) {
-		static char buf[8];
-		memset(buf, 0, sizeof(char)*8);
+	if (Fl::event_length() > 0) {
 
-		mbstate_t ps = {0};
-		uint32_t cp = Fl::event_text()[0];
-		const size_t mblen = wcrtomb(buf, cp, &ps);
-		if (mblen > 0) {
-			buf[mblen] = '\0';
-			return buf;
+		// TODO: this magic should probably be MB_CUR_MAX+1 instead..
+		const size_t bufsz = 8;
+
+		static char buf[bufsz];
+		memset(buf, 0, sizeof(char)*bufsz);
+
+		/*
+		int ndeleted;
+		if (Fl::compose(ndeleted) == false) {
+			printf("compose() == false, %d\n", ndeleted);
+			return NULL;
+		}
+		*/
+
+		char* dest;
+		if (Fl::event_alt()) {
+			buf[0] = '\033';
+			dest = buf+1;
+		} else {
+			dest = buf;
+		}
+
+		const int32_t cp = _fltkToCP(Fl::event_text(), Fl::event_length());
+		printf("cp was: %d\n", cp);
+		if (cp >= 0) {
+			mbstate_t ps = {0};
+			const size_t mblen = wcrtomb(dest, cp, &ps);
+			if (mblen > 0) {
+				dest[mblen] = '\0';
+				return buf;
+			}
 		}
 	}
 

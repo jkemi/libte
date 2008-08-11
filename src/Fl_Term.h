@@ -1,6 +1,8 @@
 #ifndef HAVE_FL_TERM_HDR
 #define HAVE_FL_TERM_HDR
 
+#include <iconv.h>
+
 #include <FL/Fl.H>
 #include <FL/Fl_Box.H>
 #include <FL/fl_draw.H>
@@ -52,12 +54,16 @@ protected:
 	int def_fnt_size;
 	gterm_if *gt;
 
+	iconv_t		_fltk_to_cp;
+
 private:
-	const char* _handle_keyevent(void);
+	int32_t			_fltkToCP(const char* text, size_t len);
+	const char* 	_handle_keyevent(void);
 
 public:
 	// constructor
 	Fl_Term(int fs, int X, int Y, int W, int H, const char *L=0);
+	virtual ~Fl_Term();
 
 	// handle keyboard etc.
 	int handle(int);
