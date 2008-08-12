@@ -4,7 +4,7 @@
 
 #include "strutil.h"
 
-int str_mbr_to_cps_n(int32_t* dest, const char* locstr, size_t dest_size, size_t src_size, size_t* nwritten, size_t* nread) {
+int str_mbs_to_cps_n(int32_t* dest, const char* locstr, size_t dest_size, size_t src_size, size_t* nwritten, size_t* nread) {
 	mbstate_t ps;
 	memset(&ps, 0, sizeof(mbstate_t));
 
