@@ -125,7 +125,9 @@ void GTerm::bs()
 
 void GTerm::bell()
 {
-	Bell();
+	if (_fe->bell != NULL) {
+		_fe->bell(_fe_priv);
+	}
 }
 
 void GTerm::clear_param()
@@ -268,7 +270,7 @@ void GTerm::cursor_position()
 
 void GTerm::device_attrib()
 {
-	SendBack("\033[?1;2c");
+	send_back("\033[?1;2c");
 }
 
 void GTerm::delete_char()
@@ -290,7 +292,7 @@ void GTerm::set_mode()  // h
 		case 1001:	set_mode_flag(CURSORAPPMODE);	break;
 		case 1006:	set_mode_flag(CURSORRELATIVE);	break;
 		case 4:		set_mode_flag(INSERT);		break;
-		case 1003:	RequestSizeChange(132, height);	break;
+		case 1003:	fe_request_resize(132, height);	break;
 		case 20:	set_mode_flag(NEWLINE);		break;
 		case 12:	clear_mode_flag(LOCALECHO);	break;
 		case 1025:
@@ -307,7 +309,7 @@ void GTerm::clear_mode()  // l
 		case 1001:	clear_mode_flag(CURSORAPPMODE);	break;
 		case 1006:	clear_mode_flag(CURSORRELATIVE); break;
 		case 4:		clear_mode_flag(INSERT);	break;
-		case 1003:	RequestSizeChange(80, height);	break;
+		case 1003:	fe_request_resize(80, height);	break;
 		case 20:	clear_mode_flag(NEWLINE);	break;
 		case 1002:	current_state = vt52_normal_state; break;
 		case 12:	set_mode_flag(LOCALECHO);	break;
@@ -322,7 +324,9 @@ void GTerm::request_param()
 {
 	char str[40];
 	sprintf(str, "\033[%d;1;1;120;120;1;0x", param[0]+2);
-	SendBack(str);
+
+	// TODO: fixup char* -> int32_t*
+	send_back(str);
 }
 
 void GTerm::set_margins()
@@ -359,10 +363,10 @@ void GTerm::status_report()
 {
 	char str[20];
 	if (param[0] == 5) {
-		SendBack("\033[0n");
+		send_back("\033[0n");
 	} else if (param[0] == 6) {
 		sprintf(str, "\033[%d;%dR", cursor_y+1, cursor_x+1);
-		SendBack(str);
+		send_back(str);
 	}
 }
 
@@ -506,7 +510,7 @@ void GTerm::vt52_cursorx()
 
 void GTerm::vt52_ident()
 {
-	SendBack("\033/Z");
+	send_back("\033/Z");
 }
 
 /* End of File */

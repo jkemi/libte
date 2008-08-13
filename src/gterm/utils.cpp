@@ -61,7 +61,7 @@ void GTerm::RequestRedraw(int x, int y, int w, int h, bool force) {
 			colno += runlen;
 		}
 */
-		DrawStyledText(dirtstart, rowno, dirtend-dirtstart, row->data+dirtstart);
+		_fe->draw(_fe_priv, dirtstart, rowno, row->data+dirtstart, dirtend-dirtstart);
 		dirty->cleanse(rowno, dirtstart, dirtend);
     }
 
@@ -83,14 +83,14 @@ void GTerm::RequestRedraw(int x, int y, int w, int h, bool force) {
 			const symbol_attributes_t attrs = symbol_get_attributes(sym);
 			const unsigned int cp = symbol_get_codepoint(sym);
 
-			DrawCursor(fg, bg, attrs, xpos, ypos, cp);
+			_fe->draw_cursor(_fe_priv, fg, bg, attrs, xpos, ypos, cp);
 		}
 	}
 
 	doing_update = false;
 }
 
-void GTerm::update_changes()
+void GTerm::update_changes(void)
 {
     // prevent recursion for scrolls which cause exposures
     if (doing_update) {
@@ -102,15 +102,15 @@ void GTerm::update_changes()
     int mx = scroll_bot-scroll_top+1;
     if (!is_mode_set(TEXTONLY) && pending_scroll && (pending_scroll < mx) && (-pending_scroll < mx)) {
 		if (pending_scroll < 0) {
-		    MoveChars(0, scroll_top, 0, (scroll_top - pending_scroll), width, scroll_bot-scroll_top+pending_scroll+1);
+			fe_scroll(scroll_top, scroll_bot-scroll_top+pending_scroll+1, (scroll_top - pending_scroll));
 		} else {
-		    MoveChars(0, (scroll_top + pending_scroll), 0, scroll_top, width, scroll_bot-scroll_top-pending_scroll+1);
+			fe_scroll(scroll_top + pending_scroll, scroll_bot-scroll_top-pending_scroll+1, scroll_top);
 		}
     }
     pending_scroll = 0;
 
-    UpdateNotification();
 
+    fe_updated();
 
     doing_update = false;
 }
@@ -218,19 +218,16 @@ void GTerm::move_cursor(int x, int y)
 void GTerm::set_mode_flag(mode_t flag)
 {
 	mode_flags |= flag;
-	ModeChange(mode_flags);
 }
 
 void GTerm::clear_mode_flag(mode_t flag)
 {
 	mode_flags &= ~flag;
-	ModeChange(mode_flags);
 }
 
 void GTerm::clear_mode_flags(int flags)
 {
 	mode_flags &= ~flags;
-	ModeChange(mode_flags);
 }
 
 

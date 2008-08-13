@@ -44,13 +44,23 @@ static size_t		buffill = 0;
 
 /************************************************************************/
 
+static void send_back_cb(void* priv, const int32_t* data) {
+	size_t n = str_cpslen(data);
+	size_t nbytes = MB_CUR_MAX*(n+1);
+	char tmp[nbytes];
+
+	size_t nwritten;
+
+	str_cps_to_mbs_n(tmp, data, nbytes, n, &nwritten, NULL);
+
+	write(pty_fd, tmp, nwritten);
+}
+
 /**
  * Called whenever input is received from pty process.
  */
-static void mfd_cb(int mfd, void *v)
+static void mfd_cb(int mfd, void* unused_priv)
 {
-	gterm_if *termIO = (gterm_if *)v;
-
 	size_t bytesread;
 
 	bytesread = read(mfd, buf+buffill, (BUFSIZE-buffill)*sizeof(unsigned char));
@@ -59,13 +69,14 @@ static void mfd_cb(int mfd, void *v)
 	int32_t	cpbuf[1024];
 	size_t cpcount;
 
-	if (str_mbr_to_cps_n(cpbuf, buf, 1024, buffill, &cpcount, &bytesread) != 0) {
+	if (str_mbs_to_cps_n(cpbuf, buf, 1024, buffill, &cpcount, &bytesread) != 0) {
 		main_win->hide();
 		if (diag_win) {
 			diag_win->hide();
 		}
 	} else {
-		termIO->ProcessInput(cpcount, cpbuf);
+		str_cps_hexdump("from pty: ", cpbuf, cpcount);
+		te_process_input(termBox->_te, cpbuf, cpcount);
 		const size_t remaining = buffill-bytesread;
 		memcpy(buf, buf+bytesread, remaining);
 		buffill = remaining;
@@ -75,8 +86,7 @@ static void mfd_cb(int mfd, void *v)
 /************************************************************************/
 static void upd_term_cb(void *v)
 {
-	gterm_if *termIO = (gterm_if *)v;
-	termIO->Update();
+	te_update(termBox->_te);
 	Fl::repeat_timeout(0.1, upd_term_cb, v);
 }
 /************************************************************************/
@@ -141,11 +151,6 @@ int main(int argc, char **argv)
 //	main_win->resizable(termBox);
 //	main_win->size_range(500, 200, 0, 0, 0, 0, 0);
 
-	// obtain a reference to the underlying GTerm object - should not need to do this, the Fl_Term
-	// ought to be the only object the user has to see... Multiple inheritance maybe?
-	gterm_if *termIO = termBox->get_gterm();
-
-
 	// show the windows
 	main_win->show(argc, argv);
 
@@ -164,9 +169,10 @@ int main(int argc, char **argv)
 	fcntl(mfd, F_SETFL, O_NONBLOCK);
 
 	// Attach the GTerm terminal i/o to the fd...
-	termIO->set_write_fd(mfd);
+	termBox->set_send_back_func(&send_back_cb, NULL);
 
-	/* configure terminal for deferred display updates */
+	/*
+	//configure terminal for deferred display updates
 #ifdef USE_DEFERUPDATE
 	termIO->set_mode_flag(GTerm::DEFERUPDATE);   // enable deferred update
 	// basic timeout to poll the terminal for refresh - do this if we select DEFERUPDATE
@@ -180,9 +186,9 @@ int main(int argc, char **argv)
 
 	termIO->set_mode_flag(GTerm::NOEOLWRAP);   // disable line wrapping
 	termIO->clear_mode_flag(GTerm::LOCALECHO); // disable local echo
-
+*/
 	// add the pty to the fltk fd list, so we can catch any output
-	Fl::add_fd(mfd, mfd_cb, (void *)termIO);
+	Fl::add_fd(mfd, mfd_cb, NULL);
 
 	int exit_res = Fl::run();
 	pty_restore();

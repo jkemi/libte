@@ -1,19 +1,16 @@
 // Copyright Timothy Miller, 1999
 
+#include <stdlib.h>
+
 #include "misc.h"
 #include "Buffer.h"
 #include "Dirty.h"
 
+#include "../strutil.h"
+
 #include "gterm.hpp"
 
-
-
-void GTerm::Update()
-{
-	update_changes();
-}
-
-void GTerm::ProcessInput(int len, const int32_t* data)
+void GTerm::process_input(int len, const int32_t* data)
 {
 	input_remaining = len;
 	input_data = data;
@@ -39,22 +36,21 @@ void GTerm::ProcessInput(int len, const int32_t* data)
 	}
 }
 
-void GTerm::Reset()
+void GTerm::handle_button(te_key_t key)
 {
-	reset();
-}
-
-void GTerm::ExposeArea(int x, int y, int w, int h)
-{
-	for (int i=0; i<h; i++) {
-		changed_line(i+y, x, x+w);
-	}
-	if (!is_mode_set(DEFERUPDATE)) {
-		update_changes();
+switch (key) {
+case TE_KEY_RETURN: {
+	if(GetMode() & GTerm::NEWLINE) {
+		send_back("\r\n");	// send CRLF if GTerm::NEWLINE is set
+	} else {
+		send_back("\r");	// ^M (CR)
 	}
 }
+};
+}
 
-void GTerm::ResizeTerminal(int w, int h)
+
+void GTerm::resize_terminal(int w, int h)
 {
 	bool* newtabs = new bool[w];
 	if (w > width) {
@@ -80,8 +76,14 @@ void GTerm::ResizeTerminal(int w, int h)
 	dirty->reshape(h, w);
 }
 
-GTerm::GTerm(int w, int h) : width(w), height(h)
+GTerm::GTerm(const TE_Frontend* fe, void* fe_priv, int w, int h)
 {
+	_fe = fe;
+	_fe_priv = fe_priv;
+
+	width = w;
+	height = h;
+
 	doing_update = false;
 
 	buffer = new Buffer(h, w);
@@ -99,6 +101,11 @@ GTerm::GTerm(int w, int h) : width(w), height(h)
 
 	fg_color = 7;
 	bg_color = 0;
+
+	set_mode_flag(GTerm::NOEOLWRAP);   // disable line wrapping
+	set_mode_flag(GTerm::NEWLINE);
+	clear_mode_flag(GTerm::TEXTONLY);  // disable "Text Only" mode
+	clear_mode_flag(GTerm::LOCALECHO);  // disable "Text Only" mode
 }
 
 GTerm::~GTerm()
@@ -107,4 +114,83 @@ GTerm::~GTerm()
 	delete dirty;
 }
 
-/* End of File */
+void GTerm::send_back(const char* data) {
+	// TODO: speedup ?!
+	size_t len = str_mbslen(data);
+	int32_t buf[len+1];
+
+	size_t nwritten;
+	str_mbs_to_cps_n(buf, data, len, strlen(data), &nwritten, NULL);
+
+	buf[nwritten] = L'\0';
+
+	str_mbs_hexdump("mbs: ", data, strlen(data));
+	str_cps_hexdump("cps: ", buf, nwritten);
+
+	_fe->send_back(_fe_priv, buf);
+}
+
+void GTerm::fe_request_resize(int width, int height) {
+	_fe->request_resize(_fe_priv, width, height);
+}
+
+void GTerm::fe_updated(void) {
+	_fe->updated(_fe_priv);
+}
+
+void GTerm::fe_scroll(int y, int height, int offset) {
+	_fe->scroll(_fe_priv, y, height, offset);
+}
+
+//
+// Internal structure
+//
+
+struct _TE_Backend {
+	GTerm*	gt;
+};
+
+//
+// Public API below
+//
+
+TE_Backend* te_create(const TE_Frontend* front, void* priv, int width, int height) {
+	TE_Backend* te = (TE_Backend*)malloc(sizeof(TE_Backend));
+	if (te != NULL) {
+		te->gt = new GTerm(front, priv, width, height);
+	}
+	return te;
+}
+
+void te_destroy(TE_Backend* te) {
+	delete te->gt;
+	free(te);
+}
+
+void te_resize(TE_Backend* te, int width, int height) {
+	te->gt->resize_terminal(width, height);
+}
+
+int te_get_width(TE_Backend* te) {
+	return te->gt->Width();
+}
+
+int te_get_height(TE_Backend* te) {
+	return te->gt->Height();
+}
+
+void te_reqest_redraw(TE_Backend* te, int x, int y, int w, int h, bool force) {
+	te->gt->RequestRedraw(x, y, w, h, force);
+}
+
+void te_process_input(TE_Backend* te, const int32_t* data, size_t len) {
+	te->gt->process_input(len, data);
+}
+
+void te_handle_button(TE_Backend* te, te_key_t key) {
+	te->gt->handle_button(key);
+}
+
+void te_update(TE_Backend* te) {
+	te->gt->update_changes();
+}

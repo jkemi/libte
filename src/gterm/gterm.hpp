@@ -10,6 +10,8 @@
 
 #include "buffersymbol.h"
 
+#include "libte.h"
+
 class Buffer;
 class Dirty;
 
@@ -42,6 +44,9 @@ public:
 	} mode_t;
 
 private:
+	const TE_Frontend*	_fe;
+	void*				_fe_priv;
+
 	// terminal info
 	int width, height, scroll_top, scroll_bot;
 	Buffer*	buffer;
@@ -73,7 +78,6 @@ private:
 
 	// utility functions
 	bool is_mode_set(mode_t mode) {return mode_flags & mode;}
-	void update_changes();
 	void scroll_region(int start_y, int end_y, int num);	// does clear
 	void shift_text(int y, int start_x, int end_x, int num); // ditto
 	void clear_area(int start_x, int start_y, int end_x, int end_y);
@@ -97,7 +101,12 @@ private:
 	void next_param();
 
 	// non-printing characters
-	void cr(), lf(), ff(), bell(), tab(), bs();
+	void cr();
+	void lf();
+	void ff();
+	void bell();
+	void tab();
+	void bs();
 
 	// escape sequence actions
 	void keypad_numeric();
@@ -137,23 +146,26 @@ private:
 	void vt52_cursorx();
 	void vt52_ident();
 
+	void send_back(const char* data);
+	void fe_request_resize(int width, int height);
+	void fe_updated(void);
+	void fe_scroll(int y, int height, int offset);
+
 public:
-	GTerm(int w, int h);
+	GTerm(const TE_Frontend* fe, void* fe_priv, int w, int h);
+	GTerm(const GTerm& old);
 	virtual ~GTerm();
 
-	// function to control terminal
+	void process_input(int len, const int32_t* data);
+	void update_changes(void);
+	void resize_terminal(int w, int h);
+	void handle_button(te_key_t key);
 
 	/**
 	 * Output from child program is sent here.
 	 */
-	virtual void ProcessInput(int len, const int32_t* data);
-
-	virtual void ResizeTerminal(int width, int height);
 	int Width() { return width; }
 	int Height() { return height; }
-	virtual void Update();
-	virtual void ExposeArea(int x, int y, int w, int h);
-	virtual void Reset();
 
 	int GetMode() { return mode_flags; }
 	void SetMode(int mode) { mode_flags = mode; }
@@ -167,29 +179,6 @@ public:
 	 */
 	void RequestRedraw(int x, int y, int w, int h, bool force);
 
-	// mandatory child-supplied functions
-
-	/**
-	 * Event sent from terminal when viewport is updated.
-	 */
-	virtual void UpdateNotification(void) = 0;
-
-	virtual void DrawText(int fg_color, int bg_color, int flags,
-		int x, int y, int len, const uint32_t* string) = 0;
-
-	virtual void DrawStyledText(
-		int x, int y, int len, const symbol_t* symbols) = 0;
-
-	virtual void DrawCursor(int fg_color, int bg_color, int flags,
-		int x, int y, unsigned char c) = 0;
-
-	// optional child-supplied functions
-	virtual void MoveChars(int sx, int sy, int dx, int dy, int w, int h) { }
-	virtual void ClearChars(int bg_color, int x, int y, int w, int h) { }
-	virtual void SendBack(const char *data) { }
-	virtual void ModeChange(int state) { }
-	virtual void Bell() { }
-	virtual void RequestSizeChange(int w, int h) { }
 };
 
 #endif

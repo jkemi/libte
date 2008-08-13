@@ -1,12 +1,69 @@
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <wchar.h>
 #include <errno.h>
+#include <alloca.h>
+
+#include "strutil.h"
 
 #include "flkeys.h"
 
 #include "Fl_Term.h"
+
+static void _impl_draw (void* priv, int x, int y, const symbol_t* data, int len) {
+	((Fl_Term*)priv)->DrawStyledText(x, y, data, len);
+}
+static void _impl_clear (void* priv, int x, int y, const symbol_color_t bg_color, int len) {
+	((Fl_Term*)priv)->ClearChars(bg_color, x, y, len);
+}
+static void _impl_draw_cursor (void* priv, symbol_color_t fg_color, symbol_color_t bg_color, symbol_attributes_t attrs, int x, int y, int32_t cp) {
+	((Fl_Term*)priv)->DrawCursor(fg_color, bg_color, attrs, x, y, cp);
+}
+static void _impl_scroll (void* priv, int y, int height, int offset) {
+	((Fl_Term*)priv)->Scroll(y, height, offset);
+}
+static void _impl_resized (void* priv, int width, int height) {
+	//TODO: implement me
+}
+static void _impl_updated (void* priv) {
+	((Fl_Term*)priv)->TerminalUpdated();
+}
+static void _impl_reset (void* priv) {
+	//TODO: implement me
+}
+static void _impl_bell (void* priv) {
+	fl_beep();
+}
+static void _impl_mouse (void* priv, int x, int y) {
+	//TODO: implement me
+}
+static void _impl_title (void* priv, const int32_t* text) {
+	//TODO: implement me
+}
+static void _impl_send_back (void* priv, const int32_t* data) {
+	((Fl_Term*)priv)->_sendBack(data);
+}
+static void _impl_request_resize (void* priv, int width, int height) {
+	//TODO: implement me
+}
+
+const static TE_Frontend _impl_callbacks = {
+		&_impl_draw,
+		&_impl_clear,
+		&_impl_draw_cursor,
+		&_impl_scroll,
+		&_impl_resized,
+		&_impl_updated,
+		&_impl_reset,
+		&_impl_bell,
+		&_impl_mouse,
+		&_impl_title,
+		&_impl_send_back,
+		&_impl_request_resize,
+};
 
 // VT100 color table - map Colors to FL-colors:
 static Fl_Color col_table[] = {
@@ -47,9 +104,8 @@ Fl_Term::Fl_Term(int sz, int X, int Y, int W, int H, const char *L) : Fl_Box(X,Y
 	crs_bg = 0; // black
 	crs_flags = 0;
 
-	// Create the GTerm
 	// determine how big the terminal widget actually is, and create a GTerm to fit
-	gt = new gterm_if(this, tw, th);
+	_te = te_create(&_impl_callbacks, this, tw, th);
 
 	// TODO: something weird here:
 	// FLTK-1.1 _should_ really return iso8859-1 in event_text() but gives us UTF8 instead
@@ -59,24 +115,17 @@ Fl_Term::Fl_Term(int sz, int X, int Y, int W, int H, const char *L) : Fl_Box(X,Y
 		// TODO: handle somehow
 		exit(1);
 	}
+
+	_send_back_func = 0;
 }
 
 Fl_Term::~Fl_Term() {
-	delete gt;
+	te_destroy(_te);
 	iconv_close(_fltk_to_cp);
 }
 
-// TODO: remove this when unused...
-static void _dump(const char* label, const char* text, size_t len) {
-	printf("%s", label);
-	for (unsigned int i = 0; i < len; i++) {
-		printf("0x%02x ", text[i]);
-	}
-	printf("\n");
-}
-
 int32_t Fl_Term::_fltkToCP(const char* text, size_t len) {
-	_dump("in: ", text, len);
+	str_mbs_hexdump("in: ", text, len);
 
 /*	int deleted;
 	if (Fl::compose(deleted) == false) {
@@ -122,11 +171,7 @@ const char* Fl_Term::_handle_keyevent(void) {
 		return "\010";		// ^H
 
 	case FL_Enter:
-		if(gt->GetMode() & GTerm::NEWLINE) {
-			return "\r\n";	// send CRLF if GTerm::NEWLINE is set
-		} else {
-			return "\r";	// ^M (CR)
-		}
+		te_handle_button(_te, TE_KEY_RETURN);
 
 	case FL_Escape:
 		return "\033";		// ESC
@@ -205,6 +250,22 @@ const char* Fl_Term::_handle_keyevent(void) {
 
 }
 
+void Fl_Term::_sendBack(const int32_t* data) {
+	if (_send_back_func != 0) {
+		_send_back_func(_send_back_priv, data);
+	}
+}
+
+// TODO: remove this method
+void Fl_Term::_sendBackMBS(const char* data) {
+	const size_t len = str_mbslen(data);
+	int32_t* buf = (int32_t*)alloca(sizeof(int32_t*)*(len+1));
+	int res = str_mbs_to_cps_n(buf, data, len+1, strlen(data), NULL, NULL);
+	assert (res == 0);
+
+	_sendBack(buf);
+}
+
 /************************************************************************/
 // handle keyboard focus etc
 int Fl_Term::handle(int event)
@@ -216,7 +277,7 @@ int Fl_Term::handle(int event)
 	case FL_KEYBOARD: {
 		const char* str = _handle_keyevent();
 		if (str != NULL) {
-			gt->SendBack(str);
+			_sendBackMBS(str);
 			return 1;
 		} else {
 			return 0;
@@ -236,10 +297,10 @@ void Fl_Term::resize(int x, int y, int W, int H)
 
 	tw = (int)((w() - 4) / cw);
 	th = (h() - 4) / fh;
-	if ((tw != gt->Width()) || (th != gt->Height()))
-	{
+
+	if (tw != te_get_width(_te) || th != te_get_height(_te)) {
 		// Then tell the GTerm the new character sizes sizes...
-		gt->ResizeTerminal(tw, th);
+		te_resize(_te, tw, th);
 	}
 }
 
@@ -258,7 +319,7 @@ void Fl_Term::draw(void)
 	fl_rectf(xo, yo, wd, ht);
 
 	// TODO: fix nrows ncols etc here
-	this->gt->RequestRedraw(0, 0, 80, 50, true);
+	te_reqest_redraw(_te, 0, 0, 80, 50, true);
 
 	// restore the clipping rectangle...
 	fl_pop_clip();
@@ -277,9 +338,11 @@ void Fl_Term::DrawText(int fg_color, int bg_color, int flags,
 	redraw();
 } // DrawText
 
-void Fl_Term::DrawStyledText(int xpos, int ypos, int len, const symbol_t* symbols) {
+void Fl_Term::DrawStyledText(int xpos, int ypos, const symbol_t* symbols, int len) {
 	const int xo = x() + Fl::box_dx(this->box());
 	const int yo = y() + Fl::box_dy(this->box());
+
+	printf("DrawStyledText(): %d, %d (%d))\n", xpos, ypos, len);
 
 	// Now prepare to draw the actual terminal text
 	fl_font(FL_COURIER, def_fnt_size);
@@ -327,19 +390,19 @@ void Fl_Term::DrawStyledText(int xpos, int ypos, int len, const symbol_t* symbol
 }
 
 /************************************************************************/
-void Fl_Term::ClearChars(int bg_color, int x, int y, int w, int h)
+void Fl_Term::ClearChars(symbol_color_t bg_color, int x, int y, int len)
 {
 	redraw();
 }
 /************************************************************************/
-void Fl_Term::MoveChars(int sx, int sy, int dx, int dy, int w, int h)
+void Fl_Term::Scroll(int y, int height, int offset)
 {
 	redraw();
 }
 
 /************************************************************************/
-void Fl_Term::DrawCursor(int fg_color, int bg_color, int flags,
-                int xpos, int ypos, unsigned char c)
+void Fl_Term::DrawCursor(symbol_color_t fg_color, symbol_color_t bg_color, symbol_attributes_t attrs,
+                int xpos, int ypos, int32_t cp)
 {
 	const int xo = x() + Fl::box_dx(this->box());
 	const int yo = y() + Fl::box_dy(this->box());
@@ -362,75 +425,6 @@ void Fl_Term::DrawCursor(int fg_color, int bg_color, int flags,
 	fl_rectf(xp, yp, w, h);
 }
 
-/************************************************************************/
-// This implements the GTerm interface methods
-/************************************************************************/
-
-void gterm_if::UpdateNotification(void) {
-	termBox->TerminalUpdated();
-}
-
-void gterm_if::DrawText(int fg_color, int bg_color, int flags,
-                int x, int y, int len, const uint32_t* string)
-{
-	termBox->DrawText(fg_color, bg_color, flags, x, y, len, string);
-}
-
-/************************************************************************/
-void gterm_if::DrawCursor(int fg_color, int bg_color, int flags,
-                int x, int y, unsigned char c)
-{
-	termBox->DrawCursor(fg_color, bg_color, flags, x, y, c);
-}
-
-/************************************************************************/
-
-void gterm_if::DrawStyledText(int x, int y, int len, const symbol_t* symbols) {
-	termBox->DrawStyledText(x, y, len, symbols);
-}
-
-/************************************************************************/
-void gterm_if::MoveChars(int sx, int sy, int dx, int dy, int w, int h)
-{
-//printf("M: (%d, %d): (%d, %d) : (%d, %d)\n", sx, sy, dx, dy, w, h);
-	termBox->MoveChars(sx, sy, dx, dy, w, h);
-}
-
-/************************************************************************/
-void gterm_if::ClearChars(int bg_color, int x, int y, int w, int h)
-{
-//printf("C: (%d, %d): (%d, %d)\n", x, y, w, h);
-	termBox->ClearChars(bg_color, x, y, w, h);
-}
-
-/************************************************************************/
-void gterm_if::SendBack(const char *data)
-{
-	if (write_fd) write(write_fd, data, strlen(data));
-}
-
-/************************************************************************/
-void gterm_if::Bell()
-{
-	fl_beep();
-}
-
-/************************************************************************/
-void gterm_if::RequestSizeChange(int w, int h)
-{
-// Not implemented yet... This should really respond to the VT100 80/132 char
-// width commands...
-// Also, we might want a different (but similar) method to cope with the
-// enclosing Fl_Term being resized...
-//	if (w != Width() || h != Height())
-//	{
-//		?? try and resize the enclosing Fl_Term box/window ??
-//		?? or switch to a different font size in the same box? Which is what a VT100 does!
-
-		// Then tell the GTerm the new character sizes sizes...
-//		ResizeTerminal(w, h);
-//	}
-}
 /************************************************************************/
 
 /* End of File */
