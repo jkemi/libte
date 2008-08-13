@@ -325,7 +325,6 @@ void GTerm::request_param()
 	char str[40];
 	sprintf(str, "\033[%d;1;1;120;120;1;0x", param[0]+2);
 
-	// TODO: fixup char* -> int32_t*
 	send_back(str);
 }
 

@@ -5,6 +5,12 @@
  *      Author: jakob
  */
 
+//
+// Keeps track of dirty regions.
+//
+// Each line keeps track of dirty region by start and end.
+//
+
 #ifndef DIRTY_H_
 #define DIRTY_H_
 

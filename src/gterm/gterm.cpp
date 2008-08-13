@@ -21,8 +21,6 @@ void GTerm::process_input(int len, const int32_t* data)
 			state++;
 		}
 
-		// TODO: is the below comment a request, a fact or what?
-		// action must be allowed to redirect state change
 		current_state = state->next_state;
 		if (state->action) {
 			(this->*(state->action))();
