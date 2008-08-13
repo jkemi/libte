@@ -32,6 +32,17 @@ private:
 	void*			_send_back_priv;
 
 public:
+	//
+	// These are TE_Frontend methods and should be considered private
+	//
+	void _fe_Updated(void);
+	void _fe_DrawStyledText(int x, int y, const symbol_t* symbols, int len);
+	void _fe_ClearChars(symbol_color_t bg_color, int x, int y, int len);
+	void _fe_Scroll(int y, int height, int offset);
+	void _fe_DrawCursor(symbol_color_t fg_color, symbol_color_t bg_color, symbol_attributes_t attrs, int x, int y, int32_t cp);
+
+
+public:
 	TE_Backend*	_te;
 
 	// constructor
@@ -43,15 +54,6 @@ public:
 
 	// handle window resizing (NOT WORKING YET)
 	void resize(int x, int y, int w, int h);
-
-	void TerminalUpdated(void);
-
-	// basic text drawing
-	void DrawText(int fg_color, int bg_color, int flags, int x, int y, int len, const uint32_t* string);
-	void DrawStyledText(int x, int y, const symbol_t* symbols, int len);
-	void ClearChars(symbol_color_t bg_color, int x, int y, int len);
-	void Scroll(int y, int height, int offset);
-	void DrawCursor(symbol_color_t fg_color, symbol_color_t bg_color, symbol_attributes_t attrs, int x, int y, int32_t cp);
 
 	// text box view width/height
 	int get_w(void) {return tw;}

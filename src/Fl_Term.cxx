@@ -14,22 +14,22 @@
 #include "Fl_Term.h"
 
 static void _impl_draw (void* priv, int x, int y, const symbol_t* data, int len) {
-	((Fl_Term*)priv)->DrawStyledText(x, y, data, len);
+	((Fl_Term*)priv)->_fe_DrawStyledText(x, y, data, len);
 }
 static void _impl_clear (void* priv, int x, int y, const symbol_color_t bg_color, int len) {
-	((Fl_Term*)priv)->ClearChars(bg_color, x, y, len);
+	((Fl_Term*)priv)->_fe_ClearChars(bg_color, x, y, len);
 }
 static void _impl_draw_cursor (void* priv, symbol_color_t fg_color, symbol_color_t bg_color, symbol_attributes_t attrs, int x, int y, int32_t cp) {
-	((Fl_Term*)priv)->DrawCursor(fg_color, bg_color, attrs, x, y, cp);
+	((Fl_Term*)priv)->_fe_DrawCursor(fg_color, bg_color, attrs, x, y, cp);
 }
 static void _impl_scroll (void* priv, int y, int height, int offset) {
-	((Fl_Term*)priv)->Scroll(y, height, offset);
+	((Fl_Term*)priv)->_fe_Scroll(y, height, offset);
 }
 static void _impl_resized (void* priv, int width, int height) {
 	//TODO: implement me
 }
 static void _impl_updated (void* priv) {
-	((Fl_Term*)priv)->TerminalUpdated();
+	((Fl_Term*)priv)->_fe_Updated();
 }
 static void _impl_reset (void* priv) {
 	//TODO: implement me
@@ -318,27 +318,22 @@ void Fl_Term::draw(void)
 	fl_color(FL_BLACK);
 	fl_rectf(xo, yo, wd, ht);
 
-	// TODO: fix nrows ncols etc here
-	te_reqest_redraw(_te, 0, 0, 80, 50, true);
+	te_reqest_redraw(_te, 0, 0, tw, th, true);
 
 	// restore the clipping rectangle...
 	fl_pop_clip();
 } /* end of draw() method */
 
-/************************************************************************/
 
+//////////////////////////////////////////////////////////////////////
+// TE_Frontend methods
+//////////////////////////////////////////////////////////////////////
 
-void Fl_Term::TerminalUpdated(void) {
+void Fl_Term::_fe_Updated(void) {
 	redraw();
 }
 
-void Fl_Term::DrawText(int fg_color, int bg_color, int flags,
-                      int x, int y, int len, const uint32_t* string)
-{
-	redraw();
-} // DrawText
-
-void Fl_Term::DrawStyledText(int xpos, int ypos, const symbol_t* symbols, int len) {
+void Fl_Term::_fe_DrawStyledText(int xpos, int ypos, const symbol_t* symbols, int len) {
 	const int xo = x() + Fl::box_dx(this->box());
 	const int yo = y() + Fl::box_dy(this->box());
 
@@ -389,19 +384,18 @@ void Fl_Term::DrawStyledText(int xpos, int ypos, const symbol_t* symbols, int le
 	}
 }
 
-/************************************************************************/
-void Fl_Term::ClearChars(symbol_color_t bg_color, int x, int y, int len)
-{
-	redraw();
-}
-/************************************************************************/
-void Fl_Term::Scroll(int y, int height, int offset)
+void Fl_Term::_fe_ClearChars(symbol_color_t bg_color, int x, int y, int len)
 {
 	redraw();
 }
 
-/************************************************************************/
-void Fl_Term::DrawCursor(symbol_color_t fg_color, symbol_color_t bg_color, symbol_attributes_t attrs,
+void Fl_Term::_fe_Scroll(int y, int height, int offset)
+{
+	redraw();
+}
+
+
+void Fl_Term::_fe_DrawCursor(symbol_color_t fg_color, symbol_color_t bg_color, symbol_attributes_t attrs,
                 int xpos, int ypos, int32_t cp)
 {
 	const int xo = x() + Fl::box_dx(this->box());
@@ -424,7 +418,3 @@ void Fl_Term::DrawCursor(symbol_color_t fg_color, symbol_color_t bg_color, symbo
 	fl_color(fg);
 	fl_rectf(xp, yp, w, h);
 }
-
-/************************************************************************/
-
-/* End of File */
