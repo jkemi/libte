@@ -39,9 +39,9 @@ void GTerm::handle_button(te_key_t key)
 switch (key) {
 case TE_KEY_RETURN: {
 	if(GetMode() & GTerm::NEWLINE) {
-		send_back("\r\n");	// send CRLF if GTerm::NEWLINE is set
+		fe_send_back("\r\n");	// send CRLF if GTerm::NEWLINE is set
 	} else {
-		send_back("\r");	// ^M (CR)
+		fe_send_back("\r");	// ^M (CR)
 	}
 }
 };
@@ -112,7 +112,7 @@ GTerm::~GTerm()
 	delete dirty;
 }
 
-void GTerm::send_back(const char* data) {
+void GTerm::fe_send_back(const char* data) {
 	// TODO: speedup ?!
 	size_t len = str_mbslen(data);
 	int32_t buf[len+1];

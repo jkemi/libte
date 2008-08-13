@@ -146,7 +146,7 @@ private:
 	void vt52_cursorx();
 	void vt52_ident();
 
-	void send_back(const char* data);
+	void fe_send_back(const char* data);
 	void fe_request_resize(int width, int height);
 	void fe_updated(void);
 	void fe_scroll(int y, int height, int offset);

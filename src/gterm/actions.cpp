@@ -274,7 +274,7 @@ void GTerm::cursor_position()
 
 void GTerm::device_attrib()
 {
-	send_back("\033[?1;2c");
+	fe_send_back("\033[?1;2c");
 }
 
 void GTerm::delete_char()
@@ -329,7 +329,7 @@ void GTerm::request_param()
 	char str[40];
 	sprintf(str, "\033[%d;1;1;120;120;1;0x", param[0]+2);
 
-	send_back(str);
+	fe_send_back(str);
 }
 
 void GTerm::set_margins()
@@ -366,10 +366,10 @@ void GTerm::status_report()
 {
 	char str[20];
 	if (param[0] == 5) {
-		send_back("\033[0n");
+		fe_send_back("\033[0n");
 	} else if (param[0] == 6) {
 		sprintf(str, "\033[%d;%dR", cursor_y+1, cursor_x+1);
-		send_back(str);
+		fe_send_back(str);
 	}
 }
 
@@ -513,5 +513,5 @@ void GTerm::vt52_cursorx()
 
 void GTerm::vt52_ident()
 {
-	send_back("\033/Z");
+	fe_send_back("\033/Z");
 }
