@@ -14,6 +14,9 @@ extern "C" {
 typedef struct _TE_Backend	TE_Backend;
 typedef struct _TE_Frontend	TE_Frontend;
 
+/**
+ * This struct defines the callbacks made from terminal backend to frontend
+ */
 struct _TE_Frontend {
 	void (*draw)		(void* priv, int x, int y, const symbol_t* data, int len);
 	void (*clear)		(void* priv, int x, int y, const symbol_color_t bg_color, int len);
@@ -36,17 +39,41 @@ typedef enum _te_key {
 TE_Backend* te_create(const TE_Frontend* front, void* priv, int width, int height);
 void		te_destroy(TE_Backend* te);
 
-void		te_resize(TE_Backend* te, int width, int height);
-int			te_get_width(TE_Backend* te);
-int			te_get_height(TE_Backend* te);
+/**
+ * Resize terminal
+ */
+void te_resize(TE_Backend* te, int width, int height);
 
-void		te_reqest_redraw(TE_Backend* te, int x, int y, int w, int h, bool force);
+/**
+ * Returns current width of terminal
+ */
+int	 te_get_width(TE_Backend* te);
 
-void		te_process_input(TE_Backend* te, const int32_t* data, size_t len);
+/**
+ * Returns current height of terminal
+ */
+int	 te_get_height(TE_Backend* te);
 
-void		te_handle_button(TE_Backend* te, te_key_t key);
+/**
+ * Sent from GUI to terminal to request a redraw.
+ * This might trigger multiple calls to DrawText etc..
+ */
+void te_reqest_redraw(TE_Backend* te, int x, int y, int w, int h, bool force);
 
-void		te_update(TE_Backend* te);
+/**
+ * Send data from client here
+ */
+void te_process_input(TE_Backend* te, const int32_t* data, size_t len);
+
+/**
+ * Handles host special key presses
+ */
+void te_handle_button(TE_Backend* te, te_key_t key);
+
+/**
+ * TODO: document me
+ */
+void te_update(TE_Backend* te);
 
 
 #ifdef __cplusplus

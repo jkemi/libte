@@ -38,7 +38,7 @@ void GTerm::handle_button(te_key_t key)
 {
 switch (key) {
 case TE_KEY_RETURN: {
-	if(GetMode() & GTerm::NEWLINE) {
+	if (is_mode_flag(GTerm::NEWLINE)) {
 		fe_send_back("\r\n");	// send CRLF if GTerm::NEWLINE is set
 	} else {
 		fe_send_back("\r");	// ^M (CR)
@@ -170,15 +170,15 @@ void te_resize(TE_Backend* te, int width, int height) {
 }
 
 int te_get_width(TE_Backend* te) {
-	return te->gt->Width();
+	return te->gt->get_width();
 }
 
 int te_get_height(TE_Backend* te) {
-	return te->gt->Height();
+	return te->gt->get_height();
 }
 
 void te_reqest_redraw(TE_Backend* te, int x, int y, int w, int h, bool force) {
-	te->gt->RequestRedraw(x, y, w, h, force);
+	te->gt->request_redraw(x, y, w, h, force);
 }
 
 void te_process_input(TE_Backend* te, const int32_t* data, size_t len) {

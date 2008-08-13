@@ -8,7 +8,7 @@
 
 #include <stdlib.h>
 
-void GTerm::RequestRedraw(int x, int y, int w, int h, bool force) {
+void GTerm::request_redraw(int x, int y, int w, int h, bool force) {
 	if (doing_update) {
 		printf("bad update!\n");
 		return;
@@ -214,21 +214,5 @@ void GTerm::move_cursor(int x, int y)
 	cursor_x = x;
 	cursor_y = y;
 }
-
-void GTerm::set_mode_flag(mode_t flag)
-{
-	mode_flags |= flag;
-}
-
-void GTerm::clear_mode_flag(mode_t flag)
-{
-	mode_flags &= ~flag;
-}
-
-void GTerm::clear_mode_flags(int flags)
-{
-	mode_flags &= ~flags;
-}
-
 
 /* End of File */

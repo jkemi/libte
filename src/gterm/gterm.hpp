@@ -146,39 +146,31 @@ private:
 	void vt52_cursorx();
 	void vt52_ident();
 
-	void fe_send_back(const char* data);
-	void fe_request_resize(int width, int height);
-	void fe_updated(void);
-	void fe_scroll(int y, int height, int offset);
+	int get_mode() { return mode_flags; }
+	void set_mode(int mode) { mode_flags = mode; }
+	bool is_mode_flag(mode_t flag) { return (mode_flags & flag) != 0; }
+	void set_mode_flag(mode_t flag) {mode_flags |= flag;}
+	void clear_mode_flag(mode_t flag) {mode_flags &= ~flag;}
+	void clear_mode_flags(int flags) {mode_flags &= ~flags;}
+
+	void fe_send_back (const char* data);
+	void fe_request_resize (int width, int height);
+	void fe_updated (void);
+	void fe_scroll (int y, int height, int offset);
 
 public:
 	GTerm(const TE_Frontend* fe, void* fe_priv, int w, int h);
 	GTerm(const GTerm& old);
 	virtual ~GTerm();
 
+
 	void process_input(int len, const int32_t* data);
 	void update_changes(void);
 	void resize_terminal(int w, int h);
 	void handle_button(te_key_t key);
-
-	/**
-	 * Output from child program is sent here.
-	 */
-	int Width() { return width; }
-	int Height() { return height; }
-
-	int GetMode() { return mode_flags; }
-	void SetMode(int mode) { mode_flags = mode; }
-	void set_mode_flag(mode_t flag);
-	void clear_mode_flag(mode_t flag);
-	void clear_mode_flags(int flags);
-
-	/**
-	 * Sent from GUI to terminal to request a redraw.
-	 * This might trigger multiple calls to DrawText etc..
-	 */
-	void RequestRedraw(int x, int y, int w, int h, bool force);
-
+	void request_redraw(int x, int y, int w, int h, bool force);
+	int get_width() { return width; }
+	int get_height() { return height; }
 };
 
 #endif
