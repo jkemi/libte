@@ -1,5 +1,9 @@
 // Copyright Timothy Miller, 1999
 
+//
+// Methods called from state machine
+//
+
 #include "gterm.hpp"
 
 #include "Buffer.h"
@@ -13,7 +17,7 @@ void GTerm::normal_input()
 		return;
 	}
 
-	// this check doesn't work and should probably not be here to begin with...
+	// TODO: this check doesn't work and should probably not be here to begin with...
 	if (cursor_x >= width) {
 		if (is_mode_set(NOEOLWRAP)) {
 			cursor_x = width-1;
@@ -511,5 +515,3 @@ void GTerm::vt52_ident()
 {
 	send_back("\033/Z");
 }
-
-/* End of File */
