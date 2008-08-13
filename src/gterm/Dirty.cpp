@@ -31,7 +31,7 @@ Dirty::Dirty(uint nrows, uint ncols) {
 	_init(nrows, ncols);
 }
 
-// Delibirately left out copy constructor
+// Deliberately left out copy constructor
 //Dirty::Dirty(const Dirty& old) {}
 
 Dirty::~Dirty() {
