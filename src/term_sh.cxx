@@ -19,6 +19,7 @@
 
 #include "pty/pty.h"
 
+
 #include "strutil.h"
 
 #ifdef __APPLE__
@@ -53,6 +54,7 @@ static void send_back_cb(void* priv, const int32_t* data) {
 
 	str_cps_to_mbs_n(tmp, data, nbytes, n, &nwritten, NULL);
 
+	str_mbs_hexdump("to pty: ", tmp, nwritten);
 	write(pty_fd, tmp, nwritten);
 }
 
@@ -64,16 +66,21 @@ static void mfd_cb(int mfd, void* unused_priv)
 	size_t bytesread;
 
 	bytesread = read(mfd, buf+buffill, (BUFSIZE-buffill)*sizeof(unsigned char));
+	str_mbs_hexdump("from pty(mbs): ", buf+buffill, bytesread);
+	te_process_input_mbs(termBox->_te, buf+buffill, bytesread);
+
 	buffill += bytesread;
 
 	int32_t	cpbuf[1024];
 	size_t cpcount;
 
+
 	if (str_mbs_to_cps_n(cpbuf, buf, 1024, buffill, &cpcount, &bytesread) != 0) {
-		main_win->hide();
-		if (diag_win) {
-			diag_win->hide();
-		}
+		//TODO: this happens.. try pilned sedan "å" så skiter det sig nog..
+		buffill = 0;
+		return;
+/*		main_win->hide();
+		abort();*/
 	} else {
 		str_cps_hexdump("from pty: ", cpbuf, cpcount);
 		te_process_input(termBox->_te, cpbuf, cpcount);

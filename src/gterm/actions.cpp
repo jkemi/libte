@@ -9,6 +9,50 @@
 #include "Buffer.h"
 #include "misc.h"
 
+static inline int _get_param(GTerm* gt, int index, int default_value) {
+	if (gt->parser.num_params > index) {
+		return gt->parser.params[index];
+	} else {
+		return default_value;
+	}
+}
+
+// For efficiency, this grabs all printing characters from buffer, up to
+// the end of the line or end of buffer
+void GTerm::normal_input2(unsigned char c)
+{
+	// TODO: this check doesn't work and should probably not be here to begin with...
+	if (cursor_x >= width) {
+		if (is_mode_set(NOEOLWRAP)) {
+			cursor_x = width-1;
+		} else {
+			next_line();
+		}
+	}
+
+	size_t n = 1;
+
+	// TODO: remove temporary stack buffer from here..
+	symbol_t syms[n];
+	symbol_t style = symbol_make_style(fg_color, bg_color, attributes);
+	for (int i = 0; i < n; i++) {
+		const symbol_t sym = style | c;
+		syms[i] = sym;
+	}
+	BufferRow* row = buffer->getRow(cursor_y);
+
+	if (is_mode_set(INSERT)) {
+		row->insert(cursor_x, syms, n);
+		changed_line(cursor_y, cursor_x, width);
+	} else {
+		row->replace(cursor_x, syms, n);
+		changed_line(cursor_y, cursor_x, cursor_x+n);
+	}
+
+	cursor_x += n;
+}
+
+/*
 // For efficiency, this grabs all printing characters from buffer, up to
 // the end of the line or end of buffer
 void GTerm::normal_input()
@@ -68,6 +112,7 @@ void GTerm::normal_input()
 	input_data += n_taken-1;
 	input_remaining -= n_taken-1;
 }
+*/
 
 void GTerm::cr()
 {
@@ -136,15 +181,15 @@ void GTerm::bell()
 
 void GTerm::clear_param()
 {
-	nparam = 0;
-	memset(param, 0, sizeof(param));
+	parser.num_params = 0;
+	memset(parser.params, 0, sizeof(parser.params));
 	q_mode = 0;
-	got_param = false;
 }
 
-void GTerm::keypad_numeric() { clear_mode_flag(KEYAPPMODE); }
+void GTerm::keypad_normal() { clear_mode_flag(KEYAPPMODE); }
 void GTerm::keypad_application() { set_mode_flag(KEYAPPMODE); }
 
+// Save cursor (ANSI.SYS)
 void GTerm::save_cursor()
 {
 	stored_attributes = attributes;
@@ -191,9 +236,9 @@ void GTerm::reset()
 	scroll_top = 0;
 	scroll_bot = height-1;
 	memset(tab_stops, 0, sizeof(bool)*width);
-	current_state = GTerm::normal_state;
 
 	clear_mode_flags(NOEOLWRAP | CURSORAPPMODE | CURSORRELATIVE | KEYAPPMODE | CURSORINVISIBLE);
+
 	attributes = 0;
 
 	clear_area(0, 0, width, height-1);
@@ -216,6 +261,7 @@ void GTerm::set_quote_mode()
 	quote_mode = 1;
 }
 
+/*
 // for performance, this grabs all digits
 void GTerm::param_digit()
 {
@@ -227,44 +273,53 @@ void GTerm::next_param()
 {
 	nparam++;
 }
+*/
 
+// Cursor Backward P s Times (default = 1) (CUB)
 void GTerm::cursor_left()
 {
 	int n, x;
-	n = param[0]; if (n<1) n = 1;
-	x = cursor_x-n; if (x<0) x = 0;
+	n = int_max(1, _get_param(this,0,1) );
+
+	x = int_max(0, cursor_x-n);
 	move_cursor(x, cursor_y);
 }
 
+// Cursor Forward P s Times (default = 1) (CUF)
 void GTerm::cursor_right()
 {
 	int n, x;
-	n = param[0]; if (n<1) n = 1;
-	x = cursor_x+n; if (x>=width) x = width-1;
+	n = int_max(1, _get_param(this,0,1) );
+
+	x = int_min(width-1, cursor_x+n);
 	move_cursor(x, cursor_y);
 }
 
+// Cursor Up P s Times (default = 1) (CUU)
 void GTerm::cursor_up()
 {
 	int n, y;
-	n = param[0]; if (n<1) n = 1;
-	y = cursor_y-n; if (y<0) y = 0;
+	n = int_max(1, _get_param(this,0,1) );
+
+	y = int_max(0, cursor_y-n);;
 	move_cursor(cursor_x, y);
 }
 
+// Cursor Down P s Times (default = 1) (CUD)
 void GTerm::cursor_down()
 {
 	int n, y;
-	n = param[0]; if (n<1) n = 1;
-	y = cursor_y+n; if (y>=height) y = height-1;
+	n = int_max(1, _get_param(this,0,1) );
+
+	y = int_min(height-1, cursor_y+n);
 	move_cursor(cursor_x, y);
 }
 
 void GTerm::cursor_position()
 {
-	int x, y;
-	x = param[1];	if (x<1) x=1; if (x>=width) x = width-1;
-	y = param[0];	if (y<1) y=1; if (y>=height) y = height-1;
+	int	y = int_clamp(_get_param(this, 0, 1), 1, height);
+	int x = int_clamp(_get_param(this, 1, 1), 1, width);
+
 	if (is_mode_set(CURSORRELATIVE)) {
 		move_cursor(x-1, y-1+scroll_top);
 	} else {
@@ -272,17 +327,36 @@ void GTerm::cursor_position()
 	}
 }
 
+// Cursor Character Absolute [column] (default = [row,1]) (CHA)
+void GTerm::column_position()
+{
+	int	x = int_clamp(_get_param(this, 0, 1), 1, width);
+
+	move_cursor(x-1, cursor_y);
+}
+
+// Line Position Absolute [row] (default = [1,column]) (VPA)
+void GTerm::line_position()
+{
+	int	y = int_clamp(_get_param(this, 0, 1), 1, height);
+
+	move_cursor(cursor_x, y-1);
+}
+
+
 void GTerm::device_attrib()
 {
 	fe_send_back("\033[?1;2c");
 }
 
+// Delete P s Character(s) (default = 1) (DCH)
 void GTerm::delete_char()
 {
 	int n, mx;
-	n = param[0]; if (n<1) n = 1;
+	n = int_max(1, _get_param(this,0,1) );
+
 	mx = width-cursor_x;
-	if (n>=mx) {
+	if (n >= mx) {
 		clear_area(cursor_x, cursor_y, width-1, cursor_y);
 	} else {
 		shift_text(cursor_y, cursor_x, width-1, -n);
@@ -291,7 +365,7 @@ void GTerm::delete_char()
 
 void GTerm::set_mode()  // h
 {
-	switch (param[0] + 1000*q_mode) {
+	switch (parser.params[0] + 1000*q_mode) {
 		case 1007:	clear_mode_flag(NOEOLWRAP);	break;
 		case 1001:	set_mode_flag(CURSORAPPMODE);	break;
 		case 1006:	set_mode_flag(CURSORRELATIVE);	break;
@@ -308,14 +382,14 @@ void GTerm::set_mode()  // h
 
 void GTerm::clear_mode()  // l
 {
-	switch (param[0] + 1000*q_mode) {
+	switch (parser.params[0] + 1000*q_mode) {
 		case 1007:	set_mode_flag(NOEOLWRAP);	break;
 		case 1001:	clear_mode_flag(CURSORAPPMODE);	break;
 		case 1006:	clear_mode_flag(CURSORRELATIVE); break;
 		case 4:		clear_mode_flag(INSERT);	break;
 		case 1003:	fe_request_resize(80, height);	break;
 		case 20:	clear_mode_flag(NEWLINE);	break;
-		case 1002:	current_state = vt52_normal_state; break;
+//		case 1002:	current_state = vt52_normal_state; break;
 		case 12:	set_mode_flag(LOCALECHO);	break;
 		case 1025:
 			set_mode_flag(CURSORINVISIBLE);	break;
@@ -327,7 +401,7 @@ void GTerm::clear_mode()  // l
 void GTerm::request_param()
 {
 	char str[40];
-	sprintf(str, "\033[%d;1;1;120;120;1;0x", param[0]+2);
+	sprintf(str, "\033[%d;1;1;120;120;1;0x", parser.params[0]+2);
 
 	fe_send_back(str);
 }
@@ -336,24 +410,26 @@ void GTerm::set_margins()
 {
 	int t, b;
 
-	t = param[0];
-	if (t<1) t = 1;
-	b = param[1];
-	if (b<1) b = height;
-	if (b>height) b = height;
+	t = int_max(1, parser.params[0]);
+	b = int_clamp(parser.params[1], 1, height);
 
-	if (pending_scroll) update_changes();
+	if (pending_scroll) {
+		update_changes();
+	}
 
 	scroll_top = t-1;
 	scroll_bot = b-1;
-	if (cursor_y < scroll_top) move_cursor(cursor_x, scroll_top);
-	if (cursor_y > scroll_bot) move_cursor(cursor_x, scroll_bot);
+	if (cursor_y < scroll_top) {
+		move_cursor(cursor_x, scroll_top);
+	} else if (cursor_y > scroll_bot) {
+		move_cursor(cursor_x, scroll_bot);
+	}
 }
 
 void GTerm::delete_line()
 {
 	int n, mx;
-	n = param[0]; if (n<1) n = 1;
+	n = int_max(1, parser.params[0]);
 	mx = scroll_bot-cursor_y+1;
 	if (n>=mx) {
 		clear_area(0, cursor_y, width-1, scroll_bot);
@@ -365,17 +441,21 @@ void GTerm::delete_line()
 void GTerm::status_report()
 {
 	char str[20];
-	if (param[0] == 5) {
+	switch (parser.params[0]) {
+	case 5:
 		fe_send_back("\033[0n");
-	} else if (param[0] == 6) {
+		break;
+	case 6:
 		sprintf(str, "\033[%d;%dR", cursor_y+1, cursor_x+1);
 		fe_send_back(str);
+		break;
 	}
 }
 
+// Erase in Display (ED)
 void GTerm::erase_display()
 {
-	switch (param[0]) {
+	switch ( _get_param(this, 0, 0) ) {
 	case 0:
 		clear_area(cursor_x, cursor_y, width-1, cursor_y);
 		if (cursor_y<height-1)
@@ -394,23 +474,24 @@ void GTerm::erase_display()
 
 void GTerm::erase_line()
 {
-	switch (param[0]) {
-	case 0:
+	switch ( _get_param(this, 0, 0) ) {
+	case 0:	// Erase to Right (default)
 		clear_area(cursor_x, cursor_y, width, cursor_y);
 		break;
-	case 1:
+	case 1:	// Erase to Left
 		clear_area(0, cursor_y, cursor_x, cursor_y);
 		break;
-	case 2:
+	case 2: // Erase All
 		clear_area(0, cursor_y, width, cursor_y);
 		break;
 	}
 }
 
+
 void GTerm::insert_line()
 {
 	int n, mx;
-	n = param[0]; if (n<1) n = 1;
+	n = int_max(1, parser.params[0]);
 	mx = scroll_bot-cursor_y+1;
 	if (n>=mx) {
 		clear_area(0, cursor_y, width-1, scroll_bot);
@@ -419,25 +500,31 @@ void GTerm::insert_line()
 	}
 }
 
-void GTerm::set_colors() // imm: note - affects more than just colours...
+// Character Attributes (SGR)
+void GTerm::char_attrs()
 {
+	// TODO: REWRITE THIS METHOD
+
 	int n;
 
-	if (nparam == 0 && param[0] == 0) {
+	// TODO: what?? this if case seems wrong
+	if (parser.num_params == 0 || parser.params[0] == 0) {
 		attributes = 0;
 		fg_color = 7;
 		bg_color = 0;
 		return;
 	}
 
-	attributes = 0; 	// imm... linux console seems to leave underline on. This "fixes" that...
-	for (n = 0; n <= nparam; n++) {
-		if (param[n]/10 == 4) {
-			bg_color = int_clamp(param[n]%10, 0, 7);
-		} else if (param[n]/10 == 3) {
-			fg_color = int_clamp(param[n]%10, 0, 7);
+//	attributes = 0; 	// imm... linux console seems to leave underline on. This "fixes" that...
+	/// TODO: hmm, should probably be < not <=
+	for (n = 0; n < parser.num_params; n++) {
+		const int p = parser.params[n];
+		if (p/10 == 4) {
+			bg_color = int_clamp(p%10, 0, 7);
+		} else if (p/10 == 3) {
+			fg_color = int_clamp(p%10, 0, 7);
 		} else {
-			switch (param[n]) {
+			switch (p) {
 			case 0:
 				attributes = 0;
 				fg_color = 7;
@@ -454,9 +541,11 @@ void GTerm::set_colors() // imm: note - affects more than just colours...
 
 void GTerm::clear_tab()
 {
-	if (param[0] == 3) {
+	switch (parser.params[0]) {
+	case 3:
 		memset(tab_stops, 0, sizeof(tab_stops));
-	} else if (param[0] == 0) {
+		break;
+	case 0:
 		tab_stops[cursor_x] = false;
 	}
 }
@@ -464,9 +553,9 @@ void GTerm::clear_tab()
 void GTerm::insert_char()
 {
 	int n, mx;
-	n = param[0]; if (n<1) n = 1;
+	n = int_max(1, parser.params[0]);
 	mx = width-cursor_x;
-	if (n>=mx) {
+	if (n >= mx) {
 		clear_area(cursor_x, cursor_y, width-1, cursor_y);
 	} else {
 		shift_text(cursor_y, cursor_x, width-1, n);
@@ -491,13 +580,16 @@ void GTerm::screen_align()
 	}
 }
 
+// Erase P s Character(s) (default = 1) (ECH)
 void GTerm::erase_char()
 {
 	// number of characters to erase
-	const int n = int_clamp(param[0], 1, width-cursor_x);
+	const int n = int_clamp(_get_param(this,0,1), 1, width-cursor_x);
 	clear_area(cursor_x, cursor_y, cursor_x+n-1, cursor_y);
 }
 
+
+/*
 void GTerm::vt52_cursory()
 {
 	const int y = int_clamp(*input_data-32, 0, height-1);
@@ -510,6 +602,7 @@ void GTerm::vt52_cursorx()
 	const int y = param[0];
 	move_cursor(x, y);
 }
+*/
 
 void GTerm::vt52_ident()
 {

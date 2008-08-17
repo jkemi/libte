@@ -171,11 +171,17 @@ void GTerm::scroll_region(int start_y, int end_y, int num)
 	*/
 }
 
+
 void GTerm::shift_text(int y, int start_x, int end_x, int num) {
-	if (!num)
+	if (num == 0)
 		return;
 
-	buffer->getRow(y)->remove(start_x,num);
+	if (num < 0) {
+		buffer->getRow(y)->remove(start_x,-num);
+	} else {
+		// TODO !?:
+		//buffer->getRow(y)->insert(start_x, )
+	}
 
 	changed_line(y, start_x, end_x);
 }

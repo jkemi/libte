@@ -9,6 +9,7 @@
 
 
 #include "buffersymbol.h"
+#include "vtparse.h"
 
 #include "libte.h"
 
@@ -43,7 +44,6 @@ public:
 		CURSORINVISIBLE	= (1<<14),
 	} mode_t;
 
-private:
 	const TE_Frontend*	_fe;
 	void*				_fe_priv;
 
@@ -62,8 +62,9 @@ private:
 	symbol_attributes_t stored_attributes;
 	int mode_flags;
 	bool* tab_stops;
-	const StateOption* current_state;
 
+/*
+	const StateOption* current_state;
 
 	static StateOption normal_state[];
 	static StateOption esc_state[];
@@ -75,6 +76,8 @@ private:
 	static StateOption vt52_esc_state[];
 	static StateOption vt52_cursory_state[];
 	static StateOption vt52_cursorx_state[];
+*/
+	vtparse_t parser;
 
 	// utility functions
 	bool is_mode_set(mode_t mode) {return mode_flags & mode;}
@@ -85,20 +88,21 @@ private:
 	void move_cursor(int x, int y);
 
 	// action parameters
-	int nparam, param[30];
+	//int nparam, param[30];
 	int q_mode, quote_mode;
-	bool got_param;	// unused!?
 
-	const int32_t*	input_data;
-	int				input_remaining;
+	// const int32_t*	input_data;
+	// int				input_remaining;
+	//bool got_param;	// unused!?
 
 	// terminal actions
 	void normal_input();
+	void normal_input2(unsigned char c);
 	void set_q_mode();
 	void set_quote_mode();
 	void clear_param();
-	void param_digit();
-	void next_param();
+	//void param_digit();
+	//void next_param();
 
 	// non-printing characters
 	void cr();
@@ -109,7 +113,7 @@ private:
 	void bs();
 
 	// escape sequence actions
-	void keypad_numeric();
+	void keypad_normal();
 	void keypad_application();
 	void save_cursor();
 	void restore_cursor();
@@ -124,6 +128,8 @@ private:
 	void cursor_right();
 	void cursor_up();
 	void cursor_position();
+	void column_position();
+	void line_position();
 	void device_attrib();
 	void delete_char();
 	void set_mode();
@@ -135,7 +141,7 @@ private:
 	void erase_display();
 	void erase_line();
 	void insert_line();
-	void set_colors();
+	void char_attrs();
 	void clear_tab();
 	void insert_char();
 	void screen_align();
@@ -158,7 +164,6 @@ private:
 	void fe_updated (void);
 	void fe_scroll (int y, int height, int offset);
 
-public:
 	GTerm(const TE_Frontend* fe, void* fe_priv, int w, int h);
 	GTerm(const GTerm& old);
 	virtual ~GTerm();
