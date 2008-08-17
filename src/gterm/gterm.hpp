@@ -141,17 +141,6 @@ public:
 
 		const StateOption* current_state;
 	} parser;
-
-
-	void normal_input();
-
-	void set_q_mode();
-	void set_quote_mode();
-	void clear_param();
-	void param_digit();
-	void next_param();
-	void vt52_cursory();
-	void vt52_cursorx();
 #endif
 
 
