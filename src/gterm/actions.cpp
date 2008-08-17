@@ -9,6 +9,8 @@
 #include "Buffer.h"
 #include "misc.h"
 
+#include "actions.hpp"
+
 static inline int _get_param(GTerm* gt, int index, int default_value) {
 	if (gt->parser.num_params > index) {
 		return gt->parser.params[index];
@@ -25,14 +27,10 @@ void ac_cr(GTerm* gt)
 // Line-Feed (same as Vertical-Tab and Form-Feed)
 void ac_lf(GTerm* gt)
 {
-	if (gt->cursor_y < gt->scroll_bot) {
-		gt->move_cursor(gt->cursor_x, gt->cursor_y+1);
-	} else {
-		gt->scroll_region(gt->scroll_top, gt->scroll_bot, 1);
-	}
+	ac_index_down(gt);
 
 	if (gt->is_mode_flag(gt->NEWLINE)) {
-		gt->move_cursor(0, gt->cursor_y);
+		ac_cr(gt);
 	}
 }
 
@@ -112,14 +110,24 @@ void ac_set_tab(GTerm* gt)
 	gt->tab_stops[gt->cursor_x] = true;
 }
 
+// Index (IND)
+// IND moves the cursor down one line in the same column.
+// If the cursor is at the bottom margin, then the screen performs a scroll-up.
 void ac_index_down(GTerm* gt)
 {
-	ac_lf(gt);
+	if (gt->cursor_y < gt->scroll_bot) {
+		gt->move_cursor(gt->cursor_x, gt->cursor_y+1);
+	} else {
+		gt->scroll_region(gt->scroll_top, gt->scroll_bot, 1);
+	}
 }
 
+// Next line (NEL)
+// Moves cursor to first position on next line. If cursor is at bottom margin,
+// then screen performs a scroll-up.
 void ac_next_line(GTerm* gt)
 {
-	ac_lf(gt);
+	ac_index_down(gt);
 	ac_cr(gt);
 }
 

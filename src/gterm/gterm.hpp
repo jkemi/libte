@@ -23,9 +23,9 @@
 	typedef void (*StateFunc)(GTerm* gt);
 
 	struct StateOption {
-		int					cp;		// codepoint value to look for; -1==end/default
-		StateFunc			action;
-		const struct StateOption* 	next_state;
+		int							cp;			// codepoint value to look for; -1==end/default
+		StateFunc					action;		// action to execute on this transition
+		const struct StateOption* 	next_state;	// state to transfer to next
 	};
 
 #endif

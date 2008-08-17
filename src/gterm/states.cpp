@@ -1,7 +1,3 @@
-/* GRG: Added a lot of GTerm:: prefixes to correctly form pointers
- *   to functions in all the tables. Example: &cr -> &GTerm::cr
- */
-
 // Copyright Timothy Miller, 1999
 
 #include "gterm.hpp"

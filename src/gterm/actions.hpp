@@ -12,22 +12,18 @@
 
 class GTerm;
 
-DLLLOCAL void ac_cr		(GTerm* gt);
-
-// Line-Feed (same as Vertical-Tab and Form-Feed)
-DLLLOCAL void ac_lf		(GTerm* gt);
-
-
-DLLLOCAL void ac_tab	(GTerm* gt);
-DLLLOCAL void ac_bs		(GTerm* gt);
-DLLLOCAL void ac_bell	(GTerm* gt);
+DLLLOCAL void ac_cr		(GTerm* gt);				// Carriage-return
+DLLLOCAL void ac_lf		(GTerm* gt);				// Line-Feed (same as Vertical-Tab and Form-Feed)
+DLLLOCAL void ac_tab	(GTerm* gt);				// Horizontal tab
+DLLLOCAL void ac_bs		(GTerm* gt);				// Backspace
+DLLLOCAL void ac_bell	(GTerm* gt);				// Alarm bell
 DLLLOCAL void ac_keypad_normal		(GTerm* gt);
 DLLLOCAL void ac_keypad_application	(GTerm* gt);
 DLLLOCAL void ac_save_cursor		(GTerm* gt);
 DLLLOCAL void ac_restore_cursor		(GTerm* gt);
 DLLLOCAL void ac_set_tab	(GTerm* gt);
-DLLLOCAL void ac_index_down	(GTerm* gt);
-DLLLOCAL void ac_next_line	(GTerm* gt);
+DLLLOCAL void ac_index_down	(GTerm* gt);			// Index (IND)
+DLLLOCAL void ac_next_line	(GTerm* gt);			// Next line (NEL)
 DLLLOCAL void ac_index_up	(GTerm* gt);
 DLLLOCAL void ac_reset		(GTerm* gt);
 DLLLOCAL void ac_cursor_left	(GTerm* gt);		// Cursor Backward P s Times (default = 1) (CUB)
