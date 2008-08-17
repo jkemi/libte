@@ -7,6 +7,8 @@
 
 #include "buffersymbol.h"
 
+#include "macros.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -36,46 +38,46 @@ typedef enum _te_key {
 	TE_KEY_RETURN = 1,
 } te_key_t;
 
-TE_Backend* te_create(const TE_Frontend* front, void* priv, int width, int height);
-void		te_destroy(TE_Backend* te);
+DLLEXPORT TE_Backend* te_create(const TE_Frontend* front, void* priv, int width, int height);
+DLLEXPORT void		te_destroy(TE_Backend* te);
 
 /**
  * Resize terminal
  */
-void te_resize(TE_Backend* te, int width, int height);
+DLLEXPORT void te_resize(TE_Backend* te, int width, int height);
 
 /**
  * Returns current width of terminal
  */
-int	 te_get_width(TE_Backend* te);
+DLLEXPORT int	 te_get_width(TE_Backend* te);
 
 /**
  * Returns current height of terminal
  */
-int	 te_get_height(TE_Backend* te);
+DLLEXPORT int	 te_get_height(TE_Backend* te);
 
 /**
  * Sent from GUI to terminal to request a redraw.
  * This might trigger multiple calls to DrawText etc..
  */
-void te_reqest_redraw(TE_Backend* te, int x, int y, int w, int h, bool force);
+DLLEXPORT void te_reqest_redraw(TE_Backend* te, int x, int y, int w, int h, bool force);
 
 /**
  * Send data from client here
  */
-void te_process_input(TE_Backend* te, const int32_t* data, size_t len);
+DLLEXPORT void te_process_input(TE_Backend* te, const int32_t* data, size_t len);
 
-void te_process_input_mbs(TE_Backend* te, const char* data, size_t len);
+DLLEXPORT void te_process_input_mbs(TE_Backend* te, const char* data, size_t len);
 
 /**
  * Handles host special key presses
  */
-void te_handle_button(TE_Backend* te, te_key_t key);
+DLLEXPORT void te_handle_button(TE_Backend* te, te_key_t key);
 
 /**
  * TODO: document me
  */
-void te_update(TE_Backend* te);
+DLLEXPORT void te_update(TE_Backend* te);
 
 
 #ifdef __cplusplus
