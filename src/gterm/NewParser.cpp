@@ -9,6 +9,8 @@
 
 #include "gterm.hpp"
 
+#include "actions.hpp"
+
 static void _vt_debug(const char* label, unsigned char final, vtparse_t* vt) {
 	printf("%s", label);
 	printf("final: 0x%02x", final);
@@ -31,16 +33,16 @@ static void _vt_print(GTerm* gt, unsigned char c) {
 // Single-character functions
 static void _vt_execute(GTerm* gt, unsigned char c) {
 	switch (c) {
-	case '\a':	gt->bell();	break;	// BEL	bell (CTRL-G)
-	case '\b':	gt->bs();	break;	// BS	backspace (CTRL-H)
-	case '\r':	gt->cr();	break;	// CR	carriage return (CTRL-M)
+	case '\a':	ac_bell(gt);	break;	// BEL	bell (CTRL-G)
+	case '\b':	ac_bs(gt);	break;	// BS	backspace (CTRL-H)
+	case '\r':	ac_cr(gt);	break;	// CR	carriage return (CTRL-M)
 	case 5:					break;	// ENQ	terminal status (CTRL-E)
-	case '\f':	gt->ff();	break;	// FF	form feed (CTRL-L)
-	case '\n':	gt->lf();	break;	// LF	line feed (CTRL-J)
+	case '\f':	ac_ff(gt);	break;	// FF	form feed (CTRL-L)
+	case '\n':	ac_lf(gt);	break;	// LF	line feed (CTRL-J)
 	case 14:				break;	// SO	shift out (CTRL-N)
 	case ' ':	_vt_print(gt, ' ');			break;	// SP	space
-	case '\t':	gt->tab();	break;	// TAG	horizontal tab (CTRL-I)
-	case '\v':	gt->lf();	break;	// VT	vertical tab (CTRL-K)
+	case '\t':	ac_tab(gt);	break;	// TAG	horizontal tab (CTRL-I)
+	case '\v':	ac_lf(gt);	break;	// VT	vertical tab (CTRL-K)
 	case 15:				break;	// SI	shift in (CTRL-O)
 	}
 }
@@ -90,10 +92,10 @@ static void _vt_esc_dispatch(GTerm* gt, unsigned char c) {
 		break;
 */
 
-	case 'H':	gt->set_tab();	break;		// Tab Set ( HTS is 0x88)
-	case '=':	gt->keypad_application();	break;	// Application Keypad (DECPAM)
-	case '>':	gt->keypad_normal();	break;		// Normal Keypad (DECPNM)
-	case 'c':	gt->reset(); break;					// Full Reset (RIS)
+	case 'H':	ac_set_tab(gt);	break;		// Tab Set ( HTS is 0x88)
+	case '=':	ac_keypad_application(gt);	break;	// Application Keypad (DECPAM)
+	case '>':	ac_keypad_normal(gt);	break;		// Normal Keypad (DECPNM)
+	case 'c':	ac_reset(gt); break;					// Full Reset (RIS)
 	default:
 		_vt_debug("unknown esc dispatch: ", c, &gt->parser);
 	}
@@ -101,21 +103,21 @@ static void _vt_esc_dispatch(GTerm* gt, unsigned char c) {
 
 static void _vt_csi_dispatch(GTerm* gt, unsigned char c) {
 	switch (c) {
-	case 'A':	gt->cursor_up();	break;			// Cursor Up P s Times (default = 1) (CUU)
-	case 'C':	gt->cursor_right();	break;			// Cursor Forward P s Times (default = 1) (CUF)
-	case 'G':	gt->column_position(); break;		// Cursor Character Absolute [column] (default = [row,1]) (CHA)
-	case 'H':	gt->cursor_position(); break;		// Cursor Position [row;column] (default = [1,1]) (CUP)
-	case 'J':	gt->erase_display();	break;		// Erase in Display (ED)
-	case 'K':	gt->erase_line();	break;			// Erase in Line (EL)
-	case 'P':	gt->delete_char();	break;			// Delete P s Character(s) (default = 1) (DCH)
-	case 'X':	gt->erase_char();	break;			// Erase P s Character(s) (default = 1) (ECH)
-	case 'd':	gt->line_position(); break; 		// Line Position Absolute [row] (default = [1,column]) (VPA)
-	case 'h':	gt->set_mode();		break;			// Set Mode (SM)
-	case 'l':	gt->clear_mode();	break;			// Reset Mode (RM)
-	case 'm':	gt->char_attrs();	break;			// Character Attributes (SGR)
-	case 'p':	gt->reset();		break;			// Soft terminal reset (DECSTR)
-	case 'r':	gt->set_margins();	break;			// Set Scrolling Region [top;bottom] (default = full size of window) (DECSTBM)
-	case 's':	gt->save_cursor();	break;			// Save cursor (ANSI.SYS)
+	case 'A':	ac_cursor_up(gt);		break;	// Cursor Up P s Times (default = 1) (CUU)
+	case 'C':	ac_cursor_right(gt);	break;	// Cursor Forward P s Times (default = 1) (CUF)
+	case 'G':	ac_column_position(gt); break;	// Cursor Character Absolute [column] (default = [row,1]) (CHA)
+	case 'H':	ac_cursor_position(gt); break;	// Cursor Position [row;column] (default = [1,1]) (CUP)
+	case 'J':	ac_erase_display(gt);	break;	// Erase in Display (ED)
+	case 'K':	ac_erase_line(gt);		break;	// Erase in Line (EL)
+	case 'P':	ac_delete_char(gt);		break;	// Delete P s Character(s) (default = 1) (DCH)
+	case 'X':	ac_erase_char(gt);		break;	// Erase P s Character(s) (default = 1) (ECH)
+	case 'd':	ac_line_position(gt);	break; 	// Line Position Absolute [row] (default = [1,column]) (VPA)
+	case 'h':	ac_set_mode(gt);		break;	// Set Mode (SM)
+	case 'l':	ac_clear_mode(gt);		break;	// Reset Mode (RM)
+	case 'm':	ac_char_attrs(gt);		break;	// Character Attributes (SGR)
+	case 'p':	ac_reset(gt);			break;	// Soft terminal reset (DECSTR)
+	case 'r':	ac_set_margins(gt);		break;	// Set Scrolling Region [top;bottom] (default = full size of window) (DECSTBM)
+	case 's':	ac_save_cursor(gt);		break;	// Save cursor (ANSI.SYS)
 	default:
 		_vt_debug("unknown csi dispatch: ", c, &gt->parser);
 		//printf ("unknown csi dispatch: 0x%02x\n", c);
