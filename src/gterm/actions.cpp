@@ -91,18 +91,25 @@ void ac_keypad_application(GTerm* gt) {
 	gt->set_mode_flag(gt->KEYAPPMODE);
 }
 
-// Save cursor (ANSI.SYS)
+// Save Cursor (DECSC)
 void ac_save_cursor(GTerm* gt)
 {
-	gt->stored_attributes = gt->attributes;
-	gt->save_x = gt->cursor_x;
-	gt->save_y = gt->cursor_y;
+	gt->stored.attributes = gt->attributes;
+	gt->stored.cursor_x = gt->cursor_x;
+	gt->stored.cursor_y = gt->cursor_y;
+	gt->stored.noeolwrap = gt->is_mode_flag(gt->NOEOLWRAP);
 }
 
+// Restore Cursor (DECRC)
 void ac_restore_cursor(GTerm* gt)
 {
-	gt->attributes = gt->stored_attributes;
-	gt->move_cursor(gt->save_x, gt->save_y);
+	gt->attributes = gt->stored.attributes;
+	if (gt->stored.noeolwrap) {
+		gt->set_mode_flag(gt->NOEOLWRAP);
+	} else {
+		gt->clear_mode_flag(gt->NOEOLWRAP);
+	}
+	gt->move_cursor(gt->stored.cursor_x, gt->stored.cursor_y);
 }
 
 void ac_set_tab(GTerm* gt)

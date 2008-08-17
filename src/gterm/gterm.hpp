@@ -57,18 +57,29 @@ public:
 	void*				_fe_priv;
 
 	// terminal info
-	int width, height, scroll_top, scroll_bot;
+	int width, height;
 	Buffer*	buffer;
 	Dirty* dirty;
+
+	int scroll_top, scroll_bot;
 	int pending_scroll; // >0 means scroll up
 	bool doing_update;
 
 	// terminal state
 	int cursor_x, cursor_y;
-	int save_x, save_y;
-	int fg_color, bg_color;
+
+	symbol_color_t fg_color;
+	symbol_color_t bg_color;
 	symbol_attributes_t	attributes;
-	symbol_attributes_t stored_attributes;
+
+
+	// Used by store-cursor / restore-cursor (DECSC/DECRC)
+	struct {
+		int cursor_x, cursor_y;
+		symbol_attributes_t attributes;
+		bool noeolwrap;
+	} stored;
+
 	int mode_flags;
 	bool* tab_stops;
 
