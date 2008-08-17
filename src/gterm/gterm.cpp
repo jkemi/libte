@@ -32,7 +32,11 @@ size_t GTerm::input(const int32_t* text, size_t len) {
 		if (is_mode_set(NOEOLWRAP)) {
 			cursor_x = width-1;
 		} else {
-			next_line();
+			if (cursor_y < scroll_bot) {
+				move_cursor(0, cursor_y+1);
+			} else {
+				scroll_region(scroll_top, scroll_bot, 1);
+			}
 		}
 	}
 
@@ -111,6 +115,7 @@ GTerm::GTerm(const TE_Frontend* fe, void* fe_priv, int w, int h)
 	buffer = new Buffer(h, w);
 	dirty = new Dirty(h, w);
 
+	// Create tab stops
 	tab_stops = new bool[w];
 	memset(tab_stops, 0, sizeof(bool)*w);
 
@@ -119,14 +124,21 @@ GTerm::GTerm(const TE_Frontend* fe, void* fe_priv, int w, int h)
 	save_x = 0;
 	save_y = 0;
 	mode_flags = 0;
-	reset();
 
+	// Setup scrolling
+	pending_scroll = 0;
+	scroll_top = 0;
+	scroll_bot = height-1;
+
+	// Setup current attributes
+	attributes = 0;
 	fg_color = 7;
 	bg_color = 0;
 
-	set_mode_flag(GTerm::NOEOLWRAP);   // disable line wrapping
-	clear_mode_flag(GTerm::TEXTONLY);  // disable "Text Only" mode
-	clear_mode_flag(GTerm::LOCALECHO);  // disable "Text Only" mode
+	// Setup flags
+	set_mode(GTerm::NOEOLWRAP);
+
+	clear_area(0, 0, width, height-1);
 }
 
 GTerm::~GTerm()
