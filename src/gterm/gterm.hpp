@@ -20,12 +20,12 @@
 
 	class GTerm;
 
-	typedef void (GTerm::*StateFunc)();
+	typedef void (*StateFunc)(GTerm* gt);
 
 	struct StateOption {
 		int					cp;		// codepoint value to look for; -1==end/default
 		StateFunc			action;
-		const StateOption* 	next_state;
+		const struct StateOption* 	next_state;
 	};
 
 #endif
@@ -85,20 +85,10 @@ public:
 
 		const int32_t*	input_data;
 		size_t			input_remaining;
+
+		const StateOption* current_state;
 	} parser;
 
-	const StateOption* current_state;
-
-	static StateOption normal_state[];
-	static StateOption esc_state[];
-	static StateOption bracket_state[];
-	static StateOption cset_shiftin_state[];
-	static StateOption cset_shiftout_state[];
-	static StateOption hash_state[];
-	static StateOption vt52_normal_state[];
-	static StateOption vt52_esc_state[];
-	static StateOption vt52_cursory_state[];
-	static StateOption vt52_cursorx_state[];
 
 	void normal_input();
 
@@ -125,53 +115,6 @@ public:
 	size_t input(const int32_t* text, size_t len);
 
 	// terminal actions
-
-	// non-printing characters
-	void cr();
-	void lf();
-	void ff();
-	void bell();
-	void tab();
-	void bs();
-
-	// escape sequence actions
-	void keypad_normal();
-	void keypad_application();
-	void save_cursor();
-	void restore_cursor();
-	void set_tab();
-	void index_down();
-	void index_up();
-	void next_line();
-	void reset();
-
-	void cursor_left();
-	void cursor_down();
-	void cursor_right();
-	void cursor_up();
-	void cursor_position();
-	void column_position();
-	void line_position();
-	void device_attrib();
-	void delete_char();
-	void set_mode();
-	void clear_mode();
-	void request_param();
-	void set_margins();
-	void delete_line();
-	void status_report();
-	void erase_display();
-	void erase_line();
-	void insert_line();
-	void char_attrs();
-	void clear_tab();
-	void insert_char();
-	void screen_align();
-	void erase_char();
-
-	// vt52 stuff
-	void vt52_cursor();
-	void vt52_ident();
 
 	int get_mode() { return mode_flags; }
 	void set_mode(int mode) { mode_flags = mode; }
