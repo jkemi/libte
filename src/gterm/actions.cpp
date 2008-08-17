@@ -17,33 +17,33 @@ static inline int _get_param(GTerm* gt, int index, int default_value) {
 	}
 }
 
-void GTerm::cr()
+void ac_cr(GTerm* gt)
 {
-	move_cursor(0, cursor_y);
+	gt->move_cursor(0, gt->cursor_y);
 }
 
-void GTerm::lf()
+void ac_lf(GTerm* gt)
 {
-	if (cursor_y < scroll_bot) {
-		move_cursor(cursor_x, cursor_y+1);
+	if (gt->cursor_y < gt->scroll_bot) {
+		gt->move_cursor(gt->cursor_x, gt->cursor_y+1);
 	} else {
-		scroll_region(scroll_top, scroll_bot, 1);
+		gt->scroll_region(gt->scroll_top, gt->scroll_bot, 1);
 	}
 }
 
-void GTerm::ff()
+void ac_ff(GTerm* gt)
 {
-	clear_area(0, scroll_top, width-1, scroll_bot);
-	move_cursor(0, scroll_top);
+	gt->clear_area(0, gt->scroll_top, gt->width-1, gt->scroll_bot);
+	gt->move_cursor(0, gt->scroll_top);
 }
 
-void GTerm::tab()
+void ac_tab(GTerm* gt)
 {
 	int x = -1;
 
 	// find nearest set tab-stop
-	for (int i = cursor_x+1; i < width; i++) {
-		if (tab_stops[i]) {
+	for (int i = gt->cursor_x+1; i < gt->width; i++) {
+		if (gt->tab_stops[i]) {
 			x = i;
 			break;
 		}
@@ -51,200 +51,207 @@ void GTerm::tab()
 
 	// set tab-stop not found, use 8 spaces
 	if (x < 0) {
-		x = (cursor_x+7) & ~0x7;
+		x = (gt->cursor_x+7) & ~0x7;
 	}
 
-	if (x < width) {
-		move_cursor(x, cursor_y);
+	if (x < gt->width) {
+		gt->move_cursor(x, gt->cursor_y);
 	} else {
-		if (is_mode_set(NOEOLWRAP)) {
-			move_cursor(width-1, cursor_y);
+		if (gt->is_mode_set(gt->NOEOLWRAP)) {
+			gt->move_cursor(gt->width-1, gt->cursor_y);
 		} else {
-			next_line();
+			ac_lf(gt);
+			ac_cr(gt);
 		}
 	}
 }
 
-void GTerm::bs()
+void ac_bs(GTerm* gt)
 {
-	if (cursor_x > 0) {
-		move_cursor(cursor_x-1, cursor_y);
+	if (gt->cursor_x > 0) {
+		gt->move_cursor(gt->cursor_x-1, gt->cursor_y);
 	}
-	if (is_mode_set(DESTRUCTBS)) {
-	    clear_area(cursor_x, cursor_y, cursor_x, cursor_y);
+	if (gt->is_mode_set(gt->DESTRUCTBS)) {
+		gt->clear_area(gt->cursor_x, gt->cursor_y, gt->cursor_x, gt->cursor_y);
 	}
 }
 
-void GTerm::bell()
+void ac_bell(GTerm* gt)
 {
-	if (_fe->bell != NULL) {
-		_fe->bell(_fe_priv);
+	if (gt->_fe->bell != NULL) {
+		gt->_fe->bell(gt->_fe_priv);
 	}
 }
 
-void GTerm::keypad_normal() { clear_mode_flag(KEYAPPMODE); }
-void GTerm::keypad_application() { set_mode_flag(KEYAPPMODE); }
+void ac_keypad_normal(GTerm* gt) {
+	gt->clear_mode_flag(gt->KEYAPPMODE);
+}
+
+void ac_keypad_application(GTerm* gt) {
+	gt->set_mode_flag(gt->KEYAPPMODE);
+}
 
 // Save cursor (ANSI.SYS)
-void GTerm::save_cursor()
+void ac_save_cursor(GTerm* gt)
 {
-	stored_attributes = attributes;
-	save_x = cursor_x;
-	save_y = cursor_y;
+	gt->stored_attributes = gt->attributes;
+	gt->save_x = gt->cursor_x;
+	gt->save_y = gt->cursor_y;
 }
 
-void GTerm::restore_cursor()
+void ac_restore_cursor(GTerm* gt)
 {
-	attributes = stored_attributes;
-	move_cursor(save_x, save_y);
+	gt->attributes = gt->stored_attributes;
+	gt->move_cursor(gt->save_x, gt->save_y);
 }
 
-void GTerm::set_tab()
+void ac_set_tab(GTerm* gt)
 {
-	tab_stops[cursor_x] = true;
+	gt->tab_stops[gt->cursor_x] = true;
 }
 
-void GTerm::index_down()
+void ac_index_down(GTerm* gt)
 {
-	lf();
+	ac_lf(gt);
 }
 
-void GTerm::next_line()
+void ac_next_line(GTerm* gt)
 {
-	lf();
-	cr();
+	ac_lf(gt);
+	ac_cr(gt);
 }
 
-void GTerm::index_up()
+void ac_index_up(GTerm* gt)
 {
-	if (cursor_y > scroll_top) {
-		move_cursor(cursor_x, cursor_y-1);
+	if (gt->cursor_y > gt->scroll_top) {
+		gt->move_cursor(gt->cursor_x, gt->cursor_y-1);
 	} else {
-		scroll_region(scroll_top, scroll_bot, -1);
+		gt->scroll_region(gt->scroll_top, gt->scroll_bot, -1);
 	}
 }
 
-void GTerm::reset()
+// Full Reset (RIS)
+void ac_reset(GTerm* gt)
 {
-	pending_scroll = 0;
-	bg_color = 0;
-	fg_color = 7;
-	scroll_top = 0;
-	scroll_bot = height-1;
-	memset(tab_stops, 0, sizeof(bool)*width);
+	gt->pending_scroll = 0;
+	gt->bg_color = 0;
+	gt->fg_color = 7;
+	gt->scroll_top = 0;
+	gt->scroll_bot = gt->height-1;
+	memset(gt->tab_stops, 0, sizeof(bool)*gt->width);
 
-	clear_mode_flags(NOEOLWRAP | CURSORAPPMODE | CURSORRELATIVE | KEYAPPMODE | CURSORINVISIBLE);
+	gt->clear_mode_flags(gt->NOEOLWRAP | gt->CURSORAPPMODE | gt->CURSORRELATIVE | gt->KEYAPPMODE | gt->CURSORINVISIBLE);
 
-	attributes = 0;
+	gt->attributes = 0;
 
-	clear_area(0, 0, width, height-1);
-	move_cursor(0, 0);
+	gt->clear_area(0, 0, gt->width, gt->height-1);
+	gt->move_cursor(0, 0);
 }
 
 // Cursor Backward P s Times (default = 1) (CUB)
-void GTerm::cursor_left()
+void ac_cursor_left(GTerm* gt)
 {
 	int n, x;
-	n = int_max(1, _get_param(this,0,1) );
+	n = int_max(1, _get_param(gt,0,1) );
 
-	x = int_max(0, cursor_x-n);
-	move_cursor(x, cursor_y);
+	x = int_max(0, gt->cursor_x-n);
+	gt->move_cursor(x, gt->cursor_y);
 }
 
 // Cursor Forward P s Times (default = 1) (CUF)
-void GTerm::cursor_right()
+void ac_cursor_right(GTerm* gt)
 {
 	int n, x;
-	n = int_max(1, _get_param(this,0,1) );
+	n = int_max(1, _get_param(gt,0,1) );
 
-	x = int_min(width-1, cursor_x+n);
-	move_cursor(x, cursor_y);
+	x = int_min(gt->width-1, gt->cursor_x+n);
+	gt->move_cursor(x, gt->cursor_y);
 }
 
 // Cursor Up P s Times (default = 1) (CUU)
-void GTerm::cursor_up()
+void ac_cursor_up(GTerm* gt)
 {
 	int n, y;
-	n = int_max(1, _get_param(this,0,1) );
+	n = int_max(1, _get_param(gt,0,1) );
 
-	y = int_max(0, cursor_y-n);;
-	move_cursor(cursor_x, y);
+	y = int_max(0, gt->cursor_y-n);;
+	gt->move_cursor(gt->cursor_x, y);
 }
 
 // Cursor Down P s Times (default = 1) (CUD)
-void GTerm::cursor_down()
+void ac_cursor_down(GTerm* gt)
 {
 	int n, y;
-	n = int_max(1, _get_param(this,0,1) );
+	n = int_max(1, _get_param(gt,0,1) );
 
-	y = int_min(height-1, cursor_y+n);
-	move_cursor(cursor_x, y);
+	y = int_min(gt->height-1, gt->cursor_y+n);
+	gt->move_cursor(gt->cursor_x, y);
 }
 
-void GTerm::cursor_position()
+void ac_cursor_position(GTerm* gt)
 {
-	int	y = int_clamp(_get_param(this, 0, 1), 1, height);
-	int x = int_clamp(_get_param(this, 1, 1), 1, width);
+	int	y = int_clamp(_get_param(gt, 0, 1), 1, gt->height);
+	int x = int_clamp(_get_param(gt, 1, 1), 1, gt->width);
 
-	if (is_mode_set(CURSORRELATIVE)) {
-		move_cursor(x-1, y-1+scroll_top);
+	if (gt->is_mode_set(gt->CURSORRELATIVE)) {
+		gt->move_cursor(x-1, y-1+gt->scroll_top);
 	} else {
-		move_cursor(x-1, y-1);
+		gt->move_cursor(x-1, y-1);
 	}
 }
 
 // Cursor Character Absolute [column] (default = [row,1]) (CHA)
-void GTerm::column_position()
+void ac_column_position(GTerm* gt)
 {
-	int	x = int_clamp(_get_param(this, 0, 1), 1, width);
+	int	x = int_clamp(_get_param(gt, 0, 1), 1, gt->width);
 
-	move_cursor(x-1, cursor_y);
+	gt->move_cursor(x-1, gt->cursor_y);
 }
 
 // Line Position Absolute [row] (default = [1,column]) (VPA)
-void GTerm::line_position()
+void ac_line_position(GTerm* gt)
 {
-	int	y = int_clamp(_get_param(this, 0, 1), 1, height);
+	int	y = int_clamp(_get_param(gt, 0, 1), 1, gt->height);
 
-	move_cursor(cursor_x, y-1);
+	gt->move_cursor(gt->cursor_x, y-1);
 }
 
 
-void GTerm::device_attrib()
+void ac_device_attrib(GTerm* gt)
 {
-	fe_send_back("\033[?1;2c");
+	gt->fe_send_back("\033[?1;2c");
 }
 
 // Delete P s Character(s) (default = 1) (DCH)
-void GTerm::delete_char()
+void ac_delete_char(GTerm* gt)
 {
 	int n, mx;
-	n = int_max(1, _get_param(this,0,1) );
+	n = int_max(1, _get_param(gt,0,1) );
 
-	mx = width-cursor_x;
+	mx = gt->width-gt->cursor_x;
 	if (n >= mx) {
-		clear_area(cursor_x, cursor_y, width-1, cursor_y);
+		gt->clear_area(gt->cursor_x, gt->cursor_y, gt->width-1, gt->cursor_y);
 	} else {
-		shift_text(cursor_y, cursor_x, width-1, -n);
+		gt->shift_text(gt->cursor_y, gt->cursor_x, gt->width-1, -n);
 	}
 }
 
 // Set Mode (SM)
-void GTerm::set_mode()  // h
+void ac_set_mode(GTerm* gt)  // h
 {
-	if (parser.intermediate_chars[0] == '?') {
+	if (gt->parser.intermediate_chars[0] == '?') {
 		// DEC Private Mode Set (DECSET)
 		// Lots of these are missing
 
-		switch (_get_param(this,0,-1)) {
-		case 1:	set_mode_flag(CURSORAPPMODE);	break;	// Normal Cursor Keys (DECCKM)
+		switch (_get_param(gt,0,-1)) {
+		case 1:	gt->set_mode_flag(gt->CURSORAPPMODE);	break;	// Normal Cursor Keys (DECCKM)
 //		case 2:											// Designate VT52 mode (DECANM).
-		case 3:	fe_request_resize(132, height);	break;	// 80 Column Mode (DECCOLM)
-		case 6:	set_mode_flag(CURSORRELATIVE);	break;	// Normal Cursor Mode (DECOM)
-		case 7:	clear_mode_flag(NOEOLWRAP);		break;	// No Wraparound Mode (DECAWM)
+		case 3:	gt->fe_request_resize(132, gt->height);	break;	// 80 Column Mode (DECCOLM)
+		case 6:	gt->set_mode_flag(gt->CURSORRELATIVE);	break;	// Normal Cursor Mode (DECOM)
+		case 7:	gt->clear_mode_flag(gt->NOEOLWRAP);		break;	// No Wraparound Mode (DECAWM)
 		case 25:										// Hide Cursor (DECTCEM)
-			clear_mode_flag(CURSORINVISIBLE);
-			move_cursor(cursor_x, cursor_y);
+			gt->clear_mode_flag(gt->CURSORINVISIBLE);
+			gt->move_cursor(gt->cursor_x, gt->cursor_y);
 			break;
 		default:
 			break;
@@ -252,11 +259,11 @@ void GTerm::set_mode()  // h
 	} else {
 		// Set Mode (SM)
 
-		switch (_get_param(this,0,-1)) {
+		switch (_get_param(gt,0,-1)) {
 //		case 2:											// Keyboard Action Mode (AM)
-		case 4:		set_mode_flag(INSERT);  	break;	// Insert Mode (IRM)
-		case 12:	clear_mode_flag(LOCALECHO);	break;	// Send/receive (SRM)
-		case 20:	set_mode_flag(NEWLINE);		break;	// Automatic Newline (LNM)
+		case 4:		gt->set_mode_flag(gt->INSERT);  	break;	// Insert Mode (IRM)
+		case 12:	gt->clear_mode_flag(gt->LOCALECHO);	break;	// Send/receive (SRM)
+		case 20:	gt->set_mode_flag(gt->NEWLINE);		break;	// Automatic Newline (LNM)
 		default:
 			break;
 		}
@@ -264,233 +271,232 @@ void GTerm::set_mode()  // h
 }
 
 // Reset Mode (RM)
-void GTerm::clear_mode()  // l
+void ac_clear_mode(GTerm* gt)  // l
 {
-	if (parser.intermediate_chars[0] == '?') {
+	if (gt->parser.intermediate_chars[0] == '?') {
 		// DEC Private Mode Reset (DECRST)
 		// Lots of these are missing
 
-		switch (_get_param(this,0,-1)) {
-		case 1:	clear_mode_flag(CURSORAPPMODE);		break;	// Normal Cursor Keys (DECCKM)
+		switch (_get_param(gt,0,-1)) {
+		case 1:	gt->clear_mode_flag(gt->CURSORAPPMODE);		break;	// Normal Cursor Keys (DECCKM)
 //		case 2:	current_state = vt52_normal_state; break;	// Designate VT52 mode (DECANM).
-		case 3:	fe_request_resize(80, height);		break;	// 80 Column Mode (DECCOLM)
-		case 6:	clear_mode_flag(CURSORRELATIVE);	break;	// Normal Cursor Mode (DECOM)
-		case 7:	set_mode_flag(NOEOLWRAP);			break;	// No Wraparound Mode (DECAWM)
+		case 3:	gt->fe_request_resize(80, gt->height);		break;	// 80 Column Mode (DECCOLM)
+		case 6:	gt->clear_mode_flag(gt->CURSORRELATIVE);	break;	// Normal Cursor Mode (DECOM)
+		case 7:	gt->set_mode_flag(gt->NOEOLWRAP);			break;	// No Wraparound Mode (DECAWM)
 		case 25:											// Hide Cursor (DECTCEM)
-			set_mode_flag(CURSORINVISIBLE);	break;
-			move_cursor(cursor_x, cursor_y);
+			gt->set_mode_flag(gt->CURSORINVISIBLE);	break;
+			gt->move_cursor(gt->cursor_x, gt->cursor_y);
 			break;
 		}
 	} else {
 		// Reset Mode (RM)
 
-		switch (_get_param(this,0,-1)) {
+		switch (_get_param(gt,0,-1)) {
 //		case 2:											// Keyboard Action Mode (AM)
-		case 4:		clear_mode_flag(INSERT);	break;	// Insert Mode (IRM)
-		case 12:	set_mode_flag(LOCALECHO);	break;	// Send/receive (SRM)
-		case 20:	clear_mode_flag(NEWLINE);	break;	// Automatic Newline (LNM)
+		case 4:		gt->clear_mode_flag(gt->INSERT);	break;	// Insert Mode (IRM)
+		case 12:	gt->set_mode_flag(gt->LOCALECHO);	break;	// Send/receive (SRM)
+		case 20:	gt->clear_mode_flag(gt->NEWLINE);	break;	// Automatic Newline (LNM)
 		}
 	}
 }
 
-void GTerm::request_param()
+void ac_request_param(GTerm* gt)
 {
 	char str[40];
-	sprintf(str, "\033[%d;1;1;120;120;1;0x", parser.params[0]+2);
+	sprintf(str, "\033[%d;1;1;120;120;1;0x", gt->parser.params[0]+2);
 
-	fe_send_back(str);
+	gt->fe_send_back(str);
 }
 
-void GTerm::set_margins()
+// Set Scrolling Region [top;bottom] (default = full size of window) (DECSTBM)
+void ac_set_margins(GTerm* gt)
 {
 	int t, b;
 
-	t = int_max(1, parser.params[0]);
-	b = int_clamp(parser.params[1], 1, height);
+	t = int_clamp(_get_param(gt,0,1), 1, gt->height);
+	b = int_clamp(_get_param(gt,0,gt->height), 1, gt->height);
 
-	if (pending_scroll) {
-		update_changes();
+	if (gt->pending_scroll) {
+		gt->update_changes();
 	}
 
-	scroll_top = t-1;
-	scroll_bot = b-1;
-	if (cursor_y < scroll_top) {
-		move_cursor(cursor_x, scroll_top);
-	} else if (cursor_y > scroll_bot) {
-		move_cursor(cursor_x, scroll_bot);
+	gt->scroll_top = t-1;
+	gt->scroll_bot = b-1;
+	if (gt->cursor_y < gt->scroll_top) {
+		gt->move_cursor(gt->cursor_x, gt->scroll_top);
+	} else if (gt->cursor_y > gt->scroll_bot) {
+		gt->move_cursor(gt->cursor_x, gt->scroll_bot);
 	}
 }
 
-void GTerm::delete_line()
+// Delete P s Line(s) (default = 1) (DL)
+void ac_delete_line(GTerm* gt)
 {
 	int n, mx;
-	n = int_max(1, parser.params[0]);
-	mx = scroll_bot-cursor_y+1;
+	n = int_max(_get_param(gt, 0, 1), 1);
+	mx = gt->scroll_bot-gt->cursor_y+1;
 	if (n>=mx) {
-		clear_area(0, cursor_y, width-1, scroll_bot);
+		gt->clear_area(0, gt->cursor_y, gt->width-1, gt->scroll_bot);
 	} else {
-		scroll_region(cursor_y, scroll_bot, n);
+		gt->scroll_region(gt->cursor_y, gt->scroll_bot, n);
 	}
 }
 
-void GTerm::status_report()
+// Device Status Report (DSR)
+void ac_status_report(GTerm* gt)
 {
 	char str[20];
-	switch (parser.params[0]) {
+	switch (_get_param(gt, 0, -1)) {
 	case 5:
-		fe_send_back("\033[0n");
+		gt->fe_send_back("\033[0n");
 		break;
 	case 6:
-		sprintf(str, "\033[%d;%dR", cursor_y+1, cursor_x+1);
-		fe_send_back(str);
+		sprintf(str, "\033[%d;%dR", gt->cursor_y+1, gt->cursor_x+1);
+		gt->fe_send_back(str);
 		break;
 	}
 }
 
 // Erase in Display (ED)
-void GTerm::erase_display()
+void ac_erase_display(GTerm* gt)
 {
-	switch ( _get_param(this, 0, 0) ) {
+	switch ( _get_param(gt, 0, 0) ) {
 	case 0:
-		clear_area(cursor_x, cursor_y, width-1, cursor_y);
-		if (cursor_y<height-1)
-			clear_area(0, cursor_y+1, width-1, height-1);
+		gt->clear_area(gt->cursor_x, gt->cursor_y, gt->width-1, gt->cursor_y);
+		if (gt->cursor_y < gt->height-1) {
+			gt->clear_area(0, gt->cursor_y+1, gt->width-1, gt->height-1);
+		}
 		break;
 	case 1:
-		clear_area(0, cursor_y, cursor_x, cursor_y);
-		if (cursor_y>0)
-			clear_area(0, 0, width-1, cursor_y-1);
+		gt->clear_area(0, gt->cursor_y, gt->cursor_x, gt->cursor_y);
+		if (gt->cursor_y > 0) {
+			gt->clear_area(0, 0, gt->width-1, gt->cursor_y-1);
+		}
 		break;
 	case 2:
-		clear_area(0, 0, width-1, height-1);
+		gt->clear_area(0, 0, gt->width-1, gt->height-1);
 		break;
 	}
 }
 
-void GTerm::erase_line()
+// Erase in Line (EL)
+void ac_erase_line(GTerm* gt)
 {
-	switch ( _get_param(this, 0, 0) ) {
+	switch ( _get_param(gt, 0, 0) ) {
 	case 0:	// Erase to Right (default)
-		clear_area(cursor_x, cursor_y, width, cursor_y);
+		gt->clear_area(gt->cursor_x, gt->cursor_y, gt->width, gt->cursor_y);
 		break;
 	case 1:	// Erase to Left
-		clear_area(0, cursor_y, cursor_x, cursor_y);
+		gt->clear_area(0, gt->cursor_y, gt->cursor_x, gt->cursor_y);
 		break;
 	case 2: // Erase All
-		clear_area(0, cursor_y, width, cursor_y);
+		gt->clear_area(0, gt->cursor_y, gt->width, gt->cursor_y);
 		break;
 	}
 }
 
-
-void GTerm::insert_line()
+// Insert P s Line(s) (default = 1) (IL)
+void ac_insert_line(GTerm* gt)
 {
 	int n, mx;
-	n = int_max(1, parser.params[0]);
-	mx = scroll_bot-cursor_y+1;
-	if (n>=mx) {
-		clear_area(0, cursor_y, width-1, scroll_bot);
+	n = int_max(1, _get_param(gt, 0, 1) );
+	mx = gt->scroll_bot-gt->cursor_y+1;
+	if (n >= mx) {
+		gt->clear_area(0, gt->cursor_y, gt->width-1, gt->scroll_bot);
 	} else {
-		scroll_region(cursor_y, scroll_bot, -n);
+		gt->scroll_region(gt->cursor_y, gt->scroll_bot, -n);
 	}
 }
 
 // Character Attributes (SGR)
-void GTerm::char_attrs()
+void ac_char_attrs(GTerm* gt)
 {
 	// TODO: REWRITE THIS METHOD
 
 	int n;
 
-	// TODO: what?? this if case seems wrong
-	if (parser.num_params == 0 || parser.params[0] == 0) {
-		attributes = 0;
-		fg_color = 7;
-		bg_color = 0;
+	if (
+			gt->parser.num_params == 0 ||
+			(gt->parser.num_params == 1 && gt->parser.params[0] == 0)
+	){
+		gt->attributes = 0;
+		gt->fg_color = 7;
+		gt->bg_color = 0;
 		return;
 	}
 
 //	attributes = 0; 	// imm... linux console seems to leave underline on. This "fixes" that...
 	/// TODO: hmm, should probably be < not <=
-	for (n = 0; n < parser.num_params; n++) {
-		const int p = parser.params[n];
+	for (n = 0; n < gt->parser.num_params; n++) {
+		const int p = gt->parser.params[n];
 		if (p/10 == 4) {
-			bg_color = int_clamp(p%10, 0, 7);
+			gt->bg_color = int_clamp(p%10, 0, 7);
 		} else if (p/10 == 3) {
-			fg_color = int_clamp(p%10, 0, 7);
+			gt->fg_color = int_clamp(p%10, 0, 7);
 		} else {
 			switch (p) {
 			case 0:
-				attributes = 0;
-				fg_color = 7;
-				bg_color = 0;
+				gt->attributes = 0;
+				gt->fg_color = 7;
+				gt->bg_color = 0;
 				break;
-			case 1: attributes |= SYMBOL_BOLD; break;
-			case 4: attributes |= SYMBOL_UNDERLINE; break;
-			case 5:	attributes |= SYMBOL_BLINK; break;
-			case 7:	attributes |= SYMBOL_INVERSE; break;
+			case 1: gt->attributes |= SYMBOL_BOLD; break;
+			case 4: gt->attributes |= SYMBOL_UNDERLINE; break;
+			case 5:	gt->attributes |= SYMBOL_BLINK; break;
+			case 7:	gt->attributes |= SYMBOL_INVERSE; break;
 			}
 		}
 	}
 }
 
-void GTerm::clear_tab()
+// Tab Clear (TBC)
+void ac_clear_tab(GTerm* gt)
 {
-	switch (parser.params[0]) {
+	switch ( _get_param(gt,0,0) ) {
 	case 3:
-		memset(tab_stops, 0, sizeof(tab_stops));
+		memset(gt->tab_stops, 0, sizeof(gt->tab_stops));
 		break;
 	case 0:
-		tab_stops[cursor_x] = false;
+		gt->tab_stops[gt->cursor_x] = false;
 	}
 }
 
-void GTerm::insert_char()
+// Insert P s (Blank) Character(s) (default = 1) (ICH)
+void ac_insert_char(GTerm* gt)
 {
 	int n, mx;
-	n = int_max(1, parser.params[0]);
-	mx = width-cursor_x;
+	n = int_max(1, _get_param(gt,0,1) );
+	mx = gt->width-gt->cursor_x;
 	if (n >= mx) {
-		clear_area(cursor_x, cursor_y, width-1, cursor_y);
+		gt->clear_area(gt->cursor_x, gt->cursor_y, gt->width-1, gt->cursor_y);
 	} else {
-		shift_text(cursor_y, cursor_x, width-1, n);
+		gt->shift_text(gt->cursor_y, gt->cursor_x, gt->width-1, n);
 	}
 }
 
-void GTerm::screen_align()
+// DEC Screen Alignment Test (DECALN)
+void ac_screen_align(GTerm* gt)
 {
 	const symbol_t style = symbol_make_style(7,0,0);
 	const symbol_t sym = 'E' | style;
 
 	// TODO: fixup
-	symbol_t syms[width];
-	for (int x = 0; x < width; x++) {
+	symbol_t syms[gt->width];
+	for (int x = 0; x < gt->width; x++) {
 		syms[x] = sym;
 	}
 
-	for (int y=0; y<height; y++) {
-		BufferRow* row = buffer->getRow(y);
-		changed_line(y, 0, width-1);
-		row->replace(0, syms, width);
+	for (int y=0; y<gt->height; y++) {
+		BufferRow* row = gt->buffer->getRow(y);
+		gt->changed_line(y, 0, gt->width-1);
+		row->replace(0, syms, gt->width);
 	}
 }
 
 // Erase P s Character(s) (default = 1) (ECH)
-void GTerm::erase_char()
+void ac_erase_char(GTerm* gt)
 {
 	// number of characters to erase
-	const int n = int_clamp(_get_param(this,0,1), 1, width-cursor_x);
-	clear_area(cursor_x, cursor_y, cursor_x+n-1, cursor_y);
-}
-
-void GTerm::vt52_cursor() {
-	const int y = int_clamp(parser.params[0]-32, 1, height);
-	const int x = int_clamp(parser.params[1]-32, 1, width);
-
-	move_cursor(x-1, y-1);
-}
-
-void GTerm::vt52_ident()
-{
-	fe_send_back("\033/Z");
+	const int n = int_clamp(_get_param(gt,0,1), 1, gt->width-gt->cursor_x);
+	gt->clear_area(gt->cursor_x, gt->cursor_y, gt->cursor_x+n-1, gt->cursor_y);
 }
