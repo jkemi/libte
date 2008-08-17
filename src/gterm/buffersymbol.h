@@ -21,7 +21,7 @@ typedef uint32_t symbol_t;
 typedef uint_fast16_t symbol_data_t;
 typedef uint_fast8_t symbol_color_t;
 
-// TODO: needed attributes
+// TODO: These are the needed attributes
 #define SYMBOL_BOLD			(1<<0)
 #define SYMBOL_BLINK		(1<<1)
 #define SYMBOL_INVERSE		(1<<2)

@@ -37,7 +37,7 @@ static void _vt_execute(GTerm* gt, unsigned char c) {
 	case '\b':	ac_bs(gt);	break;	// BS	backspace (CTRL-H)
 	case '\r':	ac_cr(gt);	break;	// CR	carriage return (CTRL-M)
 	case 5:					break;	// ENQ	terminal status (CTRL-E)
-	case '\f':	ac_ff(gt);	break;	// FF	form feed (CTRL-L)
+	case '\f':	ac_lf(gt);	break;	// FF	form feed (CTRL-L)
 	case '\n':	ac_lf(gt);	break;	// LF	line feed (CTRL-J)
 	case 14:				break;	// SO	shift out (CTRL-N)
 	case ' ':	_vt_print(gt, ' ');			break;	// SP	space

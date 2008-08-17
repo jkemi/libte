@@ -66,13 +66,35 @@ public:
 		NEWLINE			= (1<<7),
 
 		INSERT			= (1<<8),
+
+		// Application Keypad Mode (DECKPAM)
 		KEYAPPMODE		= (1<<9),
-		DEFERUPDATE		= (1<<10),
+
+		// Scroll Mode (DECSCLM)
+		//
+		// With scroll mode:
+		//   Smooth scroll lets the terminal add 6 lines per second to screen (power feature = 60 Hz),
+		//   or 5 lines per second (power feature = 50 Hz).
+		// Without scroll mode:
+		//   Jump scroll lets the terminal add lines to the screen as fast as possible.
+		SMOOTHSCROLL	= (1<<10),
+
 		DESTRUCTBS		= (1<<11),
+
+		// TODO: what is this??
 		TEXTONLY		= (1<<12),
+
+		// Send-Receive Mode (SRM), local echo
 		LOCALECHO		= (1<<13),
+
 		CURSORINVISIBLE	= (1<<14),
 	} mode_t;
+
+	// Contains the currently set mode flags
+	int mode_flags;
+
+	// An boolean array where true means that there exists a tab-stop at that column
+	bool* tab_stops;
 
 	const TE_Frontend*	_fe;
 	void*				_fe_priv;
@@ -82,7 +104,9 @@ public:
 	Buffer*	buffer;
 	Dirty* dirty;
 
+	// Scroll margins, as set by DECSTBM
 	int scroll_top, scroll_bot;
+
 	int pending_scroll; // >0 means scroll up
 	bool doing_update;
 
@@ -100,9 +124,6 @@ public:
 		symbol_attributes_t attributes;
 		bool autowrap;
 	} stored;
-
-	int mode_flags;
-	bool* tab_stops;
 
 #ifdef USE_VTPARSE
 	vtparse_t parser;

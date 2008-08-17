@@ -34,6 +34,7 @@ void ac_lf(GTerm* gt)
 	}
 }
 
+// Horizontal Tabulation Set (HTS)
 void ac_tab(GTerm* gt)
 {
 	int x = -1;
