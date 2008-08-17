@@ -7,24 +7,33 @@
 #include <stdio.h>
 #include <stdint.h>
 
+//#define USE_VTPARSE
 
 #include "buffersymbol.h"
-#include "vtparse.h"
+
+
+#ifdef USE_VTPARSE
+
+#	include "vtparse.h"
+
+#else
+
+	class GTerm;
+
+	typedef void (GTerm::*StateFunc)();
+
+	struct StateOption {
+		int					cp;		// codepoint value to look for; -1==end/default
+		StateFunc			action;
+		const StateOption* 	next_state;
+	};
+
+#endif
 
 #include "libte.h"
 
 class Buffer;
 class Dirty;
-
-
-class GTerm;
-typedef void (GTerm::*StateFunc)();
-
-struct StateOption {
-	int					cp;		// codepoint value to look for; -1==end/default
-	StateFunc			action;
-	const StateOption* 	next_state;
-};
 
 class GTerm {
 public:
@@ -63,7 +72,21 @@ public:
 	int mode_flags;
 	bool* tab_stops;
 
-/*
+#ifdef USE_VTPARSE
+	vtparse_t parser;
+#else
+
+	struct {
+		// action parameters
+		int num_params;
+		int params[16];
+
+		unsigned char intermediate_chars[2];
+
+		const int32_t*	input_data;
+		size_t			input_remaining;
+	} parser;
+
 	const StateOption* current_state;
 
 	static StateOption normal_state[];
@@ -76,8 +99,19 @@ public:
 	static StateOption vt52_esc_state[];
 	static StateOption vt52_cursory_state[];
 	static StateOption vt52_cursorx_state[];
-*/
-	vtparse_t parser;
+
+	void normal_input();
+
+	void set_q_mode();
+	void set_quote_mode();
+	void clear_param();
+	void param_digit();
+	void next_param();
+	void vt52_cursory();
+	void vt52_cursorx();
+#endif
+
+
 
 	// utility functions
 	bool is_mode_set(mode_t mode) {return mode_flags & mode;}
@@ -87,22 +121,10 @@ public:
 	void changed_line(int y, int start_x, int end_x);
 	void move_cursor(int x, int y);
 
-	// action parameters
-	//int nparam, param[30];
-	int q_mode, quote_mode;
 
-	// const int32_t*	input_data;
-	// int				input_remaining;
-	//bool got_param;	// unused!?
+	size_t input(const int32_t* text, size_t len);
 
 	// terminal actions
-	void normal_input();
-	void normal_input2(unsigned char c);
-	void set_q_mode();
-	void set_quote_mode();
-	void clear_param();
-	//void param_digit();
-	//void next_param();
 
 	// non-printing characters
 	void cr();
@@ -148,8 +170,7 @@ public:
 	void erase_char();
 
 	// vt52 stuff
-	void vt52_cursory();
-	void vt52_cursorx();
+	void vt52_cursor();
 	void vt52_ident();
 
 	int get_mode() { return mode_flags; }

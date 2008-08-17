@@ -22,7 +22,7 @@ StateOption GTerm::normal_state[] = {
 
 StateOption GTerm::esc_state[] = {
     { '[', &GTerm::clear_param,			bracket_state },
-    { '>', &GTerm::keypad_numeric,		normal_state },
+    { '>', &GTerm::keypad_normal,		normal_state },
     { '=', &GTerm::keypad_application,	normal_state },
     { '7', &GTerm::save_cursor,			normal_state },
     { '8', &GTerm::restore_cursor,		normal_state },

@@ -17,103 +17,6 @@ static inline int _get_param(GTerm* gt, int index, int default_value) {
 	}
 }
 
-// For efficiency, this grabs all printing characters from buffer, up to
-// the end of the line or end of buffer
-void GTerm::normal_input2(unsigned char c)
-{
-	// TODO: this check doesn't work and should probably not be here to begin with...
-	if (cursor_x >= width) {
-		if (is_mode_set(NOEOLWRAP)) {
-			cursor_x = width-1;
-		} else {
-			next_line();
-		}
-	}
-
-	size_t n = 1;
-
-	// TODO: remove temporary stack buffer from here..
-	symbol_t syms[n];
-	symbol_t style = symbol_make_style(fg_color, bg_color, attributes);
-	for (int i = 0; i < n; i++) {
-		const symbol_t sym = style | c;
-		syms[i] = sym;
-	}
-	BufferRow* row = buffer->getRow(cursor_y);
-
-	if (is_mode_set(INSERT)) {
-		row->insert(cursor_x, syms, n);
-		changed_line(cursor_y, cursor_x, width);
-	} else {
-		row->replace(cursor_x, syms, n);
-		changed_line(cursor_y, cursor_x, cursor_x+n);
-	}
-
-	cursor_x += n;
-}
-
-/*
-// For efficiency, this grabs all printing characters from buffer, up to
-// the end of the line or end of buffer
-void GTerm::normal_input()
-{
-	if (*input_data < 32) {
-		return;
-	}
-
-	// TODO: this check doesn't work and should probably not be here to begin with...
-	if (cursor_x >= width) {
-		if (is_mode_set(NOEOLWRAP)) {
-			cursor_x = width-1;
-		} else {
-			next_line();
-		}
-	}
-
-	// Count number of consumed bytes and number of bytes to print
-	int n = 0;		// number of bytes to draw
-	int n_taken;	// number of bytes consumed from input data stream
-	if (is_mode_set(NOEOLWRAP)) {
-		while (n < input_remaining && input_data[n] > 31) {
-			n++;
-		}
-		n_taken = n;
-		if (n >= width-cursor_x) {
-			n = width-cursor_x;
-		}
-	} else {
-		const int sz = int_min(input_remaining, width-cursor_x);
-		while (n < sz && input_data[n] > 31) {
-			n++;
-		}
-		n_taken = n;
-	}
-
-	// TODO: remove temporary stack buffer from here..
-	symbol_t syms[n];
-	symbol_t style = symbol_make_style(fg_color, bg_color, attributes);
-	for (int i = 0; i < n; i++) {
-		const symbol_t sym = style | input_data[i];
-		syms[i] = sym;
-	}
-	BufferRow* row = buffer->getRow(cursor_y);
-
-	if (is_mode_set(INSERT)) {
-		row->insert(cursor_x, syms, n);
-		changed_line(cursor_y, cursor_x, width);
-	} else {
-		row->replace(cursor_x, syms, n);
-		changed_line(cursor_y, cursor_x, cursor_x+n);
-	}
-
-	cursor_x += n;
-
-	// TODO: why -1 ??
-	input_data += n_taken-1;
-	input_remaining -= n_taken-1;
-}
-*/
-
 void GTerm::cr()
 {
 	move_cursor(0, cursor_y);
@@ -179,13 +82,6 @@ void GTerm::bell()
 	}
 }
 
-void GTerm::clear_param()
-{
-	parser.num_params = 0;
-	memset(parser.params, 0, sizeof(parser.params));
-	q_mode = 0;
-}
-
 void GTerm::keypad_normal() { clear_mode_flag(KEYAPPMODE); }
 void GTerm::keypad_application() { set_mode_flag(KEYAPPMODE); }
 
@@ -244,36 +140,6 @@ void GTerm::reset()
 	clear_area(0, 0, width, height-1);
 	move_cursor(0, 0);
 }
-
-void GTerm::set_q_mode()
-{
-	q_mode = 1;
-}
-
-// The verification test used some strange sequence which was
-// ^[[61"p
-// in a function called set_level,
-// but it didn't explain the meaning.  Just in case I ever find out,
-// and just so that it doesn't leave garbage on the screen, I accept
-// the quote and mark a flag.
-void GTerm::set_quote_mode()
-{
-	quote_mode = 1;
-}
-
-/*
-// for performance, this grabs all digits
-void GTerm::param_digit()
-{
-	got_param = true;
-	param[nparam] = param[nparam]*10 + (*input_data)-'0';
-}
-
-void GTerm::next_param()
-{
-	nparam++;
-}
-*/
 
 // Cursor Backward P s Times (default = 1) (CUB)
 void GTerm::cursor_left()
@@ -363,38 +229,67 @@ void GTerm::delete_char()
 	}
 }
 
+// Set Mode (SM)
 void GTerm::set_mode()  // h
 {
-	switch (parser.params[0] + 1000*q_mode) {
-		case 1007:	clear_mode_flag(NOEOLWRAP);	break;
-		case 1001:	set_mode_flag(CURSORAPPMODE);	break;
-		case 1006:	set_mode_flag(CURSORRELATIVE);	break;
-		case 4:		set_mode_flag(INSERT);		break;
-		case 1003:	fe_request_resize(132, height);	break;
-		case 20:	set_mode_flag(NEWLINE);		break;
-		case 12:	clear_mode_flag(LOCALECHO);	break;
-		case 1025:
+	if (parser.intermediate_chars[0] == '?') {
+		// DEC Private Mode Set (DECSET)
+		// Lots of these are missing
+
+		switch (_get_param(this,0,-1)) {
+		case 1:	set_mode_flag(CURSORAPPMODE);	break;	// Normal Cursor Keys (DECCKM)
+//		case 2:											// Designate VT52 mode (DECANM).
+		case 3:	fe_request_resize(132, height);	break;	// 80 Column Mode (DECCOLM)
+		case 6:	set_mode_flag(CURSORRELATIVE);	break;	// Normal Cursor Mode (DECOM)
+		case 7:	clear_mode_flag(NOEOLWRAP);		break;	// No Wraparound Mode (DECAWM)
+		case 25:										// Hide Cursor (DECTCEM)
 			clear_mode_flag(CURSORINVISIBLE);
 			move_cursor(cursor_x, cursor_y);
 			break;
+		default:
+			break;
+		}
+	} else {
+		// Set Mode (SM)
+
+		switch (_get_param(this,0,-1)) {
+//		case 2:											// Keyboard Action Mode (AM)
+		case 4:		set_mode_flag(INSERT);  	break;	// Insert Mode (IRM)
+		case 12:	clear_mode_flag(LOCALECHO);	break;	// Send/receive (SRM)
+		case 20:	set_mode_flag(NEWLINE);		break;	// Automatic Newline (LNM)
+		default:
+			break;
+		}
 	}
 }
 
+// Reset Mode (RM)
 void GTerm::clear_mode()  // l
 {
-	switch (parser.params[0] + 1000*q_mode) {
-		case 1007:	set_mode_flag(NOEOLWRAP);	break;
-		case 1001:	clear_mode_flag(CURSORAPPMODE);	break;
-		case 1006:	clear_mode_flag(CURSORRELATIVE); break;
-		case 4:		clear_mode_flag(INSERT);	break;
-		case 1003:	fe_request_resize(80, height);	break;
-		case 20:	clear_mode_flag(NEWLINE);	break;
-//		case 1002:	current_state = vt52_normal_state; break;
-		case 12:	set_mode_flag(LOCALECHO);	break;
-		case 1025:
+	if (parser.intermediate_chars[0] == '?') {
+		// DEC Private Mode Reset (DECRST)
+		// Lots of these are missing
+
+		switch (_get_param(this,0,-1)) {
+		case 1:	clear_mode_flag(CURSORAPPMODE);		break;	// Normal Cursor Keys (DECCKM)
+//		case 2:	current_state = vt52_normal_state; break;	// Designate VT52 mode (DECANM).
+		case 3:	fe_request_resize(80, height);		break;	// 80 Column Mode (DECCOLM)
+		case 6:	clear_mode_flag(CURSORRELATIVE);	break;	// Normal Cursor Mode (DECOM)
+		case 7:	set_mode_flag(NOEOLWRAP);			break;	// No Wraparound Mode (DECAWM)
+		case 25:											// Hide Cursor (DECTCEM)
 			set_mode_flag(CURSORINVISIBLE);	break;
 			move_cursor(cursor_x, cursor_y);
 			break;
+		}
+	} else {
+		// Reset Mode (RM)
+
+		switch (_get_param(this,0,-1)) {
+//		case 2:											// Keyboard Action Mode (AM)
+		case 4:		clear_mode_flag(INSERT);	break;	// Insert Mode (IRM)
+		case 12:	set_mode_flag(LOCALECHO);	break;	// Send/receive (SRM)
+		case 20:	clear_mode_flag(NEWLINE);	break;	// Automatic Newline (LNM)
+		}
 	}
 }
 
@@ -588,21 +483,12 @@ void GTerm::erase_char()
 	clear_area(cursor_x, cursor_y, cursor_x+n-1, cursor_y);
 }
 
+void GTerm::vt52_cursor() {
+	const int y = int_clamp(parser.params[0]-32, 1, height);
+	const int x = int_clamp(parser.params[1]-32, 1, width);
 
-/*
-void GTerm::vt52_cursory()
-{
-	const int y = int_clamp(*input_data-32, 0, height-1);
-	param[0] = y;
+	move_cursor(x-1, y-1);
 }
-
-void GTerm::vt52_cursorx()
-{
-	const int x = int_clamp(*input_data-32, 0, width-1);
-	const int y = param[0];
-	move_cursor(x, y);
-}
-*/
 
 void GTerm::vt52_ident()
 {
