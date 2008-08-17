@@ -13,8 +13,11 @@
 class GTerm;
 
 DLLLOCAL void ac_cr		(GTerm* gt);
+
+// Line-Feed (same as Vertical-Tab and Form-Feed)
 DLLLOCAL void ac_lf		(GTerm* gt);
-DLLLOCAL void ac_ff		(GTerm* gt);
+
+
 DLLLOCAL void ac_tab	(GTerm* gt);
 DLLLOCAL void ac_bs		(GTerm* gt);
 DLLLOCAL void ac_bell	(GTerm* gt);

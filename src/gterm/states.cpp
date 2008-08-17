@@ -21,12 +21,13 @@ extern const StateOption* state_hash;
 
 // state machine transition tables
 static const StateOption _state_normal[] = {
-    { 13, &ac_cr,		state_normal },
-    { 10, &ac_lf,		state_normal },
-    { 12, &ac_ff,		state_normal },
-    { 9,  &ac_tab,		state_normal },
-    { 8,  &ac_bs,		state_normal },
-    { 7,  &ac_bell,		state_normal },
+    { '\r', &ac_cr,		state_normal },	// CR
+    { '\n', &ac_lf,		state_normal },	// LF
+    { '\f', &ac_lf,		state_normal },	// FF (xterm spec says same as LF)
+    { '\v', &ac_lf,		state_normal },	// VT (xterm spec says same as LF)
+    { '\t', &ac_tab,	state_normal }, // HT
+    { '\b', &ac_bs,		state_normal }, // BS
+    { '\a', &ac_bell,	state_normal }, // BEL
 	{ 27, NULL,			state_esc },
     { -1, &_parser_normal_input,	state_normal}
 };
@@ -46,13 +47,17 @@ static const StateOption _state_esc[] = {
 	{ '(', NULL,					state_cset_shiftin },
 	{ ')', NULL,					state_cset_shiftout },
 	{ '#', NULL,					state_hash },
-    { 13, &ac_cr,					state_esc },    // standard VT100 wants
-    { 10, &ac_lf,					state_esc },    // cursor controls in
-    { 12, &ac_ff,					state_esc },    // the middle of ESC
-    { 9,  &ac_tab,					state_esc },    // sequences
-    { 8,  &ac_bs,					state_esc },
-    { 7,  &ac_bell,					state_esc },
-	{ -1, NULL,						state_normal}
+
+	// standard VT100 wants cursor controls in the middle of ESC sequences
+    { '\r', &ac_cr,		state_esc },	// CR
+    { '\n', &ac_lf,		state_esc },	// LF
+    { '\f', &ac_lf,		state_esc },	// FF (xterm spec says same as LF)
+    { '\v', &ac_lf,		state_esc },	// VT (xterm spec says same as LF)
+    { '\t', &ac_tab,	state_esc },	// HT
+    { '\b', &ac_bs,		state_esc },	// BS
+    { '\a', &ac_bell,	state_esc },	// BEL
+
+    { -1, NULL,						state_normal}
 };
 
 // Should put cursor control characters in these groups as well.
@@ -116,13 +121,16 @@ static const StateOption _state_bracket[] = {
     { 'X', &ac_erase_char,		state_normal },
 	{ 'p', NULL,				state_normal },	// something to do with levels
 
-    { 13, &ac_cr,	state_bracket	},// standard VT100 wants
-    { 10, &ac_lf,	state_bracket	},// cursor controls in
-    { 12, &ac_ff,	state_bracket	},// the middle of ESC
-    { 9,  &ac_tab,	state_bracket	},// sequences
-    { 8,  &ac_bs,	state_bracket	},
-    { 7,  &ac_bell,	state_bracket	},
-	{ -1, NULL,		state_normal	}
+	// standard VT100 wants cursor controls in the middle of ESC sequences
+    { '\r', &ac_cr,		state_bracket },	// CR
+    { '\n', &ac_lf,		state_bracket },	// LF
+    { '\f', &ac_lf,		state_bracket },	// FF (xterm spec says same as LF)
+    { '\v', &ac_lf,		state_bracket },	// VT (xterm spec says same as LF)
+    { '\t', &ac_tab,	state_bracket },	// HT
+    { '\b', &ac_bs,		state_bracket },	// BS
+    { '\a', &ac_bell,	state_bracket },	// BEL
+
+    { -1, NULL,		state_normal	}
  };
 
 const StateOption* state_normal =			_state_normal;

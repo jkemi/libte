@@ -40,10 +40,31 @@ public:
 
 	// mode flags
 	typedef enum {
-		NOEOLWRAP		= (1<<4),
+
+		// Auto wrap mode (DECAWM)
+		//
+		// With auto wrap:
+		//   Any display characters received when cursor is at right margin appear on next line.
+		//   The display scrolls up if cursor is at end of scrolling region.
+		// Without auto wrap:
+		//   Display characters received when cursor is at right margin replace previously
+		//   displayed character.
+		AUTOWRAP		= (1<<4),
+
 		CURSORAPPMODE	= (1<<5),
 		CURSORRELATIVE	= (1<<6),
+
+		// New line mode (DECNLM)
+		//
+		// With new line:
+		//   Causes a received linefeed, form feed, or vertical tab to move cursor to first column of next line.
+		//   RETURN transmits both a carriage return and linefeed. This selection is also called new line option.
+		//
+		// Without new line:
+		//   Causes a received linefeed, form feed, or vertical tab to move cursor to next line in current column.
+		//   RETURN transmits a carriage return.
 		NEWLINE			= (1<<7),
+
 		INSERT			= (1<<8),
 		KEYAPPMODE		= (1<<9),
 		DEFERUPDATE		= (1<<10),
@@ -77,7 +98,7 @@ public:
 	struct {
 		int cursor_x, cursor_y;
 		symbol_attributes_t attributes;
-		bool noeolwrap;
+		bool autowrap;
 	} stored;
 
 	int mode_flags;

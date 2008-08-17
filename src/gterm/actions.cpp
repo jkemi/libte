@@ -22,6 +22,7 @@ void ac_cr(GTerm* gt)
 	gt->move_cursor(0, gt->cursor_y);
 }
 
+// Line-Feed (same as Vertical-Tab and Form-Feed)
 void ac_lf(GTerm* gt)
 {
 	if (gt->cursor_y < gt->scroll_bot) {
@@ -29,12 +30,10 @@ void ac_lf(GTerm* gt)
 	} else {
 		gt->scroll_region(gt->scroll_top, gt->scroll_bot, 1);
 	}
-}
 
-void ac_ff(GTerm* gt)
-{
-	gt->clear_area(0, gt->scroll_top, gt->width-1, gt->scroll_bot);
-	gt->move_cursor(0, gt->scroll_top);
+	if (gt->is_mode_flag(gt->NEWLINE)) {
+		gt->move_cursor(0, gt->cursor_y);
+	}
 }
 
 void ac_tab(GTerm* gt)
@@ -57,12 +56,8 @@ void ac_tab(GTerm* gt)
 	if (x < gt->width) {
 		gt->move_cursor(x, gt->cursor_y);
 	} else {
-		if (gt->is_mode_set(gt->NOEOLWRAP)) {
-			gt->move_cursor(gt->width-1, gt->cursor_y);
-		} else {
-			ac_lf(gt);
-			ac_cr(gt);
-		}
+		// Tabs _never_ causes newline
+		gt->move_cursor(gt->width-1, gt->cursor_y);
 	}
 }
 
@@ -97,17 +92,17 @@ void ac_save_cursor(GTerm* gt)
 	gt->stored.attributes = gt->attributes;
 	gt->stored.cursor_x = gt->cursor_x;
 	gt->stored.cursor_y = gt->cursor_y;
-	gt->stored.noeolwrap = gt->is_mode_flag(gt->NOEOLWRAP);
+	gt->stored.autowrap = gt->is_mode_flag(gt->AUTOWRAP);
 }
 
 // Restore Cursor (DECRC)
 void ac_restore_cursor(GTerm* gt)
 {
 	gt->attributes = gt->stored.attributes;
-	if (gt->stored.noeolwrap) {
-		gt->set_mode_flag(gt->NOEOLWRAP);
+	if (gt->stored.autowrap) {
+		gt->set_mode_flag(gt->AUTOWRAP);
 	} else {
-		gt->clear_mode_flag(gt->NOEOLWRAP);
+		gt->clear_mode_flag(gt->AUTOWRAP);
 	}
 	gt->move_cursor(gt->stored.cursor_x, gt->stored.cursor_y);
 }
@@ -137,7 +132,10 @@ void ac_index_up(GTerm* gt)
 	}
 }
 
-// Full Reset (RIS)
+// Soft Terminal Reset DECSTR
+//
+//   Full Reset (RIS) is here implemented in the same way as DECSTR
+//   due to the emulated nature.
 void ac_reset(GTerm* gt)
 {
 	gt->pending_scroll = 0;
@@ -147,7 +145,7 @@ void ac_reset(GTerm* gt)
 	gt->scroll_bot = gt->height-1;
 	memset(gt->tab_stops, 0, sizeof(bool)*gt->width);
 
-	gt->clear_mode_flags(gt->NOEOLWRAP | gt->CURSORAPPMODE | gt->CURSORRELATIVE | gt->KEYAPPMODE | gt->CURSORINVISIBLE);
+	gt->set_mode(gt->AUTOWRAP | gt->NEWLINE);
 
 	gt->attributes = 0;
 
@@ -255,7 +253,7 @@ void ac_set_mode(GTerm* gt)  // h
 //		case 2:											// Designate VT52 mode (DECANM).
 		case 3:	gt->fe_request_resize(132, gt->height);	break;	// 80 Column Mode (DECCOLM)
 		case 6:	gt->set_mode_flag(gt->CURSORRELATIVE);	break;	// Normal Cursor Mode (DECOM)
-		case 7:	gt->clear_mode_flag(gt->NOEOLWRAP);		break;	// No Wraparound Mode (DECAWM)
+		case 7:	gt->set_mode_flag(gt->AUTOWRAP);		break;	// Wraparound Mode (DECAWM)
 		case 25:										// Hide Cursor (DECTCEM)
 			gt->clear_mode_flag(gt->CURSORINVISIBLE);
 			gt->move_cursor(gt->cursor_x, gt->cursor_y);
@@ -289,7 +287,7 @@ void ac_clear_mode(GTerm* gt)  // l
 //		case 2:	current_state = vt52_normal_state; break;	// Designate VT52 mode (DECANM).
 		case 3:	gt->fe_request_resize(80, gt->height);		break;	// 80 Column Mode (DECCOLM)
 		case 6:	gt->clear_mode_flag(gt->CURSORRELATIVE);	break;	// Normal Cursor Mode (DECOM)
-		case 7:	gt->set_mode_flag(gt->NOEOLWRAP);			break;	// No Wraparound Mode (DECAWM)
+		case 7:	gt->clear_mode_flag(gt->AUTOWRAP);			break;	// Wraparound Mode (DECAWM)
 		case 25:											// Hide Cursor (DECTCEM)
 			gt->set_mode_flag(gt->CURSORINVISIBLE);	break;
 			gt->move_cursor(gt->cursor_x, gt->cursor_y);

@@ -18,25 +18,27 @@ void GTerm::handle_button(te_key_t key)
 switch (key) {
 case TE_KEY_RETURN: {
 	if (is_mode_flag(GTerm::NEWLINE)) {
-		fe_send_back("\r\n");	// send CRLF if GTerm::NEWLINE is set
+		fe_send_back("\r\n");	// send CRLF
 	} else {
-		fe_send_back("\r");	// ^M (CR)
+		fe_send_back("\r");		// ^M (CR)
 	}
 }
 };
 }
 
 size_t GTerm::input(const int32_t* text, size_t len) {
+	// TODO: rewrite this method w.r.t AUTOWRAP!
+
 	// TODO: this check doesn't work and should probably not be here to begin with...
 	if (cursor_x >= width) {
-		if (is_mode_set(NOEOLWRAP)) {
-			cursor_x = width-1;
-		} else {
+		if (is_mode_set(AUTOWRAP)) {
 			if (cursor_y < scroll_bot) {
 				move_cursor(0, cursor_y+1);
 			} else {
 				scroll_region(scroll_top, scroll_bot, 1);
 			}
+		} else {
+			cursor_x = width-1;
 		}
 	}
 
@@ -44,12 +46,13 @@ size_t GTerm::input(const int32_t* text, size_t len) {
 	size_t n;		// number of bytes to draw
 	size_t n_taken;	// number of bytes consumed from input data stream
 
-	if (is_mode_set(NOEOLWRAP)) {
-		n = uint_min(width-cursor_x, len);
-		n_taken = len;
-	} else {
+	// TODO: THIS DOESN'T WORK!!
+	if (is_mode_set(AUTOWRAP)) {
 		n = uint_min(width-cursor_x, len);
 		n_taken = n;
+	} else {
+		n = uint_min(width-cursor_x, len);
+		n_taken = len;
 	}
 
 	// TODO: remove temporary stack buffer from here..
@@ -121,8 +124,7 @@ GTerm::GTerm(const TE_Frontend* fe, void* fe_priv, int w, int h)
 
 	cursor_x = 0;
 	cursor_y = 0;
-	save_x = 0;
-	save_y = 0;
+
 	mode_flags = 0;
 
 	// Setup scrolling
@@ -136,9 +138,14 @@ GTerm::GTerm(const TE_Frontend* fe, void* fe_priv, int w, int h)
 	bg_color = 0;
 
 	// Setup flags
-	set_mode(GTerm::NOEOLWRAP);
+	set_mode(GTerm::AUTOWRAP | GTerm::NEWLINE);
 
 	clear_area(0, 0, width, height-1);
+
+	stored.attributes = attributes;
+	stored.autowrap = true;
+	stored.cursor_x = 0;
+	stored.cursor_y = 0;
 }
 
 GTerm::~GTerm()
