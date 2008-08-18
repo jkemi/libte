@@ -44,6 +44,18 @@ void GTerm::process_input(int len, const int32_t* data)
 	}
 }
 
+void _parser_osc_start(GTerm* gt) {
+
+}
+
+void _parser_osc_put(GTerm* gt) {
+
+}
+
+void _parser_osc_end(GTerm* gt) {
+
+}
+
 void _parser_set_q_mode(GTerm* gt)
 {
 	gt->parser.intermediate_chars[0] = '?';

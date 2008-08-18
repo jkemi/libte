@@ -8,6 +8,7 @@
 extern const StateOption* state_normal;
 extern const StateOption* state_esc;
 extern const StateOption* state_csi;
+extern const StateOption* state_osc;
 extern const StateOption* state_cset_shiftin;
 extern const StateOption* state_cset_shiftout;
 extern const StateOption* state_hash;
@@ -31,6 +32,7 @@ static const StateOption _state_normal[] = {
 //const StateOption state_esc[] = {
 static const StateOption _state_esc[] = {
     { '[', &_parser_clear_param,	state_csi },
+    { ']', &_parser_clear_param,	state_osc },
     { '>', &ac_keypad_normal,		state_normal },
     { '=', &ac_keypad_application,	state_normal },
     { '7', &ac_save_cursor,			state_normal },
@@ -129,9 +131,17 @@ static const StateOption _state_csi[] = {
     { -1, NULL,		state_normal	}
  };
 
+static const StateOption _state_osc[] = {
+	{ '\a',	&_parser_osc_end,		state_normal },
+//	{ 0x9c,	&_parser_osc_end,		state_normal },	// 8-bit ST
+	{ 27, 	&_parser_osc_end,		state_esc	 },
+	{ -1, 	&_parser_osc_put,		state_osc	}
+};
+
 const StateOption* state_normal =			_state_normal;
 const StateOption* state_esc =				_state_esc;
 const StateOption* state_csi =				_state_csi;
+const StateOption* state_osc =				_state_osc;
 const StateOption* state_cset_shiftin =		_state_cset_shiftin;
 const StateOption* state_cset_shiftout =	_state_cset_shiftout;
 const StateOption* state_hash =				_state_hash;
