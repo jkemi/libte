@@ -9,6 +9,8 @@ extern const StateOption* state_normal;
 extern const StateOption* state_esc;
 extern const StateOption* state_csi;
 extern const StateOption* state_osc;
+extern const StateOption* state_ignore_to_st;
+extern const StateOption* state_dcs;
 extern const StateOption* state_cset_shiftin;
 extern const StateOption* state_cset_shiftout;
 extern const StateOption* state_hash;
@@ -26,25 +28,48 @@ static const StateOption _state_normal[] = {
     { '\b', &ac_bs,		state_normal }, // BS
     { '\a', &ac_bell,	state_normal }, // BEL
 	{ 27, NULL,			state_esc },
+
+	// 8-bit codes below
+	{ 0x84, &ac_index_down, state_normal }, 	// Index (IND)
+	{ 0x85, &ac_next_line, state_normal }, 		// Next Line (NE)
+	{ 0x88, &ac_set_tab, state_normal }, 		// Tab Set (HTS)
+	{ 0x8d, &ac_index_up, state_normal }, 		// Reverse Index (RI)
+	{ 0x8e, NULL, state_normal },				// Single Shift Select of G2 Character Set (SS2) - not yet implemented
+	{ 0x8f, NULL, state_normal }, 				// Single Shift Select of G3 Character Set (SS3) - not yet implemented
+	{ 0x90, &_parser_dcs_start, state_dcs },	// Device Control String (DCS)
+	{ 0x96, NULL, state_normal }, 				// Start of Guarded Area (SPA) - not yet implemented
+	{ 0x97, NULL, state_ignore_to_st },			// End of Guarded Area (EPA) - not yet implemented
+	{ 0x98, NULL, state_normal },				// Start of string (SOS) - not yet implemented
+	{ 0x9a, NULL, state_normal }, 				// Return Terminal ID (DECID) - not yet implemented
+	{ 0x9b, &_parser_clear_param, state_csi },	// Control Sequence Introducer (CSI)
+	{ 0x9c, NULL, state_normal }, 				// String Terminator (ST) - ignored
+	{ 0x9d, &_parser_osc_start, state_osc },	// Operating System Command (OSC)
+	{ 0x9e, NULL, state_ignore_to_st },			// Privacy Message (PM)
+	{ 0x9f, NULL, state_ignore_to_st },			// Application Program Command (APC)
+
     { -1, &_parser_normal_input,	state_normal}
 };
 
 //const StateOption state_esc[] = {
 static const StateOption _state_esc[] = {
     { '[', &_parser_clear_param,	state_csi },
-    { ']', &_parser_clear_param,	state_osc },
+    { ']', &_parser_osc_start,		state_osc },
     { '>', &ac_keypad_normal,		state_normal },
     { '=', &ac_keypad_application,	state_normal },
     { '7', &ac_save_cursor,			state_normal },
     { '8', &ac_restore_cursor,		state_normal },
     { 'H', &ac_set_tab,				state_normal },
-    { 'D', &ac_index_down,			state_normal },
-    { 'M', &ac_index_up,			state_normal },
+    { 'D', &ac_index_down,			state_normal },	// Index (IND)
+    { 'M', &ac_index_up,			state_normal }, // Reverse Index (RI)
     { 'E', &ac_next_line,			state_normal },
     { 'c', &ac_reset,				state_normal },
 	{ '(', NULL,					state_cset_shiftin },
 	{ ')', NULL,					state_cset_shiftout },
 	{ '#', NULL,					state_hash },
+
+	{ '^', NULL, state_ignore_to_st },		// Privacy Message (PM)
+	{ '_', NULL, state_ignore_to_st },		// Application Program Command (APC)
+	{ 'P', &_parser_dcs_start, state_dcs },	// Device Control String (DCS)
 
 	// standard VT100 wants cursor controls in the middle of ESC sequences
     { '\r', &ac_cr,		state_esc },	// CR
@@ -92,10 +117,10 @@ static const StateOption _state_csi[] = {
     { '8', &_parser_param_digit,	state_csi },
     { '9', &_parser_param_digit,	state_csi },
     { ';', &_parser_next_param,		state_csi },
-    { 'D', &ac_cursor_left,		state_normal },
+    { 'A', &ac_cursor_up,		state_normal },
     { 'B', &ac_cursor_down,		state_normal },
     { 'C', &ac_cursor_right,	state_normal },
-    { 'A', &ac_cursor_up,		state_normal },
+    { 'D', &ac_cursor_left,		state_normal },
     { 'G', &ac_column_position,	state_normal },
     { 'H', &ac_cursor_position,	state_normal },
     { 'f', &ac_cursor_position,	state_normal },
@@ -133,15 +158,32 @@ static const StateOption _state_csi[] = {
 
 static const StateOption _state_osc[] = {
 	{ '\a',	&_parser_osc_end,		state_normal },
-//	{ 0x9c,	&_parser_osc_end,		state_normal },	// 8-bit ST
+	{ 0x9c,	&_parser_osc_end,		state_normal },	// 8-bit ST
 	{ 27, 	&_parser_osc_end,		state_esc	 },
 	{ -1, 	&_parser_osc_put,		state_osc	}
 };
+
+// APC and PM are ignored (as per xterm spec.)
+static const StateOption _state_ignore_to_st[] = {
+	{ 0x9c,	NULL,		state_normal },	// 8-bit ST
+	{ 27, 	NULL,		state_esc	 },
+	{ -1, 	NULL,		state_ignore_to_st	}
+};
+
+// Device-Control functions
+static const StateOption _state_dcs[] = {
+	{ 0x9c,	&_parser_dcs_end,		state_normal },	// 8-bit ST
+	{ 27, 	&_parser_dcs_end,		state_esc	 },
+	{ -1, 	&_parser_dcs_put,		state_dcs	}
+};
+
 
 const StateOption* state_normal =			_state_normal;
 const StateOption* state_esc =				_state_esc;
 const StateOption* state_csi =				_state_csi;
 const StateOption* state_osc =				_state_osc;
+const StateOption* state_ignore_to_st =		_state_ignore_to_st;
+const StateOption* state_dcs =				_state_dcs;
 const StateOption* state_cset_shiftin =		_state_cset_shiftin;
 const StateOption* state_cset_shiftout =	_state_cset_shiftout;
 const StateOption* state_hash =				_state_hash;

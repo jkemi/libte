@@ -56,6 +56,18 @@ void _parser_osc_end(GTerm* gt) {
 
 }
 
+void _parser_dcs_start(GTerm* gt) {
+
+}
+
+void _parser_dcs_put(GTerm* gt) {
+
+}
+
+void _parser_dcs_end(GTerm* gt) {
+
+}
+
 void _parser_set_q_mode(GTerm* gt)
 {
 	gt->parser.intermediate_chars[0] = '?';
