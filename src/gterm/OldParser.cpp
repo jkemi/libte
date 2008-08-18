@@ -33,6 +33,14 @@ void GTerm::process_input(int len, const int32_t* data)
 
 		parser.current_state = state->next_state;
 		if (state->action != NULL) {
+/*			int32_t cp = *parser.input_data;
+			printf("performing state action for input: ");
+			if (cp >= 32 && cp <= 126) {
+				printf("'%c'\n", cp);
+			} else {
+				printf("0x%x\n", cp);
+			}*/
+
 			state->action(this);
 		}
 		parser.input_data++;
@@ -50,7 +58,7 @@ void _parser_unknown_esc(GTerm* gt) {
 	if (cp >= 32 && cp <= 126) {
 		printf("'%c'\n", cp);
 	} else {
-		printf("%x\n", cp);
+		printf("0x%x\n", cp);
 	}
 }
 
@@ -60,7 +68,7 @@ void _parser_unknown_csi(GTerm* gt) {
 	if (cp >= 32 && cp <= 126) {
 		printf("'%c'\n", cp);
 	} else {
-		printf("%x\n", cp);
+		printf("0x%x\n", cp);
 	}
 }
 
