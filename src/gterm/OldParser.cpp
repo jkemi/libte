@@ -118,20 +118,20 @@ void _parser_normal_input(GTerm* gt)
 		return;
 	}
 
-	size_t n = 0;
-	while (n < gt->parser.input_remaining) {
+	size_t n;
+	for (n = 0; n < gt->parser.input_remaining; n++) {
 		const int32_t cp = gt->parser.input_data[n];
 
 		// we can't munch control characters or defined 8-bit controls
 		if (cp < 32 || (cp >= 0x84 && cp <= 0x9f)) {
 			break;
 		}
-		n++;
 	}
 
 	gt->input(gt->parser.input_data, n);
 
-	// TODO: why -1 ??
+	// Only advance the number of extra characters consumed by this operation
+	// One character is always consumed by process_input(), hence n-1 here
 	gt->parser.input_data += n-1;
 	gt->parser.input_remaining -= n-1;
 }
