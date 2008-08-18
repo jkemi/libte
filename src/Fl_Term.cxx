@@ -172,6 +172,7 @@ const char* Fl_Term::_handle_keyevent(void) {
 
 	case FL_Enter:
 		te_handle_button(_te, TE_KEY_RETURN);
+		return NULL;
 
 	case FL_Escape:
 		return "\033";		// ESC
