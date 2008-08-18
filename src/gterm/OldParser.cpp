@@ -119,7 +119,13 @@ void _parser_normal_input(GTerm* gt)
 	}
 
 	size_t n = 0;
-	while (n < gt->parser.input_remaining && gt->parser.input_data[n] > 31) {
+	while (n < gt->parser.input_remaining) {
+		const int32_t cp = gt->parser.input_data[n];
+
+		// we can't munch control characters or defined 8-bit controls
+		if (cp < 32 || (cp >= 0x84 && cp <= 0x9f)) {
+			break;
+		}
 		n++;
 	}
 
