@@ -148,7 +148,7 @@ GTerm::GTerm(const TE_Frontend* fe, void* fe_priv, int w, int h)
 	bg_color = SYMBOL_BG_DEFAULT;
 
 	// Setup flags
-	set_mode(GTerm::AUTOWRAP | GTerm::NEWLINE);
+	set_mode(GTerm::AUTOWRAP);
 
 	clear_area(0, 0, width, height-1);
 
@@ -174,8 +174,8 @@ void GTerm::fe_send_back(const char* data) {
 
 	buf[nwritten] = L'\0';
 
-	str_mbs_hexdump("mbs: ", data, strlen(data));
-	str_cps_hexdump("cps: ", buf, nwritten);
+	str_mbs_hexdump("sendback mbs: ", data, strlen(data));
+	str_cps_hexdump("sendback cps: ", buf, nwritten);
 
 	_fe->send_back(_fe_priv, buf);
 }

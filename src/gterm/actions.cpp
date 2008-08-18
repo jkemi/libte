@@ -154,7 +154,7 @@ void ac_reset(GTerm* gt)
 	gt->scroll_bot = gt->height-1;
 	memset(gt->tab_stops, 0, sizeof(bool)*gt->width);
 
-	gt->set_mode(gt->AUTOWRAP | gt->NEWLINE);
+	gt->set_mode(gt->AUTOWRAP);
 
 	gt->attributes = 0;
 
