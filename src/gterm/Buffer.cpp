@@ -15,6 +15,7 @@ Buffer::Buffer(uint nrows, uint ncols) {
 	for (uint rowno = 0; rowno < nrows; rowno++) {
 		_rows[rowno] = new BufferRow();
 	}
+	_rowp = 0;
 	_ncols = ncols;
 	_nrows = nrows;
 }
