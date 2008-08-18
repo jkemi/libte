@@ -105,8 +105,20 @@ size_t str_mbslen(const char* mbs) {
 // TODO: remove this when unused...
 void str_mbs_hexdump(const char* label, const char* mbs, size_t len) {
 	printf("%s", label);
+
+	int lastc = 0;
 	for (unsigned int i = 0; i < len; i++) {
-		printf("0x%02x ", (unsigned char)mbs[i]);
+		unsigned char c = mbs[i];
+		if (c < 32) {
+			printf(" 0x%02x", c);
+			lastc = 0;
+		} else {
+			if (!lastc) {
+				printf(" ");
+			}
+			printf("%c", c);
+			lastc = 1;
+		}
 	}
 	printf("\n");
 }
