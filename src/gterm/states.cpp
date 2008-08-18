@@ -7,7 +7,7 @@
 
 extern const StateOption* state_normal;
 extern const StateOption* state_esc;
-extern const StateOption* state_bracket;
+extern const StateOption* state_csi;
 extern const StateOption* state_cset_shiftin;
 extern const StateOption* state_cset_shiftout;
 extern const StateOption* state_hash;
@@ -30,7 +30,7 @@ static const StateOption _state_normal[] = {
 
 //const StateOption state_esc[] = {
 static const StateOption _state_esc[] = {
-    { '[', &_parser_clear_param,			state_bracket },
+    { '[', &_parser_clear_param,	state_csi },
     { '>', &ac_keypad_normal,		state_normal },
     { '=', &ac_keypad_application,	state_normal },
     { '7', &ac_save_cursor,			state_normal },
@@ -76,20 +76,20 @@ static const StateOption _state_hash[] = {
 	{ -1,	NULL,				state_normal}
 };
 
-static const StateOption _state_bracket[] = {
-    { '?', &_parser_set_q_mode,		state_bracket },
-    { '"', &_parser_set_quote_mode,	state_bracket },
-    { '0', &_parser_param_digit,	state_bracket },
-    { '1', &_parser_param_digit,	state_bracket },
-    { '2', &_parser_param_digit,	state_bracket },
-    { '3', &_parser_param_digit,	state_bracket },
-    { '4', &_parser_param_digit,	state_bracket },
-    { '5', &_parser_param_digit,	state_bracket },
-    { '6', &_parser_param_digit,	state_bracket },
-    { '7', &_parser_param_digit,	state_bracket },
-    { '8', &_parser_param_digit,	state_bracket },
-    { '9', &_parser_param_digit,	state_bracket },
-    { ';', &_parser_next_param,		state_bracket },
+static const StateOption _state_csi[] = {
+    { '?', &_parser_set_q_mode,		state_csi },
+    { '"', &_parser_set_quote_mode,	state_csi },
+    { '0', &_parser_param_digit,	state_csi },
+    { '1', &_parser_param_digit,	state_csi },
+    { '2', &_parser_param_digit,	state_csi },
+    { '3', &_parser_param_digit,	state_csi },
+    { '4', &_parser_param_digit,	state_csi },
+    { '5', &_parser_param_digit,	state_csi },
+    { '6', &_parser_param_digit,	state_csi },
+    { '7', &_parser_param_digit,	state_csi },
+    { '8', &_parser_param_digit,	state_csi },
+    { '9', &_parser_param_digit,	state_csi },
+    { ';', &_parser_next_param,		state_csi },
     { 'D', &ac_cursor_left,		state_normal },
     { 'B', &ac_cursor_down,		state_normal },
     { 'C', &ac_cursor_right,	state_normal },
@@ -118,20 +118,20 @@ static const StateOption _state_bracket[] = {
 	{ 'p', NULL,				state_normal },	// something to do with levels
 
 	// standard VT100 wants cursor controls in the middle of ESC sequences
-    { '\r', &ac_cr,		state_bracket },	// CR
-    { '\n', &ac_lf,		state_bracket },	// LF
-    { '\f', &ac_lf,		state_bracket },	// FF (xterm spec says same as LF)
-    { '\v', &ac_lf,		state_bracket },	// VT (xterm spec says same as LF)
-    { '\t', &ac_tab,	state_bracket },	// HT
-    { '\b', &ac_bs,		state_bracket },	// BS
-    { '\a', &ac_bell,	state_bracket },	// BEL
+    { '\r', &ac_cr,		state_csi },	// CR
+    { '\n', &ac_lf,		state_csi },	// LF
+    { '\f', &ac_lf,		state_csi },	// FF (xterm spec says same as LF)
+    { '\v', &ac_lf,		state_csi },	// VT (xterm spec says same as LF)
+    { '\t', &ac_tab,	state_csi },	// HT
+    { '\b', &ac_bs,		state_csi },	// BS
+    { '\a', &ac_bell,	state_csi },	// BEL
 
     { -1, NULL,		state_normal	}
  };
 
 const StateOption* state_normal =			_state_normal;
 const StateOption* state_esc =				_state_esc;
-const StateOption* state_bracket =			_state_bracket;
+const StateOption* state_csi =				_state_csi;
 const StateOption* state_cset_shiftin =		_state_cset_shiftin;
 const StateOption* state_cset_shiftout =	_state_cset_shiftout;
 const StateOption* state_hash =				_state_hash;
