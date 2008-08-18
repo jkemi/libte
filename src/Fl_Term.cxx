@@ -337,7 +337,7 @@ void Fl_Term::_fe_DrawStyledText(int xpos, int ypos, const symbol_t* symbols, in
 	const int xo = x() + Fl::box_dx(this->box());
 	const int yo = y() + Fl::box_dy(this->box());
 
-	printf("DrawStyledText(): %d, %d (%d))\n", xpos, ypos, len);
+	//printf("DrawStyledText(): %d, %d (%d))\n", xpos, ypos, len);
 
 	// Now prepare to draw the actual terminal text
 	fl_font(FL_COURIER, def_fnt_size);
@@ -356,8 +356,14 @@ void Fl_Term::_fe_DrawStyledText(int xpos, int ypos, const symbol_t* symbols, in
 		const symbol_color_t fg_color = symbol_get_fg(sym);
 		const symbol_color_t bg_color = symbol_get_bg(sym);
 
-		const Fl_Color fg = col_table[fg_color];
-		const Fl_Color bg = col_table[bg_color];
+		Fl_Color fg = col_table[fg_color];
+		Fl_Color bg = col_table[bg_color];
+
+		if (attrs & SYMBOL_INVERSE) {
+			Fl_Color tmp = fg;
+			fg = bg;
+			bg = tmp;
+		}
 
 		fl_color(bg);
 		fl_rectf(xp, yp, fw, fh);
