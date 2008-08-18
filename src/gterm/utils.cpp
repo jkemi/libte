@@ -215,10 +215,14 @@ void GTerm::move_cursor(int x, int y)
 	if (cursor_y >= height) {
 		cursor_y = height-1;
 	}
+	// Old cursor position is dirty
 	changed_line(cursor_y, cursor_x, cursor_x);
 
 	cursor_x = x;
 	cursor_y = y;
+
+	// New cursor position is dirty
+	changed_line(cursor_y, cursor_x, cursor_x);
 }
 
 /* End of File */

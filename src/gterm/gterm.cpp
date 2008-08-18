@@ -10,6 +10,8 @@
 
 #include "gterm.hpp"
 
+#include "actions.hpp"
+
 
 extern void parser_init (GTerm* gt);
 
@@ -26,55 +28,63 @@ case TE_KEY_RETURN: {
 };
 }
 
-size_t GTerm::input(const int32_t* text, size_t len) {
-	// TODO: rewrite this method w.r.t AUTOWRAP!
+void GTerm::input(const int32_t* text, size_t len) {
+	// TODO: remove temporary stack buffer from here..
+	symbol_t syms[width];
+	symbol_t style = symbol_make_style(fg_color, bg_color, attributes);
 
-	// TODO: this check doesn't work and should probably not be here to begin with...
-	if (cursor_x >= width) {
-		if (is_mode_set(AUTOWRAP)) {
-			if (cursor_y < scroll_bot) {
-				move_cursor(0, cursor_y+1);
-			} else {
-				scroll_region(scroll_top, scroll_bot, 1);
+	if (is_mode_set(AUTOWRAP)) {
+		while (len > 0) {
+			BufferRow* row = buffer->getRow(cursor_y);
+
+			size_t n = uint_min(len, width-cursor_x);
+			for (size_t i = 0; i < n; i++) {
+				const symbol_t sym = style | text[i];
+				syms[i] = sym;
 			}
+
+			if (is_mode_set(INSERT)) {
+				row->insert(cursor_x, syms, n);
+				changed_line(cursor_y, cursor_x, width);
+			} else {
+				row->replace(cursor_x, syms, n);
+				changed_line(cursor_y, cursor_x, cursor_x+n);
+			}
+
+			move_cursor(cursor_x+n, cursor_y);
+
+			len -= n;
+
+			if (len > 0) {
+				ac_next_line(this);
+			}
+		}
+	} else {
+		BufferRow* row = buffer->getRow(cursor_y);
+
+		size_t n = uint_min(len, width-cursor_x-1);
+
+		for (size_t i = 0; i < n; i++) {
+			const symbol_t sym = style | text[i];
+			syms[i] = sym;
+		}
+		if (is_mode_set(INSERT)) {
+			row->insert(cursor_x, syms, n);
+			changed_line(cursor_y, cursor_x, width);
 		} else {
-			cursor_x = width-1;
+			row->replace(cursor_x, syms, n);
+			changed_line(cursor_y, cursor_x, cursor_x+n);
+		}
+
+		move_cursor(cursor_x+n, cursor_y);
+
+		// There were more data than we have remaining space on
+		// the line, update last cell
+		if (len > n) {
+			syms[0] = style | text[len-1];
+			row->replace(width-1, syms, 1);
 		}
 	}
-
-	// Count number of consumed bytes and number of bytes to print
-	size_t n;		// number of bytes to draw
-	size_t n_taken;	// number of bytes consumed from input data stream
-
-	// TODO: THIS DOESN'T WORK!!
-	if (is_mode_set(AUTOWRAP)) {
-		n = uint_min(width-cursor_x, len);
-		n_taken = n;
-	} else {
-		n = uint_min(width-cursor_x, len);
-		n_taken = len;
-	}
-
-	// TODO: remove temporary stack buffer from here..
-	symbol_t syms[n];
-	symbol_t style = symbol_make_style(fg_color, bg_color, attributes);
-	for (size_t i = 0; i < n; i++) {
-		const symbol_t sym = style | text[i];
-		syms[i] = sym;
-	}
-	BufferRow* row = buffer->getRow(cursor_y);
-
-	if (is_mode_set(INSERT)) {
-		row->insert(cursor_x, syms, n);
-		changed_line(cursor_y, cursor_x, width);
-	} else {
-		row->replace(cursor_x, syms, n);
-		changed_line(cursor_y, cursor_x, cursor_x+n);
-	}
-
-	cursor_x += n;
-
-	return n_taken;
 }
 
 void GTerm::resize_terminal(int w, int h)
@@ -134,8 +144,8 @@ GTerm::GTerm(const TE_Frontend* fe, void* fe_priv, int w, int h)
 
 	// Setup current attributes
 	attributes = 0;
-	fg_color = 7;
-	bg_color = 0;
+	fg_color = SYMBOL_FG_DEFAULT;
+	bg_color = SYMBOL_BG_DEFAULT;
 
 	// Setup flags
 	set_mode(GTerm::AUTOWRAP | GTerm::NEWLINE);

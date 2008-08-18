@@ -148,8 +148,8 @@ void ac_index_up(GTerm* gt)
 void ac_reset(GTerm* gt)
 {
 	gt->pending_scroll = 0;
-	gt->bg_color = 0;
-	gt->fg_color = 7;
+	gt->bg_color = SYMBOL_BG_DEFAULT;
+	gt->fg_color = SYMBOL_FG_DEFAULT;
 	gt->scroll_top = 0;
 	gt->scroll_bot = gt->height-1;
 	memset(gt->tab_stops, 0, sizeof(bool)*gt->width);
@@ -425,39 +425,52 @@ void ac_insert_line(GTerm* gt)
 // Character Attributes (SGR)
 void ac_char_attrs(GTerm* gt)
 {
-	// TODO: REWRITE THIS METHOD
-
 	int n;
 
-	if (
-			gt->parser.num_params == 0 ||
-			(gt->parser.num_params == 1 && gt->parser.params[0] == 0)
-	){
+	if (gt->parser.num_params == 0){
 		gt->attributes = 0;
-		gt->fg_color = 7;
-		gt->bg_color = 0;
+		gt->fg_color = SYMBOL_FG_DEFAULT;
+		gt->bg_color = SYMBOL_BG_DEFAULT;
 		return;
 	}
 
-//	attributes = 0; 	// imm... linux console seems to leave underline on. This "fixes" that...
-	/// TODO: hmm, should probably be < not <=
 	for (n = 0; n < gt->parser.num_params; n++) {
 		const int p = gt->parser.params[n];
 		if (p/10 == 4) {
-			gt->bg_color = int_clamp(p%10, 0, 7);
+			if (p%10 == 9) {
+				gt->bg_color = SYMBOL_BG_DEFAULT;
+			} else {
+				gt->bg_color = int_clamp(p%10, 0, 7);
+			}
 		} else if (p/10 == 3) {
-			gt->fg_color = int_clamp(p%10, 0, 7);
+			if (p%10 == 9) {
+				gt->fg_color = SYMBOL_FG_DEFAULT;
+			} else {
+				gt->fg_color = int_clamp(p%10, 0, 7);
+			}
 		} else {
 			switch (p) {
 			case 0:
 				gt->attributes = 0;
-				gt->fg_color = 7;
-				gt->bg_color = 0;
+				gt->fg_color = SYMBOL_FG_DEFAULT;
+				gt->bg_color = SYMBOL_BG_DEFAULT;
 				break;
-			case 1: gt->attributes |= SYMBOL_BOLD; break;
+			case 1: gt->attributes |= SYMBOL_BOLD; 	break;
 			case 4: gt->attributes |= SYMBOL_UNDERLINE; break;
-			case 5:	gt->attributes |= SYMBOL_BLINK; break;
-			case 7:	gt->attributes |= SYMBOL_INVERSE; break;
+			case 5:	gt->attributes |= SYMBOL_BLINK; 	break;
+			case 7:	gt->attributes |= SYMBOL_INVERSE; 	break;
+			case 22:  gt->attributes &= (~SYMBOL_BOLD);	break;
+			case 24:  gt->attributes &= (~SYMBOL_UNDERLINE);	break;
+			case 25:  gt->attributes &= (~SYMBOL_BLINK);	break;
+			case 27:  gt->attributes &= (~SYMBOL_INVERSE);	break;
+
+			case 100:
+				gt->fg_color = SYMBOL_FG_DEFAULT;
+				gt->bg_color = SYMBOL_BG_DEFAULT;
+				break;
+
+			default:
+				printf("recieved unhandled character attribute: %d\n", p);
 			}
 		}
 	}

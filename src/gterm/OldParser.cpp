@@ -99,10 +99,10 @@ void _parser_normal_input(GTerm* gt)
 		n++;
 	}
 
-	size_t nconsumed = gt->input(gt->parser.input_data, n);
+	gt->input(gt->parser.input_data, n);
 
 	// TODO: why -1 ??
-	gt->parser.input_data += nconsumed-1;
-	gt->parser.input_remaining -= nconsumed-1;
+	gt->parser.input_data += n-1;
+	gt->parser.input_remaining -= n-1;
 }
 

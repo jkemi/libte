@@ -88,6 +88,19 @@ public:
 		LOCALECHO		= (1<<13),
 
 		CURSORINVISIBLE	= (1<<14),
+
+		// Origin mode (DECOM)
+		// TODO: Not supported yet
+		//
+		// With origin mode:
+		//   Selects home position in scrolling region. Line numbers start at top margin of
+		//   scrolling region. The cursor cannot move out of scrolling region.
+		//
+		// Without origin mode [DEFAULT]:
+		//   Selects home position in upper-left corner of screen. Line numbers are independent
+		//   of the scrolling region (absolute). Use CUP and HVP sequences to move cursor out of
+		//   scrolling region.
+		ORIGIN			= (1<<15),
 	} mode_t;
 
 	// Contains the currently set mode flags
@@ -154,7 +167,8 @@ public:
 	void move_cursor(int x, int y);
 
 
-	size_t input(const int32_t* text, size_t len);
+	// Ordinary printable character are sent here from parser
+	void input(const int32_t* text, size_t len);
 
 	// terminal actions
 

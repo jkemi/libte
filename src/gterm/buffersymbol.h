@@ -21,6 +21,19 @@ typedef uint32_t symbol_t;
 typedef uint_fast16_t symbol_data_t;
 typedef uint_fast8_t symbol_color_t;
 
+// these are the colors:
+//   0 - Black
+//   1 - Red
+//   2 - Green
+//   3 - Yellow
+//   4 - Blue
+//   5 - Magenta
+//   6 - Cyan
+//   7 - White
+
+#define SYMBOL_BG_DEFAULT 0
+#define SYMBOL_FG_DEFAULT 7
+
 // TODO: These are the needed attributes
 #define SYMBOL_BOLD			(1<<0)
 #define SYMBOL_BLINK		(1<<1)
