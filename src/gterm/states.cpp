@@ -80,7 +80,7 @@ static const StateOption _state_esc[] = {
     { '\b', &ac_bs,		state_esc },	// BS
     { '\a', &ac_bell,	state_esc },	// BEL
 
-    { -1, NULL,						state_normal}
+    { -1, &_parser_unknown_esc,		state_normal}
 };
 
 // Should put cursor control characters in these groups as well.
@@ -153,7 +153,7 @@ static const StateOption _state_csi[] = {
     { '\b', &ac_bs,		state_csi },	// BS
     { '\a', &ac_bell,	state_csi },	// BEL
 
-    { -1, NULL,		state_normal	}
+    { -1,   &_parser_unknown_csi,		state_normal	}
  };
 
 static const StateOption _state_osc[] = {

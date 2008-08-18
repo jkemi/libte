@@ -44,6 +44,26 @@ void GTerm::process_input(int len, const int32_t* data)
 	}
 }
 
+void _parser_unknown_esc(GTerm* gt) {
+	int32_t cp = *gt->parser.input_data;
+	printf("unknown esc dispatch: ");
+	if (cp >= 32 && cp <= 126) {
+		printf("'%c'\n", cp);
+	} else {
+		printf("%x\n", cp);
+	}
+}
+
+void _parser_unknown_csi(GTerm* gt) {
+	int32_t cp = *gt->parser.input_data;
+	printf("unknown csi dispatch: ");
+	if (cp >= 32 && cp <= 126) {
+		printf("'%c'\n", cp);
+	} else {
+		printf("%x\n", cp);
+	}
+}
+
 void _parser_osc_start(GTerm* gt) {
 
 }
