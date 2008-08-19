@@ -174,6 +174,30 @@ const char* Fl_Term::_handle_keyevent(void) {
 		te_handle_button(_te, TE_KEY_RETURN);
 		return NULL;
 
+	case FL_Home:
+		te_handle_button(_te, TE_KEY_HOME);
+		return NULL;
+
+	case FL_Insert:
+		te_handle_button(_te, TE_KEY_INSERT);
+		return NULL;
+
+	case FL_Delete:
+		te_handle_button(_te, TE_KEY_DELETE);
+		return NULL;
+
+	case FL_End:
+		te_handle_button(_te, TE_KEY_END);
+		return NULL;
+
+	case FL_Page_Up:
+		te_handle_button(_te, TE_KEY_PGUP);
+		return NULL;
+
+	case FL_Page_Down:
+		te_handle_button(_te, TE_KEY_PGDN);
+		return NULL;
+
 	case FL_Escape:
 		return "\033";		// ESC
 
