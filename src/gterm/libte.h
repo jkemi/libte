@@ -35,7 +35,13 @@ struct _TE_Frontend {
 };
 
 typedef enum _te_key {
-	TE_KEY_RETURN = 1,
+	TE_KEY_RETURN	= 0,
+	TE_KEY_HOME		= 1,
+	TE_KEY_INSERT	= 2,
+	TE_KEY_DELETE	= 3,
+	TE_KEY_END		= 4,
+	TE_KEY_PGUP		= 5,
+	TE_KEY_PGDN		= 6,
 } te_key_t;
 
 DLLEXPORT TE_Backend* te_create(const TE_Frontend* front, void* priv, int width, int height);

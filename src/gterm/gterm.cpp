@@ -17,15 +17,33 @@ extern void parser_init (GTerm* gt);
 
 void GTerm::handle_button(te_key_t key)
 {
-switch (key) {
-case TE_KEY_RETURN: {
-	if (is_mode_flag(GTerm::NEWLINE)) {
-		fe_send_back("\r\n");	// send CRLF
-	} else {
-		fe_send_back("\r");		// ^M (CR)
-	}
-}
-};
+	switch (key) {
+	case TE_KEY_RETURN:
+		if (is_mode_flag(GTerm::NEWLINE)) {
+			fe_send_back("\r\n");	// send CRLF
+		} else {
+			fe_send_back("\r");		// ^M (CR)
+		}
+		break;
+	case TE_KEY_HOME:
+		fe_send_back("\033[1~");
+		break;
+	case TE_KEY_INSERT:
+		fe_send_back("\033[2~");
+		break;
+	case TE_KEY_DELETE:
+		fe_send_back("\033[3~");
+		break;
+	case TE_KEY_END:
+		fe_send_back("\033[4~");
+		break;
+	case TE_KEY_PGUP:
+		fe_send_back("\033[5~");
+		break;
+	case TE_KEY_PGDN:
+		fe_send_back("\033[6~");
+		break;
+	};
 }
 
 void GTerm::input(const int32_t* text, size_t len) {
