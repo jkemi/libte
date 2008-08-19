@@ -104,8 +104,9 @@ static const StateOption _state_hash[] = {
 };
 
 static const StateOption _state_csi[] = {
-    { '?', &_parser_set_q_mode,		state_csi },
-    { '"', &_parser_set_quote_mode,	state_csi },
+    { '?', &_parser_set_intermediate,	state_csi },
+    { '"', &_parser_set_intermediate,	state_csi },
+    { '!', &_parser_set_intermediate,	state_csi },
     { '0', &_parser_param_digit,	state_csi },
     { '1', &_parser_param_digit,	state_csi },
     { '2', &_parser_param_digit,	state_csi },
@@ -138,7 +139,7 @@ static const StateOption _state_csi[] = {
     { 'l', &ac_clear_mode,		state_normal },
     { 'm', &ac_char_attrs,		state_normal },
     { 'n', &ac_status_report,	state_normal },
-	{ 'p', NULL,				state_normal },	// something to do with levels
+	{ 'p', &ac_set_conformance,	state_normal },	// Set conformance level (DECSCL) and Soft terminal reset (DECSTR)
     { 'r', &ac_set_margins,		state_normal },
     { 's', &ac_save_cursor,		state_normal },
     { 'u', &ac_restore_cursor,	state_normal },

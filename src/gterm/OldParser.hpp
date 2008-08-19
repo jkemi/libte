@@ -19,8 +19,8 @@ void _parser_dcs_start(GTerm* gt);
 void _parser_dcs_put(GTerm* gt);
 void _parser_dcs_end(GTerm* gt);
 
-void _parser_set_q_mode(GTerm* gt);
-void _parser_set_quote_mode(GTerm* gt);
+void _parser_set_intermediate(GTerm* gt);
+
 void _parser_clear_param(GTerm* gt);
 void _parser_param_digit(GTerm* gt);
 void _parser_next_param(GTerm* gt);

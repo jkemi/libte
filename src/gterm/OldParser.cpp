@@ -31,7 +31,6 @@ void GTerm::process_input(int len, const int32_t* data)
 			state++;
 		}
 
-		parser.current_state = state->next_state;
 		if (state->action != NULL) {
 /*			int32_t cp = *parser.input_data;
 			printf("performing state action for input: ");
@@ -43,6 +42,8 @@ void GTerm::process_input(int len, const int32_t* data)
 
 			state->action(this);
 		}
+
+		parser.current_state = state->next_state;
 		parser.input_data++;
 		parser.input_remaining--;
 	}
@@ -96,22 +97,9 @@ void _parser_dcs_end(GTerm* gt) {
 
 }
 
-void _parser_set_q_mode(GTerm* gt)
-{
-	gt->parser.intermediate_chars[0] = '?';
+void _parser_set_intermediate(GTerm* gt) {
+	gt->parser.intermediate_chars[0] = *gt->parser.input_data;
 }
-
-// The verification test used some strange sequence which was
-// ^[[61"p
-// in a function called set_level,
-// but it didn't explain the meaning.  Just in case I ever find out,
-// and just so that it doesn't leave garbage on the screen, I accept
-// the quote and mark a flag.
-void _parser_set_quote_mode(GTerm* gt)
-{
-	gt->parser.intermediate_chars[0] = '"';
-}
-
 
 void _parser_clear_param(GTerm* gt)
 {

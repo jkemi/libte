@@ -314,6 +314,15 @@ void ac_clear_mode(GTerm* gt)  // l
 	}
 }
 
+// Set conformance level (DECSCL) and Soft terminal reset (DECSTR)
+void ac_set_conformance	(GTerm* gt) {
+	if (gt->parser.intermediate_chars[0] == '!') {
+		ac_reset(gt);
+	} else {
+		// TODO: not implemented yet.
+	}
+}
+
 void ac_request_param(GTerm* gt)
 {
 	char str[40];

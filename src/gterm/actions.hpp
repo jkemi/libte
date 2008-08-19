@@ -35,8 +35,9 @@ DLLLOCAL void ac_column_position	(GTerm* gt);	// Cursor Character Absolute [colu
 DLLLOCAL void ac_line_position		(GTerm* gt);	// Line Position Absolute [row] (default = [1,column]) (VPA)
 DLLLOCAL void ac_device_attrib		(GTerm* gt);
 DLLLOCAL void ac_delete_char		(GTerm* gt);	// Delete P s Character(s) (default = 1) (DCH)
-DLLLOCAL void ac_set_mode		(GTerm* gt);		// Set Mode (SM)
-DLLLOCAL void ac_clear_mode		(GTerm* gt);		// Reset Mode (RM)
+DLLLOCAL void ac_set_mode		(GTerm* gt);		// Set Mode (SM) and DEC Private Mode Set (DECSET)
+DLLLOCAL void ac_clear_mode		(GTerm* gt);		// Reset Mode (RM) and DEC Private Mode Reset (DECRST)
+DLLLOCAL void ac_set_conformance	(GTerm* gt);		// Set conformance level (DECSCL) and Soft terminal reset (DECSTR)
 DLLLOCAL void ac_request_param	(GTerm* gt);
 DLLLOCAL void ac_set_margins	(GTerm* gt);		// Set Scrolling Region [top;bottom] (default = full size of window) (DECSTBM)
 DLLLOCAL void ac_delete_line	(GTerm* gt);		// Delete P s Line(s) (default = 1) (DL)
