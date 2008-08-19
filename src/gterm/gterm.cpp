@@ -54,6 +54,7 @@ void GTerm::input(const int32_t* text, size_t len) {
 			move_cursor(cursor_x+n, cursor_y);
 
 			len -= n;
+			text += n;
 
 			if (len > 0) {
 				ac_next_line(this);
