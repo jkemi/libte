@@ -106,7 +106,7 @@ void BufferRow::fill(uint x, const symbol_t value, uint len) {
 		ds = used;
 	}
 
-	for (uint i = x; i < len; i++) {
+	for (uint i = x; i < x+len; i++) {
 		data[i] = value;
 	}
 	used = uint_max(x+len, used);
