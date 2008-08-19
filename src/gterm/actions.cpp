@@ -337,7 +337,7 @@ void ac_set_margins(GTerm* gt)
 	int t, b;
 
 	t = int_clamp(_get_param(gt,0,1), 1, gt->height);
-	b = int_clamp(_get_param(gt,0,gt->height), 1, gt->height);
+	b = int_clamp(_get_param(gt,1,gt->height), 1, gt->height);
 
 	if (gt->pending_scroll) {
 		gt->update_changes();
