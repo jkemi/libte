@@ -218,12 +218,6 @@ const char* Fl_Term::_handle_keyevent(void) {
 
 	if (Fl::event_length() > 0) {
 
-		// TODO: this magic should probably be MB_CUR_MAX+1 instead..
-		const size_t bufsz = 8;
-
-		static char buf[bufsz];
-		memset(buf, 0, sizeof(char)*bufsz);
-
 		/*
 		int ndeleted;
 		if (Fl::compose(ndeleted) == false) {
@@ -232,23 +226,23 @@ const char* Fl_Term::_handle_keyevent(void) {
 		}
 		*/
 
-		char* dest;
+		const int32_t cp = _fltkToCP(Fl::event_text(), Fl::event_length());
+
+		printf("cp was: %d\n", cp);
+
+		int mod = TE_MOD_NONE;
 		if (Fl::event_alt()) {
-			buf[0] = '\033';
-			dest = buf+1;
-		} else {
-			dest = buf;
+			mod |= TE_MOD_META;
+		}
+		if (Fl::event_ctrl()) {
+			mod |= TE_MOD_CTRL;
+		}
+		if (Fl::event_shift()) {
+			mod |= TE_MOD_SHIFT;
 		}
 
-		const int32_t cp = _fltkToCP(Fl::event_text(), Fl::event_length());
-		printf("cp was: %d\n", cp);
 		if (cp >= 0) {
-			mbstate_t ps = {0};
-			const size_t mblen = wcrtomb(dest, cp, &ps);
-			if (mblen > 0) {
-				dest[mblen] = '\0';
-				return buf;
-			}
+			te_handle_keypress(_te, cp, (te_modifier_t)mod);
 		}
 	}
 

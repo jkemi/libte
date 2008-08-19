@@ -44,6 +44,13 @@ typedef enum _te_key {
 	TE_KEY_PGDN		= 6,
 } te_key_t;
 
+typedef enum _te_modifier {
+	TE_MOD_NONE = 0,
+	TE_MOD_SHIFT = (1<<0),
+	TE_MOD_CTRL	= (1<<1),
+	TE_MOD_META	= (1<<2),
+} te_modifier_t;
+
 DLLEXPORT TE_Backend* te_create(const TE_Frontend* front, void* priv, int width, int height);
 DLLEXPORT void		te_destroy(TE_Backend* te);
 
@@ -79,6 +86,11 @@ DLLEXPORT void te_process_input_mbs(TE_Backend* te, const char* data, size_t len
  * Handles host special key presses
  */
 DLLEXPORT void te_handle_button(TE_Backend* te, te_key_t key);
+
+/**
+ * Handles ordinary letters/numbers key presses
+ */
+DLLEXPORT void te_handle_keypress(TE_Backend* te, int32_t cp, te_modifier_t modifiers);
 
 /**
  * TODO: document me

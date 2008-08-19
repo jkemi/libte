@@ -46,6 +46,16 @@ void GTerm::handle_button(te_key_t key)
 	};
 }
 
+void GTerm::handle_keypress(int32_t cp, te_modifier_t modifiers) {
+	if (modifiers & TE_MOD_META) {
+		int32_t buf[] = {'\033', cp, '\0'};
+		_fe->send_back(_fe_priv, buf);
+	} else {
+		int32_t buf[] = {cp, '\0'};
+		_fe->send_back(_fe_priv, buf);
+	}
+}
+
 void GTerm::input(const int32_t* text, size_t len) {
 	// TODO: remove temporary stack buffer from here..
 	symbol_t syms[width];
@@ -266,6 +276,10 @@ void te_process_input_mbs(TE_Backend* te, const char* data, size_t len) {
 
 void te_handle_button(TE_Backend* te, te_key_t key) {
 	te->gt->handle_button(key);
+}
+
+void te_handle_keypress(TE_Backend* te, int32_t cp, te_modifier_t modifiers) {
+	te->gt->handle_keypress(cp, modifiers);
 }
 
 void te_update(TE_Backend* te) {
