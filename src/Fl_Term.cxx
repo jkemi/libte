@@ -405,14 +405,33 @@ void Fl_Term::_fe_DrawStyledText(int xpos, int ypos, const symbol_t* symbols, in
 	}
 }
 
-void Fl_Term::_fe_ClearChars(symbol_color_t bg_color, int x, int y, int len)
+void Fl_Term::_fe_ClearChars(symbol_color_t bg_color, int xpos, int ypos, int len)
 {
-	redraw();
+	const int xo = x() + Fl::box_dx(this->box());
+	const int yo = y() + Fl::box_dy(this->box());
+
+	// Now prepare to draw the actual terminal text
+	fl_font(FL_COURIER, def_fnt_size);
+
+	int xp = xo + xpos*fw;
+	const int yp = yo + ypos*fh;
+
+	char str[4];
+	str[1] = '\0';
+
+	for (int i = 0; i < len; i++) {
+		Fl_Color bg = col_table[bg_color];
+
+		fl_color(bg);
+		fl_rectf(xp, yp, fw, fh);
+
+		xp += fw;
+	}
 }
 
 void Fl_Term::_fe_Move(int y, int height, int byoffset)
 {
-	redraw();
+	//redraw();
 }
 
 
