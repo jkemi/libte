@@ -341,8 +341,10 @@ void ac_set_margins(GTerm* gt)
 {
 	int t, b;
 
-	t = int_clamp(_get_param(gt,0,1), 1, gt->height);
-	b = int_clamp(_get_param(gt,1,gt->height), 1, gt->height);
+	t = int_clamp(_get_param(gt,0,1), 1, gt->height-1);
+	b = int_clamp(_get_param(gt,1,gt->height), t+1, gt->height);
+
+	printf("scrolling region set to: %d,%d\n", t,b);
 
 	if (gt->pending_scroll) {
 		gt->update_changes();
@@ -350,11 +352,13 @@ void ac_set_margins(GTerm* gt)
 
 	gt->scroll_top = t-1;
 	gt->scroll_bot = b-1;
-	if (gt->cursor_y < gt->scroll_top) {
-		gt->move_cursor(gt->cursor_x, gt->scroll_top);
-	} else if (gt->cursor_y > gt->scroll_bot) {
-		gt->move_cursor(gt->cursor_x, gt->scroll_bot);
-	}
+
+	// TODO: if origin mode:
+	//  gt->move_cursor(gt->scroll_top, 0);
+	// else:
+	//  gt->move_cursor(0, 0);
+
+	gt->move_cursor(0, 0);
 }
 
 // Delete P s Line(s) (default = 1) (DL)
