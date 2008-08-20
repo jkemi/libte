@@ -5,15 +5,15 @@
 #include "OldParser.hpp"
 #include "actions.hpp"
 
-extern const StateOption* state_normal;
-extern const StateOption* state_esc;
-extern const StateOption* state_csi;
-extern const StateOption* state_osc;
-extern const StateOption* state_ignore_to_st;
-extern const StateOption* state_dcs;
-extern const StateOption* state_cset_shiftin;
-extern const StateOption* state_cset_shiftout;
-extern const StateOption* state_hash;
+extern const StateOption* const state_normal;
+extern const StateOption* const state_esc;
+extern const StateOption* const state_csi;
+extern const StateOption* const state_osc;
+extern const StateOption* const state_ignore_to_st;
+extern const StateOption* const state_dcs;
+extern const StateOption* const state_cset_shiftin;
+extern const StateOption* const state_cset_shiftout;
+extern const StateOption* const state_hash;
 
 // these are documented here:
 // http://www.xfree86.org/current/ctlseqs.html
@@ -179,12 +179,12 @@ static const StateOption _state_dcs[] = {
 };
 
 
-const StateOption* state_normal =			_state_normal;
-const StateOption* state_esc =				_state_esc;
-const StateOption* state_csi =				_state_csi;
-const StateOption* state_osc =				_state_osc;
-const StateOption* state_ignore_to_st =		_state_ignore_to_st;
-const StateOption* state_dcs =				_state_dcs;
-const StateOption* state_cset_shiftin =		_state_cset_shiftin;
-const StateOption* state_cset_shiftout =	_state_cset_shiftout;
-const StateOption* state_hash =				_state_hash;
+const StateOption* const state_normal =			_state_normal;
+const StateOption* const state_esc =			_state_esc;
+const StateOption* const state_csi =			_state_csi;
+const StateOption* const state_osc =			_state_osc;
+const StateOption* const state_ignore_to_st =	_state_ignore_to_st;
+const StateOption* const state_dcs =			_state_dcs;
+const StateOption* const state_cset_shiftin =	_state_cset_shiftin;
+const StateOption* const state_cset_shiftout =	_state_cset_shiftout;
+const StateOption* const state_hash =			_state_hash;
