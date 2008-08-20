@@ -253,11 +253,14 @@ void ac_delete_char(GTerm* gt)
 // Set Mode (SM)
 void ac_set_mode(GTerm* gt)  // h
 {
+
+	const int p = _get_param(gt,0,-1);
+
 	if (gt->parser.intermediate_chars[0] == '?') {
 		// DEC Private Mode Set (DECSET)
 		// Lots of these are missing
 
-		switch (_get_param(gt,0,-1)) {
+		switch (p) {
 		case 1:	gt->set_mode_flag(gt->CURSORAPPMODE);	break;	// Normal Cursor Keys (DECCKM)
 //		case 2:											// Designate VT52 mode (DECANM).
 		case 3:	gt->fe_request_resize(132, gt->height);	break;	// 80 Column Mode (DECCOLM)
@@ -268,17 +271,19 @@ void ac_set_mode(GTerm* gt)  // h
 			gt->move_cursor(gt->cursor_x, gt->cursor_y);
 			break;
 		default:
+			printf ("unhandled private set mode (DECSET) mode: %d\n", p);
 			break;
 		}
 	} else {
 		// Set Mode (SM)
 
-		switch (_get_param(gt,0,-1)) {
+		switch (p) {
 //		case 2:											// Keyboard Action Mode (AM)
 		case 4:		gt->set_mode_flag(gt->INSERT);  	break;	// Insert Mode (IRM)
 		case 12:	gt->clear_mode_flag(gt->LOCALECHO);	break;	// Send/receive (SRM)
 		case 20:	gt->set_mode_flag(gt->NEWLINE);		break;	// Automatic Newline (LNM)
 		default:
+			printf ("unhandled set mode (SM) mode: %d\n", p);
 			break;
 		}
 	}
