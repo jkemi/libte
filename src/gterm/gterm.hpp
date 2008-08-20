@@ -167,7 +167,7 @@ public:
 
 	// utility functions
 	bool is_mode_set(mode_t mode) {return mode_flags & mode;}
-	void scroll_region(int start_y, int end_y, int num);	// does clear
+	void scroll_region(uint start_y, uint end_y, int num);	// does clear
 	void shift_text(int y, int start_x, int end_x, int num); // ditto
 	void clear_area(int start_x, int start_y, int end_x, int end_y);
 	void changed_line(int y, int start_x, int end_x);
