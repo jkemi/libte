@@ -36,32 +36,22 @@ void GTerm::request_redraw(int x, int y, int w, int h, bool force) {
 			dirtend = int_min(x+w, dirty->end[rowno]);
 		}
 
-		if (dirtend-dirtstart <= 0) {
+		/*
+		const int w = dirtend-dirtstart;
+		if (w <= 0) {
 			continue;
 		}
-/*
-		symbol_t* data = row->data;
-		for (int colno = x; colno < x+w;) {
-			const symbol_t laststyle = symbol_get_style(data[colno]);
-			uint i;
-			for (i = colno+1; i < x+w; i++) {
-				const symbol_t style = symbol_get_style(data[colno]);
-				if (style != laststyle) {
-					break;
-				}
-			}
-			const uint runlen = i-colno;
+		*/
 
-			const symbol_color_t fg = symbol_get_fg(laststyle);
-			const symbol_color_t bg = symbol_get_bg(laststyle);
-			const symbol_attributes_t attrs = symbol_get_attributes(laststyle);
-
-			DrawText()
-
-			colno += runlen;
+		const int a = int_max(0, row->used-dirtstart) - int_max(0, row->used-dirtend);
+		if (a > 0) {
+			_fe->draw(_fe_priv, dirtstart, rowno, row->data+dirtstart, a);
 		}
-*/
-		_fe->draw(_fe_priv, dirtstart, rowno, row->data+dirtstart, dirtend-dirtstart);
+		const int b = int_max(0, dirtend-dirtstart-a);
+		if (b > 0) {
+			_fe->clear(_fe_priv, dirtstart+a, rowno, SYMBOL_BG_DEFAULT, b);
+		}
+
 		dirty->cleanse(rowno, dirtstart, dirtend);
     }
 
@@ -76,6 +66,7 @@ void GTerm::request_redraw(int x, int y, int w, int h, bool force) {
 
 		// draw cursor if force or inside rectangle
 		if ( force || (xpos >= x && xpos < x+w && ypos >= y && ypos < y+h) ) {
+			// TODO: check row->used, row->capacity here!
 			const BufferRow* row = buffer_get_row(&buffer, cursor_y);
 			const symbol_t sym = row->data[xpos];
 
@@ -116,8 +107,20 @@ void GTerm::update_changes(void)
     doing_update = false;
 }
 
-void GTerm::scroll_region(int start_y, int end_y, int num)
+void GTerm::scroll_region(uint start_y, uint end_y, int num)
 {
+	for (int i = 0; i < num; i++) {
+		buffer_scroll_up(&buffer, scroll_top, scroll_bot);
+	}
+	for (int i = num; i < 0; i++) {
+		buffer_scroll_down(&buffer, scroll_top, scroll_bot);
+	}
+
+//	buffer_scroll(&buffer, start_y, end_y, num);
+
+	for (uint y = start_y; y <= end_y; y++) {
+		changed_line(y, 0, width-1);
+	}
 /*
 	int y, takey, fast_scroll, mx, clr, x, yp, c;
 	short temp[GT_MAXHEIGHT];
