@@ -25,6 +25,12 @@
   #endif
 #endif
 
-
+#ifdef __cplusplus
+#	define CDECLS_BEGIN	extern "C" {
+#	define CDECLS_END	}
+#else
+#	define CDECLS_BEGIN
+#	define CDECLS_END
+#endif
 
 #endif /* MACROS_H_ */
