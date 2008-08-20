@@ -37,11 +37,11 @@ void BufferRow::_ensureCapacity(uint capacity) {
 	}
 }
 
-void BufferRow::_pad(uint x, int len, symbol_t style) {
+void BufferRow::_pad(uint x, int len) {
 	assert (x+len <= capacity);
 
 	for (uint i = x; i < x+len; i++) {
-		data[i] = style;
+		data[i] = ' ';
 	}
 }
 
@@ -88,7 +88,7 @@ void BufferRow::replace(uint x, const symbol_t* symbols, uint len) {
 
 	uint ds = x;
 	if (x > used) {
-		_pad(used, x-used, symbol_get_attributes(symbols[len-1]));
+		_pad(used, x-used);
 		ds = used;
 	}
 
@@ -103,7 +103,7 @@ void BufferRow::fill(uint x, const symbol_t value, uint len) {
 
 	uint ds = x;
 	if (x > used) {
-		_pad(used, x-used, symbol_get_attributes(value));
+		_pad(used, x-used);
 		ds = used;
 	}
 

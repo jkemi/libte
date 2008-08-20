@@ -20,7 +20,7 @@ public:
 private:
 	void _init(uint initsize);
 	void _ensureCapacity(uint capacity);
-	void _pad(uint x, int len, symbol_t style);
+	void _pad(uint x, int len);
 public:
 	BufferRow();
 	BufferRow(uint initsize);
