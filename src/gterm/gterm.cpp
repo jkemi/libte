@@ -12,20 +12,84 @@
 
 #include "actions.hpp"
 
+// key sequence struct, used when translating VT100 key sequences
+typedef struct {
+	te_key_t	keysym;
+	const char*	str;
+} keymap;
+
+static const keymap _keys_normal[] = {
+	{TE_KEY_UP,			"\033[A"},
+	{TE_KEY_DOWN,		"\033[B"},
+	{TE_KEY_RIGHT,		"\033[C"},
+	{TE_KEY_LEFT,		"\033[D"},
+	{TE_KEY_UNDEFINED,	NULL}
+};
+
+static const keymap _keys_app[] = {
+	{TE_KEY_UP,			"\033OA"},
+	{TE_KEY_DOWN,		"\033OB"},
+	{TE_KEY_RIGHT,		"\033OC"},
+	{TE_KEY_LEFT,		"\033OD"},
+	{TE_KEY_UNDEFINED,	NULL}
+};
+
+static const keymap _keys_common[] = {
+	{TE_KEY_TAB,		"\t"},
+	{TE_KEY_ESCAPE,		"\033"},
+	{TE_KEY_BACKSPACE,	"\010"},	// ^H
+
+	{TE_KEY_HOME,		"\033[1~"},
+	{TE_KEY_INSERT,		"\033[2~"},
+	{TE_KEY_DELETE,		"\033[3~"},
+	{TE_KEY_END,		"\033[4~"},
+	{TE_KEY_PGUP,		"\033[5~"},
+	{TE_KEY_PGDN,		"\033[6~"},
+	{TE_KEY_UNDEFINED,	NULL}
+};
 
 extern void parser_init (GTerm* gt);
 
 void GTerm::handle_button(te_key_t key)
 {
+	const char* s = NULL;
+
 	switch (key) {
 	case TE_KEY_RETURN:
 		if (is_mode_flag(GTerm::NEWLINE)) {
-			fe_send_back("\r\n");	// send CRLF
+			s = "\r\n";	//	CRLF
 		} else {
-			fe_send_back("\r");		// ^M (CR)
+			s = "\r";	// ^M (CR)
 		}
 		break;
-	case TE_KEY_HOME:
+	default:
+		break;
+	}
+
+	if (s == NULL) {
+		const keymap* const* tables;
+		if (is_mode_flag(KEYAPPMODE)) {
+			static const keymap* const t[] = {_keys_app, _keys_common, NULL};
+			tables = t;
+		} else {
+			static const keymap* const t[] = {_keys_normal, _keys_common, NULL};
+			tables = t;
+		}
+
+		for (const keymap* const* t = tables; s == NULL && t != NULL; t++) {
+			for (const keymap* m = *t; s == NULL && m->keysym != TE_KEY_UNDEFINED; m++) {
+				if (key == m->keysym) {
+					s = m->str;
+				}
+			}
+		}
+	}
+
+	if (s != NULL) {
+		fe_send_back(s);
+	}
+
+/*	case TE_KEY_HOME:
 		fe_send_back("\033[1~");
 		break;
 	case TE_KEY_INSERT:
@@ -44,6 +108,7 @@ void GTerm::handle_button(te_key_t key)
 		fe_send_back("\033[6~");
 		break;
 	};
+*/
 }
 
 void GTerm::handle_keypress(int32_t cp, te_modifier_t modifiers) {

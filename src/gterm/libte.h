@@ -35,13 +35,24 @@ struct _TE_Frontend {
 };
 
 typedef enum _te_key {
-	TE_KEY_RETURN	= 0,
-	TE_KEY_HOME		= 1,
-	TE_KEY_INSERT	= 2,
-	TE_KEY_DELETE	= 3,
-	TE_KEY_END		= 4,
-	TE_KEY_PGUP		= 5,
-	TE_KEY_PGDN		= 6,
+	TE_KEY_UNDEFINED	= 0,
+
+	TE_KEY_RETURN,
+	TE_KEY_TAB,
+	TE_KEY_ESCAPE,
+	TE_KEY_BACKSPACE,
+
+	TE_KEY_HOME,
+	TE_KEY_INSERT,
+	TE_KEY_DELETE,
+	TE_KEY_END,
+	TE_KEY_PGUP,
+	TE_KEY_PGDN,
+
+	TE_KEY_UP,
+	TE_KEY_DOWN,
+	TE_KEY_RIGHT,
+	TE_KEY_LEFT,
 } te_key_t;
 
 typedef enum _te_modifier {

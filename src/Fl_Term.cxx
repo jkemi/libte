@@ -163,56 +163,44 @@ int32_t Fl_Term::_fltkToCP(const char* text, size_t len) {
 	}
 }
 
-const char* Fl_Term::_handle_keyevent(void) {
+bool Fl_Term::_handle_keyevent(void) {
 	const int keysym = Fl::event_key();
 
+	te_key_t tekey = TE_KEY_UNDEFINED;
+
 	switch (keysym) {
-	case FL_BackSpace:
-		return "\010";		// ^H
+	case FL_Enter:		tekey = TE_KEY_RETURN; break;
+	case FL_Tab:		tekey = TE_KEY_TAB; break;
+	case FL_Escape:		tekey = TE_KEY_ESCAPE; break;
+	case FL_BackSpace:	tekey = TE_KEY_BACKSPACE; break;
 
-	case FL_Enter:
-		te_handle_button(_te, TE_KEY_RETURN);
-		return NULL;
+	case FL_Home:		tekey = TE_KEY_HOME; break;
+	case FL_Insert:		tekey = TE_KEY_INSERT; break;
+	case FL_Delete:		tekey = TE_KEY_DELETE; break;
+	case FL_End:		tekey = TE_KEY_END; break;
+	case FL_Page_Up:	tekey = TE_KEY_PGUP; break;
+	case FL_Page_Down:	tekey = TE_KEY_PGDN; break;
 
-	case FL_Home:
-		te_handle_button(_te, TE_KEY_HOME);
-		return NULL;
-
-	case FL_Insert:
-		te_handle_button(_te, TE_KEY_INSERT);
-		return NULL;
-
-	case FL_Delete:
-		te_handle_button(_te, TE_KEY_DELETE);
-		return NULL;
-
-	case FL_End:
-		te_handle_button(_te, TE_KEY_END);
-		return NULL;
-
-	case FL_Page_Up:
-		te_handle_button(_te, TE_KEY_PGUP);
-		return NULL;
-
-	case FL_Page_Down:
-		te_handle_button(_te, TE_KEY_PGDN);
-		return NULL;
-
-	case FL_Escape:
-		return "\033";		// ESC
-
-	case FL_Tab:
-		return "\t";		// ^I (tab)
-
+	case FL_Left:	tekey = TE_KEY_LEFT; break;
+	case FL_Right:	tekey = TE_KEY_RIGHT; break;
+	case FL_Up:		tekey = TE_KEY_UP; break;
+	case FL_Down:	tekey = TE_KEY_DOWN; break;
 	}
+
+	if (tekey != TE_KEY_UNDEFINED) {
+		te_handle_button(_te, tekey);
+		return true;
+	}
+
 	// OK, still not done - lets try looking up the VT100 key mapping tables...
 	// Also - how to handle the "windows" key on PC style kbds?
-	const keyseq* tables[] = {keypadkeys, cursorkeys, otherkeys, NULL};
+	const keyseq* tables[] = {keypadkeys, otherkeys, NULL};
 
 	for (const keyseq** table = tables; *table != NULL; table++) {
 		const char* str = find_key(keysym, *table);
 		if (str) {
-			return str;
+			_sendBackMBS(str);
+			return true;
 		}
 	}
 
@@ -243,10 +231,11 @@ const char* Fl_Term::_handle_keyevent(void) {
 
 		if (cp >= 0) {
 			te_handle_keypress(_te, cp, (te_modifier_t)mod);
+			return true;
 		}
 	}
 
-	return NULL;
+	return false;
 /*
 	const int keylen = Fl::event_length();
 
@@ -294,12 +283,8 @@ int Fl_Term::handle(int event)
 	case FL_UNFOCUS:
 		return 1;
 	case FL_KEYBOARD: {
-		const char* str = _handle_keyevent();
-		if (str != NULL) {
-			_sendBackMBS(str);
+		if (_handle_keyevent()) {
 			return 1;
-		} else {
-			return 0;
 		}
 		break;
 	}

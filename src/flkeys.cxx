@@ -15,20 +15,6 @@ FL_Caps_Lock, FL_Alt_L, FL_Alt_R, FL_Meta_L, FL_Meta_R, FL_Menu, FL_Num_Lock, FL
 
 #define Key_Table_Void 0
 
-static const keyseq _cursorkeys[] = {
-	{FL_Left,  "\033[D"},
-	{FL_Up,    "\033[A"},
-	{FL_Right, "\033[C"},
-	{FL_Down,  "\033[B"},
-	{Key_Table_Void, 0}};
-
-static const keyseq _cursorappkeys[] = {
-	{FL_Left,  "\033OD"},
-	{FL_Up,    "\033OA"},
-	{FL_Right, "\033OC"},
-	{FL_Down,  "\033OB"},
-	{Key_Table_Void, 0}};
-
 static const keyseq _keypadkeys[] = {
 	{(FL_KP + '/'),	"/"},
 	{(FL_KP + '*'), "*"},
@@ -103,8 +89,6 @@ static const keyseq _otherkeys[] = {
 	{(FL_F + 12),	"\033[24~"},
 	{Key_Table_Void, 0}};
 
-const keyseq* cursorkeys = _cursorkeys;
-const keyseq* cursorappkeys = _cursorappkeys;
 const keyseq* keypadkeys = _keypadkeys;
 //const keyseq* keypadappkeys = _keypadappkeys;
 const keyseq* otherkeys = _otherkeys;

@@ -26,7 +26,7 @@ protected:
 
 private:
 	int32_t			_fltkToCP(const char* text, size_t len);
-	const char* 	_handle_keyevent(void);
+	bool		 	_handle_keyevent(void);
 
 	void			(*_send_back_func)(void* priv, const int32_t* data);
 	void*			_send_back_priv;
