@@ -10,22 +10,22 @@
 
 #include <stdint.h>
 
+#include "History.h"
 #include "buffersymbol.h"
 #include "BufferRow.h"
 
-typedef unsigned int uint;
-
 class Buffer {
 private:
+	History*	_hist;
+
 	BufferRow**	_rows;
 	uint32_t	_rowp;
 	uint		_nrows;
 	uint		_ncols;
 private:
-	void		_scrollbufStore(const BufferRow* row);
-	void		_scrollbufFetch(BufferRow* row);
+
 public:
-	Buffer(uint nrows, uint ncols);
+	Buffer(History* hist, uint nrows, uint ncols);
 	Buffer(const Buffer&);
 	virtual ~Buffer();
 

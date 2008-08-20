@@ -10,7 +10,8 @@
 #include "Buffer.h"
 
 
-Buffer::Buffer(uint nrows, uint ncols) {
+Buffer::Buffer(History* hist, uint nrows, uint ncols) {
+	_hist = hist;
 	_rows = new BufferRow* [nrows];
 	for (uint rowno = 0; rowno < nrows; rowno++) {
 		_rows[rowno] = new BufferRow();
@@ -45,7 +46,7 @@ void Buffer::reshape(uint nrows, uint ncols) {
 		// Store spilled rows
 		for (uint rowno = 0; rowno < shrunkby; rowno++) {
 			const BufferRow* row = getRow(rowno);
-			_scrollbufStore(row);
+			history_store(_hist, row);
 			delete row;
 		}
 
@@ -70,7 +71,7 @@ void Buffer::reshape(uint nrows, uint ncols) {
 		// Fetch old rows
 		for (uint rowno = grownby-1; rowno >= 0; rowno--) {
 			BufferRow* row = new BufferRow();
-			_scrollbufFetch(row);
+			history_fetch(_hist, row);
 			newrows[rowno] = row;
 		}
 
@@ -79,12 +80,4 @@ void Buffer::reshape(uint nrows, uint ncols) {
 
 	_rowp = 0;
 	_nrows = nrows;
-}
-
-void Buffer::_scrollbufStore(const BufferRow* row) {
-
-}
-
-void Buffer::_scrollbufFetch(BufferRow* row) {
-
 }

@@ -154,7 +154,7 @@ GTerm::GTerm(const TE_Frontend* fe, void* fe_priv, int w, int h)
 
 	doing_update = false;
 
-	buffer = new Buffer(h, w);
+	buffer = new Buffer(NULL, h, w);
 	dirty = new Dirty(h, w);
 
 	// Create tab stops
