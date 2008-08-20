@@ -14,8 +14,8 @@
 
 
 void BufferRow::_init(uint initsize) {
-	if (initsize < 64) {
-		initsize = 64;
+	if (initsize < 32) {
+		initsize = 32;
 	}
 	used = 0;
 	capacity = initsize;
@@ -47,7 +47,7 @@ void BufferRow::_pad(uint x, int len, symbol_t style) {
 
 
 BufferRow::BufferRow() {
-	_init(80);
+	_init(32);
 }
 
 BufferRow::BufferRow(uint initsize) {
@@ -71,8 +71,9 @@ void BufferRow::insert(uint x, const symbol_t* symbols, uint len) {
 		replace(x, symbols, len);
 	} else {
 		_ensureCapacity(used+len);
-		memcpy(data+x+len, data+x, trail);
-		used = used+len;
+		memcpy(data+x+len, data+x, sizeof(symbol_t)*trail);
+		memcpy(data+x, symbols, sizeof(symbol_t)*len);
+		used += len;
 	}
 }
 
@@ -119,7 +120,7 @@ void BufferRow::remove(uint x, uint len) {
 
 	const int trail = used-(x+len);
 	if (trail > 0) {
-		memmove(data+x, data+x+len, trail);
+		memmove(data+x, data+x+len, sizeof(symbol_t)*trail);
 		used = x+trail;
 	} else {
 		used = x;
