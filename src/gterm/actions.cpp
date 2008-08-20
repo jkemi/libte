@@ -244,7 +244,7 @@ void ac_line_position(GTerm* gt)
 
 void ac_device_attrib(GTerm* gt)
 {
-	gt->fe_send_back("\033[?1;2c");
+	gt->fe_send_back_simple("\033[?1;2c");
 }
 
 // Delete P s Character(s) (default = 1) (DCH)
@@ -344,7 +344,7 @@ void ac_request_param(GTerm* gt)
 	char str[40];
 	sprintf(str, "\033[%d;1;1;120;120;1;0x", gt->parser.params[0]+2);
 
-	gt->fe_send_back(str);
+	gt->fe_send_back_simple(str);
 }
 
 // Set Scrolling Region [top;bottom] (default = full size of window) (DECSTBM)
@@ -390,11 +390,11 @@ void ac_status_report(GTerm* gt)
 	char str[20];
 	switch (_get_param(gt, 0, -1)) {
 	case 5:
-		gt->fe_send_back("\033[0n");
+		gt->fe_send_back_simple("\033[0n");
 		break;
 	case 6:
 		sprintf(str, "\033[%d;%dR", gt->cursor_y+1, gt->cursor_x+1);
-		gt->fe_send_back(str);
+		gt->fe_send_back_simple(str);
 		break;
 	}
 }

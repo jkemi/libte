@@ -39,10 +39,10 @@ static const keymap _keys_common[] = {
 	{TE_KEY_ESCAPE,		"\033"},
 	{TE_KEY_BACKSPACE,	"\010"},	// ^H
 
-	{TE_KEY_HOME,		"\033[1~"},
+	{TE_KEY_HOME,		"\033[1~"},	//	"\033[\000" ??
 	{TE_KEY_INSERT,		"\033[2~"},
 	{TE_KEY_DELETE,		"\033[3~"},
-	{TE_KEY_END,		"\033[4~"},
+	{TE_KEY_END,		"\033[4~"},	// 	"\033[e" ??
 	{TE_KEY_PGUP,		"\033[5~"},
 	{TE_KEY_PGDN,		"\033[6~"},
 	{TE_KEY_UNDEFINED,	NULL}
@@ -86,29 +86,8 @@ void GTerm::handle_button(te_key_t key)
 	}
 
 	if (s != NULL) {
-		fe_send_back(s);
+		fe_send_back_simple(s);
 	}
-
-/*	case TE_KEY_HOME:
-		fe_send_back("\033[1~");
-		break;
-	case TE_KEY_INSERT:
-		fe_send_back("\033[2~");
-		break;
-	case TE_KEY_DELETE:
-		fe_send_back("\033[3~");
-		break;
-	case TE_KEY_END:
-		fe_send_back("\033[4~");
-		break;
-	case TE_KEY_PGUP:
-		fe_send_back("\033[5~");
-		break;
-	case TE_KEY_PGDN:
-		fe_send_back("\033[6~");
-		break;
-	};
-*/
 }
 
 void GTerm::handle_keypress(int32_t cp, te_modifier_t modifiers) {
@@ -273,6 +252,21 @@ void GTerm::fe_send_back(const char* data) {
 
 	_fe->send_back(_fe_priv, buf);
 }
+
+void GTerm::fe_send_back_simple(const char* data) {
+	// TODO: speedup ?!
+	size_t len = strlen(data);
+	int32_t buf[len+1];
+
+	for (uint i = 0; i < len+1; i++) {
+		buf[i] = data[i];
+	}
+
+	str_mbs_hexdump("sendback mbs: ", data, len);
+
+	_fe->send_back(_fe_priv, buf);
+}
+
 
 void GTerm::fe_request_resize(int width, int height) {
 	_fe->request_resize(_fe_priv, width, height);
