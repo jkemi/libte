@@ -6,11 +6,13 @@
 #include "Buffer.h"
 #include "Dirty.h"
 
+// TODO: remove
 #include "../strutil.h"
+
+#include "actions.hpp"
 
 #include "gterm.hpp"
 
-#include "actions.hpp"
 
 // key sequence struct, used when translating VT100 key sequences
 typedef struct {
@@ -150,7 +152,7 @@ int GTerm::handle_button(te_key_t key)
 	}
 
 	if (s != NULL) {
-		fe_send_back_simple(s);
+		fe_send_back(s);
 		return 1;
 	} else {
 		return 0;
@@ -307,22 +309,6 @@ GTerm::~GTerm()
 
 void GTerm::fe_send_back(const char* data) {
 	// TODO: speedup ?!
-	size_t len = str_mbslen(data);
-	int32_t buf[len+1];
-
-	size_t nwritten;
-	str_mbs_to_cps_n(buf, data, len, strlen(data), &nwritten, NULL);
-
-	buf[nwritten] = L'\0';
-
-	str_mbs_hexdump("sendback mbs: ", data, strlen(data));
-	str_cps_hexdump("sendback cps: ", buf, nwritten);
-
-	_fe->send_back(_fe_priv, buf);
-}
-
-void GTerm::fe_send_back_simple(const char* data) {
-	// TODO: speedup ?!
 	size_t len = strlen(data);
 	int32_t buf[len+1];
 
@@ -330,6 +316,7 @@ void GTerm::fe_send_back_simple(const char* data) {
 		buf[i] = data[i];
 	}
 
+	// TODO: remove
 	str_mbs_hexdump("sendback mbs: ", data, len);
 
 	_fe->send_back(_fe_priv, buf);
