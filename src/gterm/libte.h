@@ -37,7 +37,7 @@ struct _TE_Frontend {
 typedef enum _te_key {
 	TE_KEY_UNDEFINED	= 0,
 
-	TE_KEY_RETURN		= 1,
+	TE_KEY_ENTER		= 1,
 	TE_KEY_TAB			= 2,
 	TE_KEY_ESCAPE		= 3,
 	TE_KEY_BACKSPACE	= 4,
@@ -76,14 +76,32 @@ typedef enum _te_key {
 	TE_KEY_F19			= 39,
 	TE_KEY_F20			= 40,
 
+	TE_KP_EQUAL			= 50,
+	TE_KP_DIVIDE		= 51,
+	TE_KP_MULTIPLY		= 52,
+	TE_KP_SUBSTRACT		= 53,
+	TE_KP_ADD			= 54,
+	TE_KP_PERIOD		= 55,
+	TE_KP_COMMA			= 56,
+	TE_KP_ENTER			= 57,
 
+	TE_KP_0		= 58,
+	TE_KP_1		= 59,
+	TE_KP_2		= 60,
+	TE_KP_3		= 61,
+	TE_KP_4		= 62,
+	TE_KP_5		= 63,
+	TE_KP_6		= 64,
+	TE_KP_7		= 65,
+	TE_KP_8		= 66,
+	TE_KP_9		= 67,
 } te_key_t;
 
 typedef enum _te_modifier {
-	TE_MOD_NONE = 0,
-	TE_MOD_SHIFT = (1<<0),
-	TE_MOD_CTRL	= (1<<1),
-	TE_MOD_META	= (1<<2),
+	TE_MOD_NONE		= 0,
+	TE_MOD_SHIFT	= (1<<0),
+	TE_MOD_CTRL		= (1<<1),
+	TE_MOD_META		= (1<<2),
 } te_modifier_t;
 
 DLLEXPORT TE_Backend* te_create(const TE_Frontend* front, void* priv, int width, int height);
@@ -119,8 +137,9 @@ DLLEXPORT void te_process_input_mbs(TE_Backend* te, const char* data, size_t len
 
 /**
  * Handles host special key presses
+ * @returns non-zero if handled
  */
-DLLEXPORT void te_handle_button(TE_Backend* te, te_key_t key);
+DLLEXPORT int te_handle_button(TE_Backend* te, te_key_t key);
 
 /**
  * Handles ordinary letters/numbers key presses

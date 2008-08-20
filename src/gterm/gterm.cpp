@@ -23,6 +23,27 @@ static const keymap _keys_normal[] = {
 	{TE_KEY_DOWN,		"\033[B"},
 	{TE_KEY_RIGHT,		"\033[C"},
 	{TE_KEY_LEFT,		"\033[D"},
+
+	{TE_KP_EQUAL,		"="},
+	{TE_KP_DIVIDE,		"/"},
+	{TE_KP_MULTIPLY,	"*"},
+	{TE_KP_SUBSTRACT,	"-"},
+	{TE_KP_ADD,			"+"},
+	{TE_KP_PERIOD,		"."},
+	{TE_KP_COMMA,		","},
+	{TE_KP_ENTER,		"\r"},
+
+	{TE_KP_0,		"0"},
+	{TE_KP_1,		"1"},
+	{TE_KP_2,		"2"},
+	{TE_KP_3,		"3"},
+	{TE_KP_4,		"4"},
+	{TE_KP_5,		"5"},
+	{TE_KP_6,		"6"},
+	{TE_KP_7,		"7"},
+	{TE_KP_8,		"8"},
+	{TE_KP_9,		"9"},
+
 	{TE_KEY_UNDEFINED,	NULL}
 };
 
@@ -31,6 +52,27 @@ static const keymap _keys_app[] = {
 	{TE_KEY_DOWN,		"\033OB"},
 	{TE_KEY_RIGHT,		"\033OC"},
 	{TE_KEY_LEFT,		"\033OD"},
+
+	{TE_KP_EQUAL,		"\033OX"},
+	{TE_KP_DIVIDE,		"\033Oo"},
+	{TE_KP_MULTIPLY,	"\033Oj"},	//
+	{TE_KP_SUBSTRACT,	"\033Om"},
+	{TE_KP_ADD,			"\033Ok"},	//
+	{TE_KP_PERIOD,		"\033On"},
+	{TE_KP_COMMA,		"\033Ol"},
+	{TE_KP_ENTER,		"\033OM"},	//
+
+	{TE_KP_0,		"\033Op"},
+	{TE_KP_1,		"\033Oq"},
+	{TE_KP_2,		"\033Or"},
+	{TE_KP_3,		"\033Os"},
+	{TE_KP_4,		"\033Ot"},
+	{TE_KP_5,		"\033Ou"},
+	{TE_KP_6,		"\033Ov"},
+	{TE_KP_7,		"\033Ow"},
+	{TE_KP_8,		"\033Ox"},
+	{TE_KP_9,		"\033Oy"},
+
 	{TE_KEY_UNDEFINED,	NULL}
 };
 
@@ -72,12 +114,12 @@ static const keymap _keys_common[] = {
 
 extern void parser_init (GTerm* gt);
 
-void GTerm::handle_button(te_key_t key)
+int GTerm::handle_button(te_key_t key)
 {
 	const char* s = NULL;
 
 	switch (key) {
-	case TE_KEY_RETURN:
+	case TE_KEY_ENTER:
 		if (is_mode_flag(GTerm::NEWLINE)) {
 			s = "\r\n";	//	CRLF
 		} else {
@@ -109,7 +151,11 @@ void GTerm::handle_button(te_key_t key)
 
 	if (s != NULL) {
 		fe_send_back_simple(s);
+		return 1;
+	} else {
+		return 0;
 	}
+
 }
 
 void GTerm::handle_keypress(int32_t cp, te_modifier_t modifiers) {
@@ -355,8 +401,8 @@ void te_process_input_mbs(TE_Backend* te, const char* data, size_t len) {
 #endif
 }
 
-void te_handle_button(TE_Backend* te, te_key_t key) {
-	te->gt->handle_button(key);
+int te_handle_button(TE_Backend* te, te_key_t key) {
+	return te->gt->handle_button(key);
 }
 
 void te_handle_keypress(TE_Backend* te, int32_t cp, te_modifier_t modifiers) {

@@ -9,8 +9,6 @@
 
 #include "strutil.h"
 
-#include "flkeys.h"
-
 #include "Fl_Term.h"
 
 static void _impl_draw (void* priv, int x, int y, const symbol_t* data, int len) {
@@ -169,22 +167,42 @@ bool Fl_Term::_handle_keyevent(void) {
 	te_key_t tekey = TE_KEY_UNDEFINED;
 
 	switch (keysym) {
-	case FL_Enter:		tekey = TE_KEY_RETURN; break;
-	case FL_Tab:		tekey = TE_KEY_TAB; break;
-	case FL_Escape:		tekey = TE_KEY_ESCAPE; break;
-	case FL_BackSpace:	tekey = TE_KEY_BACKSPACE; break;
+	case FL_Enter:		tekey = TE_KEY_ENTER;		break;
+	case FL_Tab:		tekey = TE_KEY_TAB;			break;
+	case FL_Escape:		tekey = TE_KEY_ESCAPE;		break;
+	case FL_BackSpace:	tekey = TE_KEY_BACKSPACE;	break;
 
-	case FL_Home:		tekey = TE_KEY_HOME; break;
-	case FL_Insert:		tekey = TE_KEY_INSERT; break;
-	case FL_Delete:		tekey = TE_KEY_DELETE; break;
-	case FL_End:		tekey = TE_KEY_END; break;
-	case FL_Page_Up:	tekey = TE_KEY_PGUP; break;
-	case FL_Page_Down:	tekey = TE_KEY_PGDN; break;
+	case FL_Home:		tekey = TE_KEY_HOME;	break;
+	case FL_Insert:		tekey = TE_KEY_INSERT;	break;
+	case FL_Delete:		tekey = TE_KEY_DELETE;	break;
+	case FL_End:		tekey = TE_KEY_END;		break;
+	case FL_Page_Up:	tekey = TE_KEY_PGUP;	break;
+	case FL_Page_Down:	tekey = TE_KEY_PGDN;	break;
 
-	case FL_Left:	tekey = TE_KEY_LEFT; break;
-	case FL_Right:	tekey = TE_KEY_RIGHT; break;
-	case FL_Up:		tekey = TE_KEY_UP; break;
-	case FL_Down:	tekey = TE_KEY_DOWN; break;
+	case FL_Left:		tekey = TE_KEY_LEFT;	break;
+	case FL_Right:		tekey = TE_KEY_RIGHT;	break;
+	case FL_Up:			tekey = TE_KEY_UP;		break;
+	case FL_Down:		tekey = TE_KEY_DOWN;	break;
+
+	case FL_KP+'=':		tekey = TE_KP_EQUAL;		break;
+	case FL_KP+'/':		tekey = TE_KP_DIVIDE;		break;
+	case FL_KP+'*':		tekey = TE_KP_MULTIPLY;		break;
+	case FL_KP+'-':		tekey = TE_KP_SUBSTRACT;	break;
+	case FL_KP+'+':		tekey = TE_KP_ADD;			break;
+	case FL_KP+'.':		tekey = TE_KP_PERIOD;		break;
+	case FL_KP+',':		tekey = TE_KP_COMMA;		break;
+	case FL_KP+'\r':	tekey = TE_KP_ENTER;		break;
+
+	case FL_KP+'0':	tekey = TE_KP_0;	break;
+	case FL_KP+'1':	tekey = TE_KP_1;	break;
+	case FL_KP+'2':	tekey = TE_KP_2;	break;
+	case FL_KP+'3':	tekey = TE_KP_3;	break;
+	case FL_KP+'4':	tekey = TE_KP_4;	break;
+	case FL_KP+'5':	tekey = TE_KP_5;	break;
+	case FL_KP+'6':	tekey = TE_KP_6;	break;
+	case FL_KP+'7':	tekey = TE_KP_7;	break;
+	case FL_KP+'8':	tekey = TE_KP_8;	break;
+	case FL_KP+'9':	tekey = TE_KP_9;	break;
 	}
 
 	if (keysym >= FL_F+1 && keysym <= FL_F_Last) {
@@ -192,20 +210,7 @@ bool Fl_Term::_handle_keyevent(void) {
 	}
 
 	if (tekey != TE_KEY_UNDEFINED) {
-		te_handle_button(_te, tekey);
-		return true;
-	}
-
-	// OK, still not done - lets try looking up the VT100 key mapping tables...
-	// Also - how to handle the "windows" key on PC style kbds?
-	const keyseq* tables[] = {keypadkeys, NULL};
-
-	for (const keyseq** table = tables; *table != NULL; table++) {
-		const char* str = find_key(keysym, *table);
-		if (str) {
-			_sendBackMBS(str);
-			return true;
-		}
+		return (te_handle_button(_te, tekey) != 0);
 	}
 
 	if (Fl::event_length() > 0) {
@@ -293,8 +298,10 @@ int Fl_Term::handle(int event)
 		break;
 	}
 	default:
-		return 0;
+		break;
 	}
+
+	return 0;
 }
 
 /************************************************************************/

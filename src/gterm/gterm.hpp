@@ -199,7 +199,7 @@ public:
 	void process_input(int len, const int32_t* data);
 	void update_changes(void);
 	void resize_terminal(int w, int h);
-	void handle_button(te_key_t key);
+	int handle_button(te_key_t key);
 	void handle_keypress(int32_t cp, te_modifier_t modifiers);
 	void request_redraw(int x, int y, int w, int h, bool force);
 	int get_width() { return width; }
