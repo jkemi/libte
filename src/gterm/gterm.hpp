@@ -52,7 +52,6 @@ public:
 		AUTOWRAP		= (1<<4),
 
 		CURSORAPPMODE	= (1<<5),
-		CURSORRELATIVE	= (1<<6),
 
 		// New line mode (DECNLM)
 		//

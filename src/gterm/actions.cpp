@@ -188,7 +188,11 @@ void ac_cursor_up(GTerm* gt)
 	int n, y;
 	n = int_max(1, _get_param(gt,0,1) );
 
-	y = int_max(0, gt->cursor_y-n);;
+	if (gt->is_mode_set(gt->ORIGIN)) {
+		y = int_max(gt->scroll_top, gt->cursor_y-n);
+	} else {
+		y = int_max(0, gt->cursor_y-n);
+	}
 	gt->move_cursor(gt->cursor_x, y);
 }
 
@@ -198,20 +202,27 @@ void ac_cursor_down(GTerm* gt)
 	int n, y;
 	n = int_max(1, _get_param(gt,0,1) );
 
-	y = int_min(gt->height-1, gt->cursor_y+n);
+	if (gt->is_mode_set(gt->ORIGIN)) {
+		y = int_min(gt->scroll_bot, gt->cursor_y+n);
+	} else {
+		y = int_min(gt->height-1, gt->cursor_y+n);
+	}
 	gt->move_cursor(gt->cursor_x, y);
 }
 
+// Cursor Position (CUP)
 void ac_cursor_position(GTerm* gt)
 {
-	int	y = int_clamp(_get_param(gt, 0, 1), 1, gt->height);
-	int x = int_clamp(_get_param(gt, 1, 1), 1, gt->width);
+	int y, x;
 
-	if (gt->is_mode_set(gt->CURSORRELATIVE)) {
-		gt->move_cursor(x-1, y-1+gt->scroll_top);
+	if (gt->is_mode_set(gt->ORIGIN)) {
+		y = int_clamp(_get_param(gt, 0, 1)+gt->scroll_top, gt->scroll_top, gt->scroll_bot+1);
 	} else {
-		gt->move_cursor(x-1, y-1);
+		y = int_clamp(_get_param(gt, 0, 1), 1, gt->height);
 	}
+	x = int_clamp(_get_param(gt, 1, 1), 1, gt->width);
+
+	gt->move_cursor(x-1, y-1);
 }
 
 // Cursor Character Absolute [column] (default = [row,1]) (CHA)
@@ -263,8 +274,8 @@ void ac_set_mode(GTerm* gt)  // h
 		switch (p) {
 		case 1:	gt->set_mode_flag(gt->CURSORAPPMODE);	break;	// Normal Cursor Keys (DECCKM)
 //		case 2:											// Designate VT52 mode (DECANM).
-		case 3:	gt->fe_request_resize(132, gt->height);	break;	// 80 Column Mode (DECCOLM)
-		case 6:	gt->set_mode_flag(gt->CURSORRELATIVE);	break;	// Normal Cursor Mode (DECOM)
+		case 3:	gt->fe_request_resize(132, gt->height);	break;	// 132 Column Mode (DECCOLM)
+		case 6: gt->set_mode_flag(gt->ORIGIN);			break;	// Origin mode (DECOM)
 		case 7:	gt->set_mode_flag(gt->AUTOWRAP);		break;	// Wraparound Mode (DECAWM)
 		case 25:										// Hide Cursor (DECTCEM)
 			gt->clear_mode_flag(gt->CURSORINVISIBLE);
@@ -299,8 +310,8 @@ void ac_clear_mode(GTerm* gt)  // l
 		switch (_get_param(gt,0,-1)) {
 		case 1:	gt->clear_mode_flag(gt->CURSORAPPMODE);		break;	// Normal Cursor Keys (DECCKM)
 //		case 2:	current_state = vt52_normal_state; break;	// Designate VT52 mode (DECANM).
-		case 3:	gt->fe_request_resize(80, gt->height);		break;	// 80 Column Mode (DECCOLM)
-		case 6:	gt->clear_mode_flag(gt->CURSORRELATIVE);	break;	// Normal Cursor Mode (DECOM)
+		case 3:	gt->fe_request_resize(80, gt->height);		break;	// 132 Column Mode (DECCOLM)
+		case 6: gt->clear_mode_flag(gt->ORIGIN);			break;	// Origin mode (DECOM)
 		case 7:	gt->clear_mode_flag(gt->AUTOWRAP);			break;	// Wraparound Mode (DECAWM)
 		case 25:											// Hide Cursor (DECTCEM)
 			gt->set_mode_flag(gt->CURSORINVISIBLE);	break;
@@ -353,12 +364,11 @@ void ac_set_margins(GTerm* gt)
 	gt->scroll_top = t-1;
 	gt->scroll_bot = b-1;
 
-	// TODO: if origin mode:
-	//  gt->move_cursor(gt->scroll_top, 0);
-	// else:
-	//  gt->move_cursor(0, 0);
-
-	gt->move_cursor(0, 0);
+	if (gt->is_mode_flag(gt->ORIGIN)) {
+		gt->move_cursor(gt->scroll_top, 0);
+	} else {
+		gt->move_cursor(0, 0);
+	}
 }
 
 // Delete P s Line(s) (default = 1) (DL)

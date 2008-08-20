@@ -30,7 +30,7 @@ DLLLOCAL void ac_cursor_left	(GTerm* gt);		// Cursor Backward P s Times (default
 DLLLOCAL void ac_cursor_right	(GTerm* gt);		// Cursor Forward P s Times (default = 1) (CUF)
 DLLLOCAL void ac_cursor_up		(GTerm* gt);		// Cursor Up P s Times (default = 1) (CUU)
 DLLLOCAL void ac_cursor_down	(GTerm* gt);		// Cursor Down P s Times (default = 1) (CUD)
-DLLLOCAL void ac_cursor_position	(GTerm* gt);
+DLLLOCAL void ac_cursor_position	(GTerm* gt);	// Cursor Position (CUP)
 DLLLOCAL void ac_column_position	(GTerm* gt);	// Cursor Character Absolute [column] (default = [row,1]) (CHA)
 DLLLOCAL void ac_line_position		(GTerm* gt);	// Line Position Absolute [row] (default = [1,column]) (VPA)
 DLLLOCAL void ac_device_attrib		(GTerm* gt);
