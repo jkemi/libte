@@ -65,6 +65,13 @@ public:
 		//   RETURN transmits a carriage return.
 		NEWLINE			= (1<<7),
 
+		// Insertion-Replacement Mode (IRM)
+		// With insert mode:
+		//   New display characters move old display characters to the right.
+		//   Characters moved past the right margin are lost.
+		// Without insert mode:
+		//   New display characters replace old display characters at cursor position.
+		//   The old character is erased.
 		INSERT			= (1<<8),
 
 		// Application Keypad Mode (DECKPAM)
