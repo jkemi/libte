@@ -63,7 +63,7 @@ void GTerm::input(const int32_t* text, size_t len) {
 
 	if (is_mode_set(AUTOWRAP)) {
 		while (len > 0) {
-			BufferRow* row = buffer->getRow(cursor_y);
+			BufferRow* row = buffer_get_row(&buffer, cursor_y);
 
 			size_t n = uint_min(len, width-cursor_x);
 			for (size_t i = 0; i < n; i++) {
@@ -89,7 +89,7 @@ void GTerm::input(const int32_t* text, size_t len) {
 			}
 		}
 	} else {
-		BufferRow* row = buffer->getRow(cursor_y);
+		BufferRow* row = buffer_get_row(&buffer, cursor_y);
 
 		size_t n = uint_min(len, width-cursor_x-1);
 
@@ -138,7 +138,7 @@ void GTerm::resize_terminal(int w, int h)
 	int cy = int_min(height-1, cursor_y);
 	move_cursor(cx, cy);
 
-	buffer->reshape(h, w);
+	buffer_reshape(&buffer, h, w);
 	dirty->reshape(h, w);
 }
 
@@ -154,7 +154,7 @@ GTerm::GTerm(const TE_Frontend* fe, void* fe_priv, int w, int h)
 
 	doing_update = false;
 
-	buffer = new Buffer(NULL, h, w);
+	buffer_init(&buffer, NULL, h, w);
 	dirty = new Dirty(h, w);
 
 	// Create tab stops
@@ -189,7 +189,7 @@ GTerm::GTerm(const TE_Frontend* fe, void* fe_priv, int w, int h)
 
 GTerm::~GTerm()
 {
-	delete buffer;
+	buffer_term(&buffer);
 	delete dirty;
 }
 

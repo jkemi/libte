@@ -14,35 +14,21 @@
 #include "buffersymbol.h"
 #include "BufferRow.h"
 
-class Buffer {
-private:
-	History*	_hist;
+typedef struct {
+	History*	hist;
+	BufferRow**	rows;
+	uint32_t	rowp;
+	uint		nrows;
+	uint		ncols;
+} Buffer;
 
-	BufferRow**	_rows;
-	uint32_t	_rowp;
-	uint		_nrows;
-	uint		_ncols;
-private:
+void buffer_init(Buffer* buf, History* hist, uint nrows, uint ncols);
+void buffer_term(Buffer* buf);
+void buffer_reshape(Buffer* buf, uint nrows, uint ncols);
 
-public:
-	Buffer(History* hist, uint nrows, uint ncols);
-	Buffer(const Buffer&);
-	virtual ~Buffer();
+static inline BufferRow* buffer_get_row(Buffer* buf, uint rowno) {
+	return buf->rows[(buf->rowp + rowno)%buf->nrows];
+}
 
-	void reshape(uint nrows, uint ncols);
-
-	inline uint	getNRows() {
-		return _nrows;
-	}
-
-	inline uint	getNCols() {
-		return _ncols;
-	}
-
-	inline BufferRow*	getRow(int rowno) {
-		return _rows[(_rowp + rowno)%_nrows];
-	}
-
-};
 
 #endif /* BUFFER_H_ */

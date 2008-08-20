@@ -24,7 +24,7 @@ void GTerm::request_redraw(int x, int y, int w, int h, bool force) {
 
     // then update characters
     for (int rowno = y; rowno < y+h; rowno++) {
-		BufferRow* row = buffer->getRow(rowno);
+    	BufferRow* row = buffer_get_row(&buffer, rowno);
 
 		int dirtstart;
 		int dirtend;
@@ -76,7 +76,8 @@ void GTerm::request_redraw(int x, int y, int w, int h, bool force) {
 
 		// draw cursor if force or inside rectangle
 		if ( force || (xpos >= x && xpos < x+w && ypos >= y && ypos < y+h) ) {
-			const symbol_t sym = buffer->getRow(cursor_y)->data[xpos];
+			const BufferRow* row = buffer_get_row(&buffer, cursor_y);
+			const symbol_t sym = row->data[xpos];
 
 			const symbol_color_t fg = symbol_get_fg(sym);
 			const symbol_color_t bg = symbol_get_fg(sym);
@@ -177,7 +178,8 @@ void GTerm::shift_text(int y, int start_x, int end_x, int num) {
 		return;
 
 	if (num < 0) {
-		buffer->getRow(y)->remove(start_x,-num);
+		BufferRow* row = buffer_get_row(&buffer, y);
+		row->remove(start_x,-num);
 	} else {
 		// TODO !?:
 		//buffer->getRow(y)->insert(start_x, )
@@ -197,7 +199,8 @@ void GTerm::clear_area(int start_x, int start_y, int end_x, int end_y)
 	}
 
 	for (int y=start_y; y<=end_y; y++) {
-		buffer->getRow(y)->fill(start_x, sym, w);
+		BufferRow* row = buffer_get_row(&buffer, y);
+		row->fill(start_x, sym, w);
 		changed_line(y, start_x, end_x);
 	}
 }

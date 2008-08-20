@@ -9,75 +9,73 @@
 
 #include "Buffer.h"
 
-
-Buffer::Buffer(History* hist, uint nrows, uint ncols) {
-	_hist = hist;
-	_rows = new BufferRow* [nrows];
+void buffer_init(Buffer* buf, History* hist, uint nrows, uint ncols) {
+	buf->hist = hist;
+	buf->rows = new BufferRow* [nrows];
 	for (uint rowno = 0; rowno < nrows; rowno++) {
-		_rows[rowno] = new BufferRow();
+		buf->rows[rowno] = new BufferRow();
 	}
-	_rowp = 0;
-	_ncols = ncols;
-	_nrows = nrows;
+	buf->rowp = 0;
+	buf->ncols = ncols;
+	buf->nrows = nrows;
 }
 
-/* Deliberately left out copy-constructor
-Buffer::Buffer(const Buffer& old) {
-}
-*/
-
-Buffer::~Buffer() {
-	for (uint rowno = 0; rowno < _nrows; rowno++) {
-		delete _rows[rowno];
+void buffer_term(Buffer* buf) {
+	for (uint rowno = 0; rowno < buf->nrows; rowno++) {
+		delete buf->rows[rowno];
 	}
-	delete _rows;
+	delete buf->rows;
 }
 
-void Buffer::reshape(uint nrows, uint ncols) {
-	_ncols = ncols;
+void buffer_reshape(Buffer* buf, uint nrows, uint ncols) {
+	buf->ncols = ncols;
 
-	if (nrows == _nrows) {
+	if (nrows == buf->nrows) {
 		return;
 	}
 
-	if (nrows < _nrows) {
-		uint shrunkby = nrows-_nrows;
+	if (nrows < buf->nrows) {
+		// Buffer should shrink
+
+		const uint shrunkby = nrows-buf->nrows;
 
 		// Store spilled rows
 		for (uint rowno = 0; rowno < shrunkby; rowno++) {
-			const BufferRow* row = getRow(rowno);
-			history_store(_hist, row);
+			const BufferRow* row = buffer_get_row(buf, rowno);
+			history_store(buf->hist, row);
 			delete row;
 		}
 
 		// resize
 		BufferRow** newrows = new BufferRow*[nrows];
 		for (uint rowno = 0; rowno < nrows; rowno++) {
-			BufferRow* row = getRow(rowno+shrunkby);
+			BufferRow* row = buffer_get_row(buf, rowno+shrunkby);
 			newrows[rowno] = row;
 		}
 
-		_rows = newrows;
+		buf->rows = newrows;
 	} else {
-		uint grownby = _nrows-nrows;
+		// Buffer should grow
+
+		const uint grownby = buf->nrows-nrows;
 
 		// resize
 		BufferRow** newrows = new BufferRow*[nrows];
 		for (uint rowno = 0; rowno < nrows; rowno++) {
-			BufferRow* row = getRow(rowno);
+			BufferRow* row = buffer_get_row(buf, rowno);
 			newrows[rowno+grownby] = row;
 		}
 
 		// Fetch old rows
 		for (uint rowno = grownby-1; rowno >= 0; rowno--) {
 			BufferRow* row = new BufferRow();
-			history_fetch(_hist, row);
+			history_fetch(buf->hist, row);
 			newrows[rowno] = row;
 		}
 
-		_rows = newrows;
+		buf->rows = newrows;
 	}
 
-	_rowp = 0;
-	_nrows = nrows;
+	buf->rowp = 0;
+	buf->nrows = nrows;
 }

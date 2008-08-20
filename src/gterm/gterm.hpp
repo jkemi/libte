@@ -10,6 +10,7 @@
 //#define USE_VTPARSE
 
 #include "buffersymbol.h"
+#include "Buffer.h"
 
 
 #ifdef USE_VTPARSE
@@ -32,7 +33,6 @@
 
 #include "libte.h"
 
-class Buffer;
 class Dirty;
 
 class GTerm {
@@ -121,7 +121,7 @@ public:
 
 	// terminal info
 	int width, height;
-	Buffer*	buffer;
+	Buffer	buffer;
 	Dirty* dirty;
 
 	// Scroll margins, as set by DECSTBM
