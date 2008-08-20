@@ -116,10 +116,10 @@ void ac_set_tab(GTerm* gt)
 // If the cursor is at the bottom margin, then the screen performs a scroll-up.
 void ac_index_down(GTerm* gt)
 {
-	if (gt->cursor_y < gt->scroll_bot) {
-		gt->move_cursor(gt->cursor_x, gt->cursor_y+1);
-	} else {
+	if (gt->cursor_y == gt->scroll_bot) {
 		gt->scroll_region(gt->scroll_top, gt->scroll_bot, 1);
+	} else {
+		gt->move_cursor(gt->cursor_x, gt->cursor_y+1);
 	}
 }
 
@@ -134,10 +134,10 @@ void ac_next_line(GTerm* gt)
 
 void ac_index_up(GTerm* gt)
 {
-	if (gt->cursor_y > gt->scroll_top) {
-		gt->move_cursor(gt->cursor_x, gt->cursor_y-1);
-	} else {
+	if (gt->cursor_y == gt->scroll_top) {
 		gt->scroll_region(gt->scroll_top, gt->scroll_bot, -1);
+	} else {
+		gt->move_cursor(gt->cursor_x, gt->cursor_y-1);
 	}
 }
 
