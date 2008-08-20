@@ -187,6 +187,10 @@ bool Fl_Term::_handle_keyevent(void) {
 	case FL_Down:	tekey = TE_KEY_DOWN; break;
 	}
 
+	if (keysym >= FL_F+1 && keysym <= FL_F_Last) {
+		tekey = (te_key_t)(TE_KEY_F + keysym-FL_F);
+	}
+
 	if (tekey != TE_KEY_UNDEFINED) {
 		te_handle_button(_te, tekey);
 		return true;
@@ -194,7 +198,7 @@ bool Fl_Term::_handle_keyevent(void) {
 
 	// OK, still not done - lets try looking up the VT100 key mapping tables...
 	// Also - how to handle the "windows" key on PC style kbds?
-	const keyseq* tables[] = {keypadkeys, otherkeys, NULL};
+	const keyseq* tables[] = {keypadkeys, NULL};
 
 	for (const keyseq** table = tables; *table != NULL; table++) {
 		const char* str = find_key(keysym, *table);

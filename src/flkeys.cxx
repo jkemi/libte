@@ -56,24 +56,8 @@ static const keyseq _keypadappkeys[] = {
 	{Key_Table_Void, 0}};
 #endif
 
-static const keyseq _otherkeys[] = {
-	{(FL_F + 1),	"\033[11~"},
-	{(FL_F + 2),	"\033[12~"},
-	{(FL_F + 3),	"\033[13~"},
-	{(FL_F + 4),	"\033[14~"},
-	{(FL_F + 5),	"\033[15~"},
-	{(FL_F + 6),	"\033[17~"},
-	{(FL_F + 7),	"\033[18~"},
-	{(FL_F + 8),	"\033[19~"},
-	{(FL_F + 9),	"\033[20~"},
-	{(FL_F + 10),	"\033[21~"},
-	{(FL_F + 11),	"\033[23~"},
-	{(FL_F + 12),	"\033[24~"},
-	{Key_Table_Void, 0}};
-
 const keyseq* keypadkeys = _keypadkeys;
 //const keyseq* keypadappkeys = _keypadappkeys;
-const keyseq* otherkeys = _otherkeys;
 
 const char* find_key(int keysym, const keyseq* table)
 {

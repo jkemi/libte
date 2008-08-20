@@ -45,6 +45,28 @@ static const keymap _keys_common[] = {
 	{TE_KEY_END,		"\033[4~"},	// 	"\033[e" ??
 	{TE_KEY_PGUP,		"\033[5~"},
 	{TE_KEY_PGDN,		"\033[6~"},
+
+	{te_key_t(TE_KEY_F+1),		"\033[11~"},
+	{te_key_t(TE_KEY_F+2),		"\033[12~"},
+	{te_key_t(TE_KEY_F+3),		"\033[13~"},
+	{te_key_t(TE_KEY_F+4),		"\033[14~"},
+	{te_key_t(TE_KEY_F+5),		"\033[15~"},
+	{te_key_t(TE_KEY_F+6),		"\033[17~"},
+	{te_key_t(TE_KEY_F+7),		"\033[18~"},
+	{te_key_t(TE_KEY_F+8),		"\033[19~"},
+	{te_key_t(TE_KEY_F+9),		"\033[20~"},
+	{te_key_t(TE_KEY_F+10),		"\033[21~"},
+	{te_key_t(TE_KEY_F+11),		"\033[23~"},
+	{te_key_t(TE_KEY_F+12),		"\033[24~"},
+	{te_key_t(TE_KEY_F+13),		"\033[25~"},
+	{te_key_t(TE_KEY_F+14),		"\033[26~"},
+	{te_key_t(TE_KEY_F+15),		"\033[28~"},
+	{te_key_t(TE_KEY_F+16),		"\033[29~"},
+	{te_key_t(TE_KEY_F+17),		"\033[31~"},
+	{te_key_t(TE_KEY_F+18),		"\033[32~"},
+	{te_key_t(TE_KEY_F+19),		"\033[33~"},
+	{te_key_t(TE_KEY_F+20),		"\033[34~"},
+
 	{TE_KEY_UNDEFINED,	NULL}
 };
 
