@@ -217,8 +217,8 @@ void GTerm::fe_updated(void) {
 	_fe->updated(_fe_priv);
 }
 
-void GTerm::fe_scroll(int y, int height, int offset) {
-	_fe->scroll(_fe_priv, y, height, offset);
+void GTerm::fe_scroll(int y, int height, int byoffset) {
+	_fe->move(_fe_priv, y, height, byoffset);
 }
 
 //

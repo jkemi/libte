@@ -38,7 +38,7 @@ public:
 	void _fe_Updated(void);
 	void _fe_DrawStyledText(int x, int y, const symbol_t* symbols, int len);
 	void _fe_ClearChars(symbol_color_t bg_color, int x, int y, int len);
-	void _fe_Scroll(int y, int height, int offset);
+	void _fe_Move(int y, int height, int byoffset);
 	void _fe_DrawCursor(symbol_color_t fg_color, symbol_color_t bg_color, symbol_attributes_t attrs, int x, int y, int32_t cp);
 
 

@@ -22,8 +22,8 @@ static void _impl_clear (void* priv, int x, int y, const symbol_color_t bg_color
 static void _impl_draw_cursor (void* priv, symbol_color_t fg_color, symbol_color_t bg_color, symbol_attributes_t attrs, int x, int y, int32_t cp) {
 	((Fl_Term*)priv)->_fe_DrawCursor(fg_color, bg_color, attrs, x, y, cp);
 }
-static void _impl_scroll (void* priv, int y, int height, int offset) {
-	((Fl_Term*)priv)->_fe_Scroll(y, height, offset);
+static void _impl_move (void* priv, int y, int height, int byoffset) {
+	((Fl_Term*)priv)->_fe_Move(y, height, byoffset);
 }
 static void _impl_resized (void* priv, int width, int height) {
 	//TODO: implement me
@@ -54,7 +54,7 @@ const static TE_Frontend _impl_callbacks = {
 		&_impl_draw,
 		&_impl_clear,
 		&_impl_draw_cursor,
-		&_impl_scroll,
+		&_impl_move,
 		&_impl_resized,
 		&_impl_updated,
 		&_impl_reset,
@@ -414,7 +414,7 @@ void Fl_Term::_fe_ClearChars(symbol_color_t bg_color, int x, int y, int len)
 	redraw();
 }
 
-void Fl_Term::_fe_Scroll(int y, int height, int offset)
+void Fl_Term::_fe_Move(int y, int height, int byoffset)
 {
 	redraw();
 }
