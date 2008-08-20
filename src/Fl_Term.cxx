@@ -73,7 +73,11 @@ Fl_Term::Fl_Term(int sz, int X, int Y, int W, int H, const char *L) : Fl_Box(X,Y
 	// TODO: something weird here:
 	// FLTK-1.1 _should_ really return iso8859-1 in event_text() but gives us UTF8 instead
 	// also we don't want UCS-4LE on a big-endian machine...
+#ifdef __APPLE__
+	_fltk_to_cp = iconv_open("UCS-4LE", "MACROMAN");
+#else
 	_fltk_to_cp = iconv_open("UCS-4LE", "UTF8");
+#endif
 	if (_fltk_to_cp == (iconv_t)-1) {
 		// TODO: handle somehow
 		exit(1);
@@ -379,7 +383,15 @@ void Fl_Term::fe_draw_text(int xpos, int ypos, const symbol_t* symbols, int len)
 			fl_font(FL_COURIER, def_fnt_size);
 		}
 
+#ifdef __APPLE__
+		char tmp = cp;
+		str[0] = fl_latin1_to_local(&tmp, 1)[0];
+		if (str[0] != tmp) {
+			printf("converted from 0x%02x to 0x%02x\n", tmp, str[0]);
+		}
+#else
 		str[0] = cp;
+#endif
 		fl_color(fg);
 		fl_draw(str, 1, xp, yp+font.pixh-font.descent);
 
