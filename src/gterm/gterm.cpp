@@ -264,7 +264,8 @@ GTerm::GTerm(const TE_Frontend* fe, void* fe_priv, int w, int h)
 	height = h;
 
 
-	buffer_init(&buffer, NULL, h, w);
+	history_init(&history, 1000);
+	buffer_init(&buffer, &history, h, w);
 	viewport_init(this, w, h);
 
 	// Create tab stops

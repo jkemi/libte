@@ -100,6 +100,7 @@ public:
 	// terminal info
 	int width, height;
 	Buffer	buffer;
+	History	history;
 
 	struct {
 		uint	offset;

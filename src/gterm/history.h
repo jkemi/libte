@@ -11,10 +11,22 @@
 #include "BufferRow.h"
 #include "macros.h"
 
-typedef struct _History {
+typedef struct {
+	uint16_t	size;
+	symbol_t*	data;
+} HistoryEntry;
+
+typedef struct  {
+	HistoryEntry*	data;
+	uint			size;
+	uint			capacity;
+	uint			pos;
 } History;
 
 CDECLS_BEGIN
+
+void history_init(History* hist, uint capacity);
+void history_term(History* hist);
 
 uint history_size(History* hist);
 uint history_peek(History* hist, uint age, symbol_t* dest, uint n);

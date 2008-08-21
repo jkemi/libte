@@ -6,29 +6,79 @@
  */
 
 #include <stddef.h>
+#include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 
 #include "BufferRow.h"
 
 #include "history.h"
 
+void history_init(History* hist, uint capacity) {
+	hist->capacity = capacity;
+	hist->size = 0;
+	hist->pos = 0;
+	hist->data = (HistoryEntry*)malloc(sizeof(HistoryEntry)*capacity);
+	memset(hist->data, 0, sizeof(HistoryEntry)*capacity);
+}
+
+void history_term(History* hist) {
+	for (uint i = 0; i < hist->capacity; i++) {
+		if (hist->data->data != NULL) {
+			free (hist->data->data);
+		}
+	}
+	free (hist->data);
+}
+
 uint history_size(History* hist) {
-	return 0;
+	return hist->size;
 }
 
 uint history_peek(History* hist, uint age, symbol_t* dest, uint n) {
-	assert (age == 0);
-	return 0;
+	if (age >= hist->capacity) {
+		return 0;
+	}
+	const HistoryEntry* e = hist->data + (hist->pos-1+age)%hist->capacity;
+	if (e->data == NULL) {
+		return 0;
+	}
+
+	if (n > e->size) {
+		n = e->size;
+	}
+
+	memcpy(dest, e->data, sizeof(symbol_t)*n);
+	return n;
 }
 
 void history_store(History* hist, const BufferRow* row) {
-	if (hist != NULL) {
+	HistoryEntry* e = hist->data + hist->pos%hist->capacity;
+	hist->pos++;
 
+	if (e->data != NULL) {
+		free(e->data);
+	} else {
+		hist->size++;
 	}
+
+	e->data = (symbol_t*)malloc(sizeof(symbol_t)*row->used);
+	memcpy(e->data, row->data, sizeof(symbol_t)*row->used);
+	e->size = row->used;
 }
 
 void history_fetch(History* hist, BufferRow* row) {
-	if (hist == NULL) {
+	hist->pos--;
+	HistoryEntry* e = hist->data + hist->pos%hist->capacity;
+
+	if (e->data != NULL) {
+		hist->size--;
+
+		bufrow_replace(row, 0, e->data, e->size);
+
+		free(e->data);
+		e->size = 0;
+	} else {
 		bufrow_clear(row);
 	}
 }
