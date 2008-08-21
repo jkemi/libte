@@ -6,9 +6,6 @@
 #include "Buffer.h"
 #include "Dirty.h"
 
-// TODO: remove
-#include "../strutil.h"
-
 #include "actions.hpp"
 
 #include "gterm.hpp"
@@ -316,9 +313,6 @@ void GTerm::fe_send_back(const char* data) {
 		buf[i] = data[i];
 	}
 
-	// TODO: remove
-	str_mbs_hexdump("sendback mbs: ", data, len);
-
 	_fe->send_back(_fe_priv, buf);
 }
 
@@ -365,11 +359,11 @@ void te_resize(TE_Backend* te, int width, int height) {
 }
 
 int te_get_width(TE_Backend* te) {
-	return te->gt->get_width();
+	return te->gt->width;
 }
 
 int te_get_height(TE_Backend* te) {
-	return te->gt->get_height();
+	return te->gt->height;
 }
 
 void te_reqest_redraw(TE_Backend* te, int x, int y, int w, int h, bool force) {
