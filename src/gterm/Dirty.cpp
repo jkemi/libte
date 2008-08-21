@@ -23,10 +23,11 @@ void Dirty::_init(uint nrows, uint ncols) {
 	start = new int[nrows];
 	end = new int[nrows];
 
+	// start dirty
 	for (uint i = 0; i < nrows; i++) {
-		start[i] = INT_MAX;
+		start[i] = 0;
+		end[i] = ncols;
 	}
-	memset(end, 0, sizeof(int)*nrows);
 }
 
 Dirty::Dirty(uint nrows, uint ncols) {
