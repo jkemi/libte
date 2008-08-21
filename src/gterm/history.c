@@ -10,7 +10,7 @@
 
 #include "BufferRow.h"
 
-#include "History.h"
+#include "history.h"
 
 uint history_size(History* hist) {
 	return 0;

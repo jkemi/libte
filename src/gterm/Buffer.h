@@ -10,7 +10,7 @@
 
 #include <stdint.h>
 
-#include "History.h"
+#include "history.h"
 #include "symbol.h"
 #include "BufferRow.h"
 #include "macros.h"
