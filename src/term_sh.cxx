@@ -66,7 +66,6 @@ static void mfd_cb(int mfd, void* unused_priv)
 
 	bytesread = read(mfd, buf+buffill, (BUFSIZE-buffill)*sizeof(unsigned char));
 	str_mbs_hexdump("from pty(mbs): ", buf+buffill, bytesread);
-	te_process_input_mbs(termBox->_te, buf+buffill, bytesread);
 
 	buffill += bytesread;
 

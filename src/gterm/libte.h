@@ -133,8 +133,6 @@ DLLEXPORT void te_reqest_redraw(TE_Backend* te, int x, int y, int w, int h, bool
  */
 DLLEXPORT void te_process_input(TE_Backend* te, const int32_t* data, size_t len);
 
-DLLEXPORT void te_process_input_mbs(TE_Backend* te, const char* data, size_t len);
-
 /**
  * Handles host special key presses
  * @returns non-zero if handled

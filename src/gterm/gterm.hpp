@@ -7,29 +7,20 @@
 #include <stdio.h>
 #include <stdint.h>
 
-//#define USE_VTPARSE
-
 #include "buffersymbol.h"
 #include "Buffer.h"
 
 
-#ifdef USE_VTPARSE
+class GTerm;
 
-#	include "vtparse.h"
+typedef void (*StateFunc)(GTerm* gt);
 
-#else
+struct StateOption {
+	int							cp;			// codepoint value to look for; -1==end/default
+	StateFunc					action;		// action to execute on this transition
+	const struct StateOption* 	next_state;	// state to transfer to next
+};
 
-	class GTerm;
-
-	typedef void (*StateFunc)(GTerm* gt);
-
-	struct StateOption {
-		int							cp;			// codepoint value to look for; -1==end/default
-		StateFunc					action;		// action to execute on this transition
-		const struct StateOption* 	next_state;	// state to transfer to next
-	};
-
-#endif
 
 #include "libte.h"
 
@@ -144,10 +135,6 @@ public:
 		bool autowrap;
 	} stored;
 
-#ifdef USE_VTPARSE
-	vtparse_t parser;
-#else
-
 	struct {
 		// action parameters
 		int num_params;
@@ -160,8 +147,6 @@ public:
 
 		const StateOption* current_state;
 	} parser;
-#endif
-
 
 
 	// utility functions
@@ -193,7 +178,6 @@ public:
 	GTerm(const TE_Frontend* fe, void* fe_priv, int w, int h);
 	GTerm(const GTerm& old);
 	virtual ~GTerm();
-
 
 	void process_input(int len, const int32_t* data);
 	void update_changes(void);

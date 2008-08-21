@@ -377,15 +377,7 @@ void te_reqest_redraw(TE_Backend* te, int x, int y, int w, int h, bool force) {
 }
 
 void te_process_input(TE_Backend* te, const int32_t* data, size_t len) {
-#ifndef USE_VTPARSE
 	te->gt->process_input(len, data);
-#endif
-}
-
-void te_process_input_mbs(TE_Backend* te, const char* data, size_t len) {
-#ifdef USE_VTPARSE
-	vtparse(&te->gt->parser, (const unsigned char*)data, len);
-#endif
 }
 
 int te_handle_button(TE_Backend* te, te_key_t key) {
