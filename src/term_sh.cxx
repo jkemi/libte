@@ -12,7 +12,7 @@
 #include <stdint.h>
 
 #include <FL/Fl.H>
-#include <FL/Fl_Window.H>
+#include <FL/Fl_Double_Window.H>
 #include <FL/Fl_Button.H>
 
 #include "Fl_Term.h"
@@ -107,9 +107,10 @@ static void quit_cb(Fl_Button *, void *)
 }
 
 /************************************************************************/
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
 	setlocale(LC_ALL, "");
+	Fl::args(argc, argv);
 
 	int mfd; // master fd for pty
 
@@ -124,11 +125,10 @@ int main(int argc, char **argv)
 	int th = 24 * fh + 4 + (fh/2);   // by 24 lines...
 
 	// create the main window and the terminal widget
-	main_win = new Fl_Window(tw+10, th+60);
+	main_win = new Fl_Double_Window(tw+10, th+60);
 	main_win->begin();
 
 	termBox = new Fl_Term(def_fnt_size, 5, 5, tw, th);
-	termBox->box(FL_DOWN_FRAME);
 
 	// create some buttons for controlling the widget
 	Fl_Group * but_grp = new Fl_Group(5, th+8, tw, 40);
@@ -184,12 +184,6 @@ int main(int argc, char **argv)
 #else
 	termIO->clear_mode_flag(GTerm::DEFERUPDATE); // disable deferred - direct updates are used
 #endif
-
-//	termIO->set_mode_flag(GTerm::TEXTONLY);    // enable "Text Only" mode
-	termIO->clear_mode_flag(GTerm::TEXTONLY);  // disable "Text Only" mode
-
-	termIO->set_mode_flag(GTerm::NOEOLWRAP);   // disable line wrapping
-	termIO->clear_mode_flag(GTerm::LOCALECHO); // disable local echo
 */
 	// add the pty to the fltk fd list, so we can catch any output
 	Fl::add_fd(mfd, mfd_cb, NULL);

@@ -87,6 +87,8 @@ static Fl_Color col_table[] = {
 /************************************************************************/
 Fl_Term::Fl_Term(int sz, int X, int Y, int W, int H, const char *L) : Fl_Box(X,Y,W,H,L)
 {
+	box(FL_THIN_DOWN_FRAME);
+
 	def_fnt_size = sz;
 	fl_font(FL_COURIER, def_fnt_size);
 	fh = fl_height();
@@ -94,8 +96,8 @@ Fl_Term::Fl_Term(int sz, int X, int Y, int W, int H, const char *L) : Fl_Box(X,Y
 	fw = (int)(cw + 0.5);
 	fnt_desc = fl_descent();
 
-	tw = (int)((w() - 4) / cw);
-	th = (h() - 4) / fh;
+	tw = (int)((w() - Fl::box_dw(box())) / cw);
+	th = (h() - Fl::box_dh(box())) / fh;
 
 	crs_x = crs_y = 1;
 	crs_fg = 7; // white
@@ -310,8 +312,8 @@ void Fl_Term::resize(int x, int y, int W, int H)
 {
 	Fl_Box::resize( x, y, W, H);
 
-	tw = (int)((w() - 4) / cw);
-	th = (h() - 4) / fh;
+	tw = (int)((w() - Fl::box_dw(box())) / cw);
+	th = (h() - Fl::box_dh(box())) / fh;
 
 	if (tw != te_get_width(_te) || th != te_get_height(_te)) {
 		// Then tell the GTerm the new character sizes sizes...
