@@ -106,6 +106,7 @@ public:
 		uint	offset;
 		Dirty*	dirty;
 		bool	updating;
+		bool	scroll_lock;
 	} viewport;
 
 	// Scroll margins, as set by DECSTBM

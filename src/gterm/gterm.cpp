@@ -387,5 +387,9 @@ void te_update(TE_Backend* te) {
 }
 
 void te_position(TE_Backend* te, int offset) {
-	// TODO: implement
+	viewport_set(te->gt, offset);
+}
+
+void te_lock_scroll(TE_Backend* te, int scroll_lock) {
+	viewport_lock_scroll(te->gt, scroll_lock != 0);
 }

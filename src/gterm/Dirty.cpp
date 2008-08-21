@@ -62,7 +62,7 @@ void Dirty::setDirty(int row, int start, int end) {
 	}
 
 	if (olds != this->start[row] || olde != this->end[row]) {
-		printf("dirt: %d  %d,%d -> %d,%d\n", row, olds, olde, this->start[row], this->end[row]);
+//		printf("dirt: %d  %d,%d -> %d,%d\n", row, olds, olde, this->start[row], this->end[row]);
 	}
 }
 
@@ -84,6 +84,6 @@ void Dirty::cleanse(int row, int start, int end) {
 
 
 	if (olds != this->start[row] || olde != this->end[row]) {
-		printf("dirt: %d  %d,%d -> %d,%d\n", row, olds, olde, this->start[row], this->end[row]);
+//		printf("dirt: %d  %d,%d -> %d,%d\n", row, olds, olde, this->start[row], this->end[row]);
 	}
 }

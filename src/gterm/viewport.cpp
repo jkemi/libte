@@ -9,10 +9,19 @@
 #include "Dirty.h"
 #include "viewport.h"
 
+
+static void _report_scroll(GTerm* gt) {
+	gt->_fe->position(gt->_fe_priv, gt->viewport.offset, history_size(&gt->history));
+}
+
+
 void viewport_init (GTerm* gt, uint w, uint h) {
 	gt->viewport.dirty = new Dirty(h, w);
 	gt->viewport.updating = false;
 	gt->viewport.offset = 1;
+	gt->viewport.scroll_lock = false;
+
+	_report_scroll(gt);
 }
 
 void viewport_term (GTerm* gt) {
@@ -42,23 +51,52 @@ void viewport_move (GTerm* gt, uint y, uint n, int offset) {
 
 void viewport_history_inc(GTerm* gt) {
 	if (gt->viewport.offset > 0) {
-		gt->viewport.offset++;
-		for (int y = (int)gt->height-(int)gt->viewport.offset; y < gt->height; y++) {
-			gt->viewport.dirty->setRowDirt(y);
+		if (gt->viewport.scroll_lock) {
+			gt->viewport.offset++;
+			for (int y = (int)gt->height-(int)gt->viewport.offset; y < gt->height; y++) {
+				gt->viewport.dirty->setRowDirt(y);
+			}
+		} else {
+			// TODO: do we need to taint all here?
+			gt->viewport.offset = 0;
+			viewport_taint_all(gt);
 		}
 	}
+
+	_report_scroll(gt);
 }
 
 void viewport_history_dec(GTerm* gt) {
 	uint hsz = history_size(&gt->history);
-	if (gt->viewport.offset > hsz) {
-		gt->viewport.offset = hsz;
-		viewport_taint_all(gt);
+	if (gt->viewport.offset > 0) {
+		if (gt->viewport.scroll_lock) {
+			if (gt->viewport.offset > hsz) {
+				gt->viewport.offset = hsz;
+				viewport_taint_all(gt);
+			}
+		} else {
+			// TODO: do we need to taint all here?
+			gt->viewport.offset = 0;
+			viewport_taint_all(gt);
+		}
+
 	}
+	_report_scroll(gt);
 }
 
 void viewport_set (GTerm* gt, uint offset) {
-	// TODO: implement?
+	uint hsz = history_size(&gt->history);
+	offset = uint_clamp(offset, 0, hsz);
+
+	if (offset != gt->viewport.offset) {
+		gt->viewport.offset = offset;
+		viewport_taint_all(gt);
+		_report_scroll(gt);
+	}
+}
+
+void viewport_lock_scroll (GTerm* gt, bool lock) {
+	gt->viewport.scroll_lock = lock;
 }
 
 void viewport_request_redraw(GTerm* gt, int x, int y, int w, int h, bool force) {

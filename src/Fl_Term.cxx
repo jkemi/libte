@@ -45,7 +45,7 @@ static void _impl_request_resize (void* priv, int width, int height) {
 	//TODO: implement me
 }
 static void _impl_position (void* priv, int offset, int size) {
-	//TODO: implement me
+	printf( "scroll position %d of %d\n", offset, size);
 }
 
 
@@ -61,6 +61,7 @@ const static TE_Frontend _impl_callbacks = {
 		&_impl_title,
 		&_impl_send_back,
 		&_impl_request_resize,
+		&_impl_position,
 };
 
 // VT100 color table - map Colors to FL-colors:
@@ -351,7 +352,7 @@ void Fl_Term::_fe_DrawText(int xpos, int ypos, const symbol_t* symbols, int len)
 	const int xo = x() + Fl::box_dx(this->box());
 	const int yo = y() + Fl::box_dy(this->box());
 
-	printf("DrawStyledText(): %d, %d (%d))\n", xpos, ypos, len);
+//	printf("DrawText(): %d, %d (%d))\n", xpos, ypos, len);
 
 	// Now prepare to draw the actual terminal text
 	fl_font(FL_COURIER, def_fnt_size);
@@ -406,7 +407,7 @@ void Fl_Term::_fe_DrawText(int xpos, int ypos, const symbol_t* symbols, int len)
 
 void Fl_Term::_fe_DrawClear(symbol_color_t bg_color, int xpos, int ypos, int len)
 {
-	printf("ClearChars: %d, %d (%d))\n", xpos, ypos, len);
+//	printf("DrawClear: %d, %d (%d))\n", xpos, ypos, len);
 
 	const int xo = x() + Fl::box_dx(this->box());
 	const int yo = y() + Fl::box_dy(this->box());

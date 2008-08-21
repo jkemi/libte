@@ -153,6 +153,8 @@ DLLEXPORT void te_update(TE_Backend* te);
 
 DLLEXPORT void te_position(TE_Backend* te, int offset);
 
+DLLEXPORT void te_lock_scroll(TE_Backend* te, int scroll_lock);
+
 #ifdef __cplusplus
 }
 #endif
