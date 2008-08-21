@@ -12,7 +12,7 @@
 #include <stdint.h>
 
 #include <FL/Fl.H>
-#include <FL/Fl_Double_Window.H>
+#include <FL/Fl_Window.H>
 #include <FL/Fl_Button.H>
 
 #include "Fl_Term.h"
@@ -34,8 +34,7 @@
 //#define USE_DEFERUPDATE
 
 /************************************************************************/
-static Fl_Double_Window *main_win = NULL;
-static Fl_Double_Window *diag_win = NULL;
+static Fl_Window *main_win = NULL;
 static Fl_Term *termBox;
 static int pty_fd = -1;
 
@@ -105,8 +104,6 @@ static void quit_cb(Fl_Button *, void *)
 
 	usleep(100000); // 100ms
 	main_win->hide();
-
-	if (diag_win) diag_win->hide();
 }
 
 /************************************************************************/
@@ -127,7 +124,7 @@ int main(int argc, char **argv)
 	int th = 24 * fh + 4 + (fh/2);   // by 24 lines...
 
 	// create the main window and the terminal widget
-	main_win = new Fl_Double_Window(tw+10, th+60);
+	main_win = new Fl_Window(tw+10, th+60);
 	main_win->begin();
 
 	termBox = new Fl_Term(def_fnt_size, 5, 5, tw, th);
