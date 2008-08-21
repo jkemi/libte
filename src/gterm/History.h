@@ -12,7 +12,6 @@
 #include "macros.h"
 
 typedef struct _History{
-	void* a;
 } History;
 
 CDECLS_BEGIN
