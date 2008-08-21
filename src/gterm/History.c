@@ -6,10 +6,20 @@
  */
 
 #include <stddef.h>
+#include <assert.h>
 
 #include "BufferRow.h"
 
 #include "History.h"
+
+uint history_size(History* hist) {
+	return 0;
+}
+
+uint history_peek(History* hist, uint age, symbol_t* dest, uint n) {
+	assert (age == 0);
+	return 0;
+}
 
 void history_store(History* hist, const BufferRow* row) {
 	if (hist != NULL) {

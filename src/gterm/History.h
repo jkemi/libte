@@ -11,10 +11,13 @@
 #include "BufferRow.h"
 #include "macros.h"
 
-typedef struct _History{
+typedef struct _History {
 } History;
 
 CDECLS_BEGIN
+
+uint history_size(History* hist);
+uint history_peek(History* hist, uint age, symbol_t* dest, uint n);
 
 void history_store(History* hist, const BufferRow* row);
 void history_fetch(History* hist, BufferRow* row);
