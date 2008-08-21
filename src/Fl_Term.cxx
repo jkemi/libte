@@ -332,9 +332,6 @@ void Fl_Term::draw(void)
 	Fl_Box::draw();
 	fl_push_clip(xo, yo, wd, ht);
 
-//	fl_color(FL_BLACK);
-//	fl_rectf(xo, yo, wd, ht);
-
 	te_reqest_redraw(_te, 0, 0, tw, th, false);
 
 	// restore the clipping rectangle...
