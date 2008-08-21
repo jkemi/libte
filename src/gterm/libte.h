@@ -33,6 +33,7 @@ struct _TE_Frontend {
 	void (*title) 		(void* priv, const int32_t* text);
 	void (*send_back)	(void* priv, const int32_t* data);
 	void (*request_resize) (void* priv, int width, int height);
+	void (*position) (void* priv, int offset, int size);
 };
 
 typedef enum _te_key {
@@ -106,7 +107,7 @@ typedef enum _te_modifier {
 } te_modifier_t;
 
 DLLEXPORT TE_Backend* te_create(const TE_Frontend* front, void* priv, int width, int height);
-DLLEXPORT void		te_destroy(TE_Backend* te);
+DLLEXPORT void te_destroy(TE_Backend* te);
 
 /**
  * Resize terminal
@@ -116,12 +117,12 @@ DLLEXPORT void te_resize(TE_Backend* te, int width, int height);
 /**
  * Returns current width of terminal
  */
-DLLEXPORT int	 te_get_width(TE_Backend* te);
+DLLEXPORT int te_get_width(TE_Backend* te);
 
 /**
  * Returns current height of terminal
  */
-DLLEXPORT int	 te_get_height(TE_Backend* te);
+DLLEXPORT int te_get_height(TE_Backend* te);
 
 /**
  * Sent from GUI to terminal to request a redraw.
@@ -146,10 +147,11 @@ DLLEXPORT int te_handle_button(TE_Backend* te, te_key_t key);
 DLLEXPORT void te_handle_keypress(TE_Backend* te, int32_t cp, te_modifier_t modifiers);
 
 /**
- * TODO: document me
+ * TODO: remove this?
  */
 DLLEXPORT void te_update(TE_Backend* te);
 
+DLLEXPORT void te_position(TE_Backend* te, int offset);
 
 #ifdef __cplusplus
 }

@@ -44,6 +44,10 @@ static void _impl_send_back (void* priv, const int32_t* data) {
 static void _impl_request_resize (void* priv, int width, int height) {
 	//TODO: implement me
 }
+static void _impl_position (void* priv, int offset, int size) {
+	//TODO: implement me
+}
+
 
 const static TE_Frontend _impl_callbacks = {
 		&_impl_draw_text,

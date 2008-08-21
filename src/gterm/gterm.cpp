@@ -381,6 +381,11 @@ void te_handle_keypress(TE_Backend* te, int32_t cp, te_modifier_t modifiers) {
 	te->gt->handle_keypress(cp, modifiers);
 }
 
+// TODO: remove?
 void te_update(TE_Backend* te) {
 	te->gt->update_changes();
+}
+
+void te_position(TE_Backend* te, int offset) {
+	// TODO: implement
 }
