@@ -12,6 +12,7 @@
 void viewport_init (GTerm* gt, uint w, uint h) {
 	gt->viewport.dirty = new Dirty(h, w);
 	gt->viewport.updating = false;
+	gt->viewport.offset = 0;
 }
 
 void viewport_term (GTerm* gt) {
@@ -24,16 +25,13 @@ void viewport_reshape(GTerm* gt, uint w, uint h) {
 
 void viewport_taint (GTerm* gt, uint y, uint start_x, uint end_x) {
 	y += gt->viewport.offset;
-	if ( y >= 0 && y < gt->height) {
+	if (y >= 0 && y < gt->height) {
 		gt->viewport.dirty->setDirty(y, start_x, end_x);
 	}
 }
 
 void viewport_taint_all	(GTerm* gt) {
-	const uint s = int_clamp(0+gt->viewport.offset, 0, gt->height-1);
-	const uint e = int_clamp(gt->height+gt->viewport.offset, 0, gt->height-1);
-
-	for (uint y = s; y < e; y++) {
+	for (uint y = 0; y < gt->height; y++) {
 		gt->viewport.dirty->setRowDirt(y);
 	}
 }
@@ -42,6 +40,19 @@ void viewport_move (GTerm* gt, uint y, uint n, int offset) {
 	// TODO: implement?
 }
 
+void viewport_history_inc(GTerm* gt) {
+	if (gt->viewport.offset > 0) {
+		viewport_taint_all(gt);
+	}
+}
+
+void viewport_history_dec(GTerm* gt) {
+	uint hsz = history_size(&gt->history);
+	if (gt->viewport.offset > hsz) {
+		gt->viewport.offset = hsz;
+		viewport_taint_all(gt);
+	}
+}
 
 void viewport_set (GTerm* gt, uint offset) {
 	// TODO: implement?
@@ -61,9 +72,25 @@ void viewport_request_redraw(GTerm* gt, int x, int y, int w, int h, bool force) 
 
 	Dirty* dirty = gt->viewport.dirty;
 
+	symbol_t buf[gt->width];
+
+	int offset = gt->viewport.offset;
+
     // then update characters
     for (int rowno = y; rowno < y+h; rowno++) {
-    	BufferRow* row = buffer_get_row(&gt->buffer, rowno);
+
+    	const symbol_t* data;
+		int ndata;
+
+    	const int age = offset - rowno;
+    	if (age > 0) {
+    		data = buf;
+    		ndata = history_peek(&gt->history, age-1, buf, x+w);
+    	} else {
+        	BufferRow* row = buffer_get_row(&gt->buffer, rowno-offset);
+    		data = row->data;
+    		ndata = row->used;
+    	}
 
 		int dirtstart;
 		int dirtend;
@@ -75,16 +102,9 @@ void viewport_request_redraw(GTerm* gt, int x, int y, int w, int h, bool force) 
 			dirtend = int_min(x+w, dirty->end[rowno]);
 		}
 
-		/*
-		const int w = dirtend-dirtstart;
-		if (w <= 0) {
-			continue;
-		}
-		*/
-
-		const int a = int_max(0, row->used-dirtstart) - int_max(0, row->used-dirtend);
+		const int a = int_max(0, ndata-dirtstart) - int_max(0, ndata-dirtend);
 		if (a > 0) {
-			gt->_fe->draw(gt->_fe_priv, dirtstart, rowno, row->data+dirtstart, a);
+			gt->_fe->draw(gt->_fe_priv, dirtstart, rowno, data+dirtstart, a);
 		}
 		const int b = int_max(0, dirtend-dirtstart-a);
 		if (b > 0) {
@@ -94,14 +114,10 @@ void viewport_request_redraw(GTerm* gt, int x, int y, int w, int h, bool force) 
 		dirty->cleanse(rowno, dirtstart, dirtend);
     }
 
-	if (!gt->is_mode_set(MODE_CURSORINVISIBLE))
-	{
-		int xpos = gt->cursor_x;
-		if (xpos >= gt->width) {
-			xpos = gt->width-1;
-		}
+	if (!gt->is_mode_set(MODE_CURSORINVISIBLE)) {
 
-		int ypos = gt->cursor_y;
+		int xpos = gt->cursor_x;
+		int ypos = gt->cursor_y+offset;
 
 		// draw cursor if force or inside rectangle
 		if ( force || (xpos >= x && xpos < x+w && ypos >= y && ypos < y+h) ) {

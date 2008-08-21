@@ -22,7 +22,11 @@ void viewport_taint		(GTerm* gt, uint y, uint start_x, uint end_x);
 void viewport_taint_all	(GTerm* gt);
 void viewport_move		(GTerm* gt, uint y, uint n, int offset);
 
+void viewport_history_inc(GTerm* gt);
+void viewport_history_dec(GTerm* gt);
+
 void viewport_set		(GTerm* gt, uint offset);
+
 
 void viewport_request_redraw(GTerm* gt, int x, int y, int w, int h, bool force);
 

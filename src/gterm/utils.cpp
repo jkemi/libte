@@ -19,7 +19,16 @@ void GTerm::scroll_region(uint start_y, uint end_y, int num)
 	}
 	for (int i = num; i < 0; i++) {
 		buffer_scroll_down(&buffer, scroll_top, scroll_bot);
+		viewport_history_dec(this);
 	}
+
+	if (num > 0) {
+		viewport_history_inc(this);
+	}
+	if (num < 0) {
+		viewport_history_dec(this);
+	}
+
 
 //	buffer_scroll(&buffer, start_y, end_y, num);
 
