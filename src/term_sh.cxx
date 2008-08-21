@@ -131,7 +131,7 @@ int main(int argc, char **argv)
 	main_win->begin();
 
 	termBox = new Fl_Term(def_fnt_size, 5, 5, tw, th);
-	termBox->box(FL_DOWN_BOX);
+	termBox->box(FL_DOWN_FRAME);
 
 	// create some buttons for controlling the widget
 	Fl_Group * but_grp = new Fl_Group(5, th+8, tw, 40);

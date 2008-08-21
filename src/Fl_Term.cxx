@@ -330,10 +330,10 @@ void Fl_Term::draw(void)
 	Fl_Box::draw();
 	fl_push_clip(xo, yo, wd, ht);
 
-	fl_color(FL_BLACK);
-	fl_rectf(xo, yo, wd, ht);
+//	fl_color(FL_BLACK);
+//	fl_rectf(xo, yo, wd, ht);
 
-	te_reqest_redraw(_te, 0, 0, tw, th, true);
+	te_reqest_redraw(_te, 0, 0, tw, th, false);
 
 	// restore the clipping rectangle...
 	fl_pop_clip();
@@ -352,7 +352,7 @@ void Fl_Term::_fe_DrawStyledText(int xpos, int ypos, const symbol_t* symbols, in
 	const int xo = x() + Fl::box_dx(this->box());
 	const int yo = y() + Fl::box_dy(this->box());
 
-	//printf("DrawStyledText(): %d, %d (%d))\n", xpos, ypos, len);
+	printf("DrawStyledText(): %d, %d (%d))\n", xpos, ypos, len);
 
 	// Now prepare to draw the actual terminal text
 	fl_font(FL_COURIER, def_fnt_size);
@@ -407,6 +407,8 @@ void Fl_Term::_fe_DrawStyledText(int xpos, int ypos, const symbol_t* symbols, in
 
 void Fl_Term::_fe_ClearChars(symbol_color_t bg_color, int xpos, int ypos, int len)
 {
+	printf("ClearChars: %d, %d (%d))\n", xpos, ypos, len);
+
 	const int xo = x() + Fl::box_dx(this->box());
 	const int yo = y() + Fl::box_dy(this->box());
 
