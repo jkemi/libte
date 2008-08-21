@@ -145,7 +145,6 @@ void ac_index_up(GTerm* gt)
 //   due to the emulated nature.
 void ac_reset(GTerm* gt)
 {
-	gt->pending_scroll = 0;
 	gt->bg_color = SYMBOL_BG_DEFAULT;
 	gt->fg_color = SYMBOL_FG_DEFAULT;
 	gt->scroll_top = 0;
@@ -354,10 +353,6 @@ void ac_set_margins(GTerm* gt)
 	b = int_clamp(_get_param(gt,1,gt->height), t+1, gt->height);
 
 	printf("scrolling region set to: %d,%d\n", t,b);
-
-	if (gt->pending_scroll) {
-		gt->update_changes();
-	}
 
 	gt->scroll_top = t-1;
 	gt->scroll_bot = b-1;

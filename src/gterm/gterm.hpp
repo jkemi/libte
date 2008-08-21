@@ -100,13 +100,15 @@ public:
 	// terminal info
 	int width, height;
 	Buffer	buffer;
-	Dirty* dirty;
+
+	struct {
+		uint	offset;
+		Dirty*	dirty;
+		bool	updating;
+	} viewport;
 
 	// Scroll margins, as set by DECSTBM
 	int scroll_top, scroll_bot;
-
-	int pending_scroll; // >0 means scroll up
-	bool doing_update;
 
 	// terminal state
 	int cursor_x, cursor_y;
@@ -172,7 +174,6 @@ public:
 	void resize_terminal(int w, int h);
 	int handle_button(te_key_t key);
 	void handle_keypress(int32_t cp, te_modifier_t modifiers);
-	void request_redraw(int x, int y, int w, int h, bool force);
 };
 
 #endif

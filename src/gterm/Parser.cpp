@@ -47,9 +47,7 @@ void GTerm::process_input(int len, const int32_t* data)
 		parser.input_remaining--;
 	}
 
-	if (!is_mode_set(MODE_SMOOTHSCROLL) || pending_scroll > scroll_bot-scroll_top) {
-		update_changes();
-	}
+	update_changes();
 }
 
 void _parser_unknown_esc(GTerm* gt) {

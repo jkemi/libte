@@ -4,10 +4,10 @@
 
 #include "misc.h"
 #include "Buffer.h"
-#include "Dirty.h"
 
 #include "actions.hpp"
 
+#include "viewport.h"
 #include "gterm.hpp"
 
 
@@ -250,7 +250,7 @@ void GTerm::resize_terminal(int w, int h)
 	move_cursor(cx, cy);
 
 	buffer_reshape(&buffer, h, w);
-	dirty->reshape(h, w);
+	viewport_reshape(this, w, h);
 }
 
 GTerm::GTerm(const TE_Frontend* fe, void* fe_priv, int w, int h)
@@ -263,10 +263,9 @@ GTerm::GTerm(const TE_Frontend* fe, void* fe_priv, int w, int h)
 	width = w;
 	height = h;
 
-	doing_update = false;
 
 	buffer_init(&buffer, NULL, h, w);
-	dirty = new Dirty(h, w);
+	viewport_init(this, w, h);
 
 	// Create tab stops
 	tab_stops = new bool[w];
@@ -278,7 +277,6 @@ GTerm::GTerm(const TE_Frontend* fe, void* fe_priv, int w, int h)
 	mode_flags = 0;
 
 	// Setup scrolling
-	pending_scroll = 0;
 	scroll_top = 0;
 	scroll_bot = height-1;
 
@@ -301,7 +299,7 @@ GTerm::GTerm(const TE_Frontend* fe, void* fe_priv, int w, int h)
 GTerm::~GTerm()
 {
 	buffer_term(&buffer);
-	delete dirty;
+	viewport_term(this);
 }
 
 void GTerm::fe_send_back(const char* data) {
@@ -367,7 +365,7 @@ int te_get_height(TE_Backend* te) {
 }
 
 void te_reqest_redraw(TE_Backend* te, int x, int y, int w, int h, bool force) {
-	te->gt->request_redraw(x, y, w, h, force);
+	viewport_request_redraw(te->gt, x, y, w, h, force);
 }
 
 void te_process_input(TE_Backend* te, const int32_t* data, size_t len) {
