@@ -8,6 +8,8 @@
 #ifndef OLDPARSER_HPP_
 #define OLDPARSER_HPP_
 
+class GTerm;
+
 void _parser_unknown_esc(GTerm* gt);
 void _parser_unknown_csi(GTerm* gt);
 

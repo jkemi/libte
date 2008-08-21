@@ -1,9 +1,10 @@
 // Copyright Timothy Miller, 1999
 
-#include "gterm.hpp"
-
+#include <stddef.h>
 #include "Parser.h"
 #include "actions.hpp"
+
+#include "states.h"
 
 extern const StateOption* const state_normal;
 extern const StateOption* const state_esc;

@@ -12,9 +12,8 @@
 #include "actions.hpp"
 
 #include "gterm.hpp"
+#include "states.h"
 
-// This is found int states.cpp
-extern const StateOption* state_normal;
 
 void parser_init (GTerm* gt) {
 	gt->parser.current_state = state_normal;
