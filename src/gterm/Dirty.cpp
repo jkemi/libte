@@ -8,6 +8,8 @@
 #include <string.h>
 #include <limits.h>
 
+#include <stdio.h>
+
 #include "misc.h"
 
 #include "Dirty.h"
@@ -48,15 +50,39 @@ void Dirty::reshape(uint nrows, uint ncols) {
 }
 
 void Dirty::setDirty(int row, int start, int end) {
+	int olds = this->start[row];
+	int olde = this->end[row];
+
 	this->start[row] = int_max(0, int_min(this->start[row], start));
 	this->end[row] = int_min(_ncols, int_max(this->end[row], end));
+
+	if (this->start[row] >= this->end[row]) {
+		this->start[row] = this->end[row] = 0;
+	}
+
+	if (olds != this->start[row] || olde != this->end[row]) {
+		printf("dirt: %d  %d,%d -> %d,%d\n", row, olds, olde, this->start[row], this->end[row]);
+	}
 }
 
 void Dirty::cleanse(int row, int start, int end) {
+	int olds = this->start[row];
+	int olde = this->end[row];
+
+	if (start <= this->start[row]) {
+		this->start[row] = int_max(this->start[row], end);
+	}
+
 	if (end >= this->end[row]) {
 		this->end[row] = int_min(this->end[row], start);
 	}
-	if (start <= this->start[row]) {
-		this->start[row] = int_max(this->start[row], end);
+
+	if (this->start[row] >= this->end[row]) {
+		this->start[row] = this->end[row] = 0;
+	}
+
+
+	if (olds != this->start[row] || olde != this->end[row]) {
+		printf("dirt: %d  %d,%d -> %d,%d\n", row, olds, olde, this->start[row], this->end[row]);
 	}
 }
