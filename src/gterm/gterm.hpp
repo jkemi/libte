@@ -164,7 +164,7 @@ public:
 	void fe_send_back (const char* data);
 	void fe_request_resize (int width, int height);
 	void fe_updated (void);
-	void fe_scroll (int y, int height, int offset);
+	void fe_move (int y, int height, int byoffset);
 
 	GTerm(const TE_Frontend* fe, void* fe_priv, int w, int h);
 	GTerm(const GTerm& old);

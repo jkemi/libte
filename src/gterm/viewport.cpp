@@ -43,8 +43,8 @@ void viewport_move (GTerm* gt, uint y, uint n, int offset) {
 void viewport_history_inc(GTerm* gt) {
 	if (gt->viewport.offset > 0) {
 		gt->viewport.offset++;
-		if (gt->viewport.offset < gt->height) {
-			viewport_taint_all(gt);
+		for (int y = (int)gt->height-(int)gt->viewport.offset; y < gt->height; y++) {
+			gt->viewport.dirty->setRowDirt(y);
 		}
 	}
 }
@@ -107,11 +107,11 @@ void viewport_request_redraw(GTerm* gt, int x, int y, int w, int h, bool force) 
 
 		const int a = int_max(0, ndata-dirtstart) - int_max(0, ndata-dirtend);
 		if (a > 0) {
-			gt->_fe->draw(gt->_fe_priv, dirtstart, rowno, data+dirtstart, a);
+			gt->_fe->draw_text(gt->_fe_priv, dirtstart, rowno, data+dirtstart, a);
 		}
 		const int b = int_max(0, dirtend-dirtstart-a);
 		if (b > 0) {
-			gt->_fe->clear(gt->_fe_priv, dirtstart+a, rowno, SYMBOL_BG_DEFAULT, b);
+			gt->_fe->draw_clear(gt->_fe_priv, dirtstart+a, rowno, SYMBOL_BG_DEFAULT, b);
 		}
 
 		dirty->cleanse(rowno, dirtstart, dirtend);

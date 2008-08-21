@@ -20,11 +20,12 @@ typedef struct _TE_Frontend	TE_Frontend;
  * This struct defines the callbacks made from terminal backend to frontend
  */
 struct _TE_Frontend {
-	void (*draw)		(void* priv, int x, int y, const symbol_t* data, int len);
-	void (*clear)		(void* priv, int x, int y, const symbol_color_t bg_color, int len);
+	// Drawing methods
+	void (*draw_text)	(void* priv, int x, int y, const symbol_t* data, int len);
+	void (*draw_clear)	(void* priv, int x, int y, const symbol_color_t bg_color, int len);
 	void (*draw_cursor)	(void* priv, symbol_color_t fg_color, symbol_color_t bg_color, symbol_attributes_t attrs, int x, int y, int32_t cp);
-	void (*move)		(void* priv, int y, int height, int byoffset);
-	void (*resized) 	(void* priv, int width, int height);
+	void (*draw_move)	(void* priv, int y, int height, int byoffset);
+
 	void (*updated) 	(void* priv);
 	void (*reset)		(void* priv);
 	void (*bell) 		(void* priv);

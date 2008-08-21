@@ -11,20 +11,17 @@
 
 #include "Fl_Term.h"
 
-static void _impl_draw (void* priv, int x, int y, const symbol_t* data, int len) {
-	((Fl_Term*)priv)->_fe_DrawStyledText(x, y, data, len);
+static void _impl_draw_text (void* priv, int x, int y, const symbol_t* data, int len) {
+	((Fl_Term*)priv)->_fe_DrawText(x, y, data, len);
 }
-static void _impl_clear (void* priv, int x, int y, const symbol_color_t bg_color, int len) {
-	((Fl_Term*)priv)->_fe_ClearChars(bg_color, x, y, len);
+static void _impl_draw_clear (void* priv, int x, int y, const symbol_color_t bg_color, int len) {
+	((Fl_Term*)priv)->_fe_DrawClear(bg_color, x, y, len);
 }
 static void _impl_draw_cursor (void* priv, symbol_color_t fg_color, symbol_color_t bg_color, symbol_attributes_t attrs, int x, int y, int32_t cp) {
 	((Fl_Term*)priv)->_fe_DrawCursor(fg_color, bg_color, attrs, x, y, cp);
 }
-static void _impl_move (void* priv, int y, int height, int byoffset) {
-	((Fl_Term*)priv)->_fe_Move(y, height, byoffset);
-}
-static void _impl_resized (void* priv, int width, int height) {
-	//TODO: implement me
+static void _impl_draw_move (void* priv, int y, int height, int byoffset) {
+	((Fl_Term*)priv)->_fe_DrawMove(y, height, byoffset);
 }
 static void _impl_updated (void* priv) {
 	((Fl_Term*)priv)->_fe_Updated();
@@ -49,11 +46,10 @@ static void _impl_request_resize (void* priv, int width, int height) {
 }
 
 const static TE_Frontend _impl_callbacks = {
-		&_impl_draw,
-		&_impl_clear,
+		&_impl_draw_text,
+		&_impl_draw_clear,
 		&_impl_draw_cursor,
-		&_impl_move,
-		&_impl_resized,
+		&_impl_draw_move,
 		&_impl_updated,
 		&_impl_reset,
 		&_impl_bell,
@@ -347,7 +343,7 @@ void Fl_Term::_fe_Updated(void) {
 	redraw();
 }
 
-void Fl_Term::_fe_DrawStyledText(int xpos, int ypos, const symbol_t* symbols, int len) {
+void Fl_Term::_fe_DrawText(int xpos, int ypos, const symbol_t* symbols, int len) {
 	const int xo = x() + Fl::box_dx(this->box());
 	const int yo = y() + Fl::box_dy(this->box());
 
@@ -404,7 +400,7 @@ void Fl_Term::_fe_DrawStyledText(int xpos, int ypos, const symbol_t* symbols, in
 	}
 }
 
-void Fl_Term::_fe_ClearChars(symbol_color_t bg_color, int xpos, int ypos, int len)
+void Fl_Term::_fe_DrawClear(symbol_color_t bg_color, int xpos, int ypos, int len)
 {
 	printf("ClearChars: %d, %d (%d))\n", xpos, ypos, len);
 
@@ -430,7 +426,7 @@ void Fl_Term::_fe_ClearChars(symbol_color_t bg_color, int xpos, int ypos, int le
 	}
 }
 
-void Fl_Term::_fe_Move(int y, int height, int byoffset)
+void Fl_Term::_fe_DrawMove(int y, int height, int byoffset)
 {
 	//redraw();
 }
