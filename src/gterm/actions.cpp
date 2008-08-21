@@ -29,7 +29,7 @@ void ac_lf(GTerm* gt)
 {
 	ac_index_down(gt);
 
-	if (gt->is_mode_flag(gt->NEWLINE)) {
+	if (gt->is_mode_flag(MODE_NEWLINE)) {
 		ac_cr(gt);
 	}
 }
@@ -65,7 +65,7 @@ void ac_bs(GTerm* gt)
 	if (gt->cursor_x > 0) {
 		gt->move_cursor(gt->cursor_x-1, gt->cursor_y);
 	}
-	if (gt->is_mode_set(gt->DESTRUCTBS)) {
+	if (gt->is_mode_set(MODE_DESTRUCTBS)) {
 		gt->clear_area(gt->cursor_x, gt->cursor_y, gt->cursor_x, gt->cursor_y);
 	}
 }
@@ -76,11 +76,11 @@ void ac_bell(GTerm* gt)
 }
 
 void ac_keypad_normal(GTerm* gt) {
-	gt->clear_mode_flag(gt->KEYAPPMODE);
+	gt->clear_mode_flag(MODE_KEYAPP);
 }
 
 void ac_keypad_application(GTerm* gt) {
-	gt->set_mode_flag(gt->KEYAPPMODE);
+	gt->set_mode_flag(MODE_KEYAPP);
 }
 
 // Save Cursor (DECSC)
@@ -89,7 +89,7 @@ void ac_save_cursor(GTerm* gt)
 	gt->stored.attributes = gt->attributes;
 	gt->stored.cursor_x = gt->cursor_x;
 	gt->stored.cursor_y = gt->cursor_y;
-	gt->stored.autowrap = gt->is_mode_flag(gt->AUTOWRAP);
+	gt->stored.autowrap = gt->is_mode_flag(MODE_AUTOWRAP);
 }
 
 // Restore Cursor (DECRC)
@@ -97,9 +97,9 @@ void ac_restore_cursor(GTerm* gt)
 {
 	gt->attributes = gt->stored.attributes;
 	if (gt->stored.autowrap) {
-		gt->set_mode_flag(gt->AUTOWRAP);
+		gt->set_mode_flag(MODE_AUTOWRAP);
 	} else {
-		gt->clear_mode_flag(gt->AUTOWRAP);
+		gt->clear_mode_flag(MODE_AUTOWRAP);
 	}
 	gt->move_cursor(gt->stored.cursor_x, gt->stored.cursor_y);
 }
@@ -152,7 +152,7 @@ void ac_reset(GTerm* gt)
 	gt->scroll_bot = gt->height-1;
 	memset(gt->tab_stops, 0, sizeof(bool)*gt->width);
 
-	gt->set_mode(gt->AUTOWRAP);
+	gt->set_mode(MODE_AUTOWRAP);
 
 	gt->attributes = 0;
 
@@ -186,7 +186,7 @@ void ac_cursor_up(GTerm* gt)
 	int n, y;
 	n = int_max(1, _get_param(gt,0,1) );
 
-	if (gt->is_mode_set(gt->ORIGIN)) {
+	if (gt->is_mode_set(MODE_ORIGIN)) {
 		y = int_max(gt->scroll_top, gt->cursor_y-n);
 	} else {
 		y = int_max(0, gt->cursor_y-n);
@@ -200,7 +200,7 @@ void ac_cursor_down(GTerm* gt)
 	int n, y;
 	n = int_max(1, _get_param(gt,0,1) );
 
-	if (gt->is_mode_set(gt->ORIGIN)) {
+	if (gt->is_mode_set(MODE_ORIGIN)) {
 		y = int_min(gt->scroll_bot, gt->cursor_y+n);
 	} else {
 		y = int_min(gt->height-1, gt->cursor_y+n);
@@ -213,7 +213,7 @@ void ac_cursor_position(GTerm* gt)
 {
 	int y, x;
 
-	if (gt->is_mode_set(gt->ORIGIN)) {
+	if (gt->is_mode_set(MODE_ORIGIN)) {
 		y = int_clamp(_get_param(gt, 0, 1)+gt->scroll_top, gt->scroll_top, gt->scroll_bot+1);
 	} else {
 		y = int_clamp(_get_param(gt, 0, 1), 1, gt->height);
@@ -270,13 +270,13 @@ void ac_set_mode(GTerm* gt)  // h
 		// Lots of these are missing
 
 		switch (p) {
-		case 1:	gt->set_mode_flag(gt->CURSORAPPMODE);	break;	// Normal Cursor Keys (DECCKM)
+		case 1:	gt->set_mode_flag(MODE_CURSORAPP);		break;	// Normal Cursor Keys (DECCKM)
 //		case 2:											// Designate VT52 mode (DECANM).
 		case 3:	gt->fe_request_resize(132, gt->height);	break;	// 132 Column Mode (DECCOLM)
-		case 6: gt->set_mode_flag(gt->ORIGIN);			break;	// Origin mode (DECOM)
-		case 7:	gt->set_mode_flag(gt->AUTOWRAP);		break;	// Wraparound Mode (DECAWM)
+		case 6: gt->set_mode_flag(MODE_ORIGIN);			break;	// Origin mode (DECOM)
+		case 7:	gt->set_mode_flag(MODE_AUTOWRAP);		break;	// Wraparound Mode (DECAWM)
 		case 25:										// Hide Cursor (DECTCEM)
-			gt->clear_mode_flag(gt->CURSORINVISIBLE);
+			gt->clear_mode_flag(MODE_CURSORINVISIBLE);
 			gt->move_cursor(gt->cursor_x, gt->cursor_y);
 			break;
 		default:
@@ -288,9 +288,9 @@ void ac_set_mode(GTerm* gt)  // h
 
 		switch (p) {
 //		case 2:											// Keyboard Action Mode (AM)
-		case 4:		gt->set_mode_flag(gt->INSERT);  	break;	// Insert Mode (IRM)
-		case 12:	gt->clear_mode_flag(gt->LOCALECHO);	break;	// Send/receive (SRM)
-		case 20:	gt->set_mode_flag(gt->NEWLINE);		break;	// Automatic Newline (LNM)
+		case 4:		gt->set_mode_flag(MODE_INSERT);		  	break;	// Insert Mode (IRM)
+		case 12:	gt->clear_mode_flag(MODE_LOCALECHO);	break;	// Send/receive (SRM)
+		case 20:	gt->set_mode_flag(MODE_NEWLINE);		break;	// Automatic Newline (LNM)
 		default:
 			printf ("unhandled set mode (SM) mode: %d\n", p);
 			break;
@@ -306,13 +306,13 @@ void ac_clear_mode(GTerm* gt)  // l
 		// Lots of these are missing
 
 		switch (_get_param(gt,0,-1)) {
-		case 1:	gt->clear_mode_flag(gt->CURSORAPPMODE);		break;	// Normal Cursor Keys (DECCKM)
+		case 1:	gt->clear_mode_flag(MODE_CURSORAPP);		break;	// Normal Cursor Keys (DECCKM)
 //		case 2:	current_state = vt52_normal_state; break;	// Designate VT52 mode (DECANM).
 		case 3:	gt->fe_request_resize(80, gt->height);		break;	// 132 Column Mode (DECCOLM)
-		case 6: gt->clear_mode_flag(gt->ORIGIN);			break;	// Origin mode (DECOM)
-		case 7:	gt->clear_mode_flag(gt->AUTOWRAP);			break;	// Wraparound Mode (DECAWM)
+		case 6: gt->clear_mode_flag(MODE_ORIGIN);			break;	// Origin mode (DECOM)
+		case 7:	gt->clear_mode_flag(MODE_AUTOWRAP);			break;	// Wraparound Mode (DECAWM)
 		case 25:											// Hide Cursor (DECTCEM)
-			gt->set_mode_flag(gt->CURSORINVISIBLE);	break;
+			gt->set_mode_flag(MODE_CURSORINVISIBLE);	break;
 			gt->move_cursor(gt->cursor_x, gt->cursor_y);
 			break;
 		}
@@ -321,9 +321,9 @@ void ac_clear_mode(GTerm* gt)  // l
 
 		switch (_get_param(gt,0,-1)) {
 //		case 2:											// Keyboard Action Mode (AM)
-		case 4:		gt->clear_mode_flag(gt->INSERT);	break;	// Insert Mode (IRM)
-		case 12:	gt->set_mode_flag(gt->LOCALECHO);	break;	// Send/receive (SRM)
-		case 20:	gt->clear_mode_flag(gt->NEWLINE);	break;	// Automatic Newline (LNM)
+		case 4:		gt->clear_mode_flag(MODE_INSERT);	break;	// Insert Mode (IRM)
+		case 12:	gt->set_mode_flag(MODE_LOCALECHO);	break;	// Send/receive (SRM)
+		case 20:	gt->clear_mode_flag(MODE_NEWLINE);	break;	// Automatic Newline (LNM)
 		}
 	}
 }
@@ -362,7 +362,7 @@ void ac_set_margins(GTerm* gt)
 	gt->scroll_top = t-1;
 	gt->scroll_bot = b-1;
 
-	if (gt->is_mode_flag(gt->ORIGIN)) {
+	if (gt->is_mode_flag(MODE_ORIGIN)) {
 		gt->move_cursor(gt->scroll_top, 0);
 	} else {
 		gt->move_cursor(0, 0);

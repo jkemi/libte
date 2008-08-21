@@ -55,7 +55,7 @@ void GTerm::request_redraw(int x, int y, int w, int h, bool force) {
 		dirty->cleanse(rowno, dirtstart, dirtend);
     }
 
-	if (!is_mode_set(CURSORINVISIBLE))
+	if (!is_mode_set(MODE_CURSORINVISIBLE))
 	{
 		int xpos = cursor_x;
 		if (xpos >= width) {
@@ -92,7 +92,7 @@ void GTerm::update_changes(void)
 
     // first perform scroll-copy
     int mx = scroll_bot-scroll_top+1;
-    if (!is_mode_set(TEXTONLY) && pending_scroll && (pending_scroll < mx) && (-pending_scroll < mx)) {
+    if (!is_mode_set(MODE_TEXTONLY) && pending_scroll && (pending_scroll < mx) && (-pending_scroll < mx)) {
 		if (pending_scroll < 0) {
 			fe_scroll(scroll_top, scroll_bot-scroll_top+pending_scroll+1, (scroll_top - pending_scroll));
 		} else {

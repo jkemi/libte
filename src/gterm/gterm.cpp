@@ -122,7 +122,7 @@ int GTerm::handle_button(te_key_t key)
 
 	switch (key) {
 	case TE_KEY_ENTER:
-		if (is_mode_flag(GTerm::NEWLINE)) {
+		if (is_mode_flag(MODE_NEWLINE)) {
 			s = "\r\n";	//	CRLF
 		} else {
 			s = "\r";	// ^M (CR)
@@ -134,7 +134,7 @@ int GTerm::handle_button(te_key_t key)
 
 	if (s == NULL) {
 		const keymap* const* tables;
-		if (is_mode_flag(KEYAPPMODE)) {
+		if (is_mode_flag(MODE_KEYAPP)) {
 			static const keymap* const t[] = {_keys_app, _keys_common, NULL};
 			tables = t;
 		} else {
@@ -175,7 +175,7 @@ void GTerm::input(const int32_t* text, size_t len) {
 	symbol_t syms[width];
 	symbol_t style = symbol_make_style(fg_color, bg_color, attributes);
 
-	if (is_mode_set(AUTOWRAP)) {
+	if (is_mode_set(MODE_AUTOWRAP)) {
 		while (len > 0) {
 			BufferRow* row = buffer_get_row(&buffer, cursor_y);
 
@@ -185,7 +185,7 @@ void GTerm::input(const int32_t* text, size_t len) {
 				syms[i] = sym;
 			}
 
-			if (is_mode_set(INSERT)) {
+			if (is_mode_set(MODE_INSERT)) {
 				bufrow_insert(row, cursor_x, syms, n);
 				changed_line(cursor_y, cursor_x, width);
 			} else {
@@ -211,7 +211,7 @@ void GTerm::input(const int32_t* text, size_t len) {
 			const symbol_t sym = style | text[i];
 			syms[i] = sym;
 		}
-		if (is_mode_set(INSERT)) {
+		if (is_mode_set(MODE_INSERT)) {
 			bufrow_insert(row, cursor_x, syms, n);
 			changed_line(cursor_y, cursor_x, width);
 		} else {
@@ -291,7 +291,7 @@ GTerm::GTerm(const TE_Frontend* fe, void* fe_priv, int w, int h)
 	bg_color = SYMBOL_BG_DEFAULT;
 
 	// Setup flags
-	set_mode(GTerm::AUTOWRAP);
+	set_mode(MODE_AUTOWRAP);
 
 	clear_area(0, 0, width, height-1);
 
