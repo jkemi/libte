@@ -8,30 +8,34 @@
 #ifndef BUFFERROW_H_
 #define BUFFERROW_H_
 
+#include "misc.h"
 #include "buffersymbol.h"
+#include "macros.h"
 
-typedef unsigned int uint;
-
-class BufferRow {
-public:
+typedef struct {
 	uint		used;
 	uint		capacity;
 	symbol_t*	data;
-private:
+} BufferRow;
+
+CDECLS_BEGIN
+
+BufferRow* bufrow_new(void);
+void bufrow_free(BufferRow* br);
+
+void bufrow_clear(BufferRow* br);
+void bufrow_insert(BufferRow* br, uint x, const symbol_t* symbols, uint len);
+void bufrow_replace(BufferRow* br, uint x, const symbol_t* symbols, uint len);
+void bufrow_fill(BufferRow* br, uint x, const symbol_t value, uint len);
+void bufrow_remove(BufferRow* br, uint x, uint len);
+
+
+/*
 	void _init(uint initsize);
 	void _ensureCapacity(uint capacity);
 	void _pad(uint x, int len);
-public:
-	BufferRow();
-	BufferRow(uint initsize);
-	BufferRow(const BufferRow&);
-	virtual ~BufferRow();
+	*/
 
-	void clear(void);
-	void insert(uint x, const symbol_t* symbols, uint len);
-	void replace(uint x, const symbol_t* symbols, uint len);
-	void fill(uint x, const symbol_t value, uint len);
-	void remove(uint x, uint len);
-};
+CDECLS_END
 
 #endif /* BUFFERROW_H_ */

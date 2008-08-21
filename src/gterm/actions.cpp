@@ -542,7 +542,7 @@ void ac_screen_align(GTerm* gt)
 	for (int y=0; y<gt->height; y++) {
 		BufferRow* row = buffer_get_row(&gt->buffer, y);
 		gt->changed_line(y, 0, gt->width-1);
-		row->replace(0, syms, gt->width);
+		bufrow_replace(row, 0, syms, gt->width);
 	}
 }
 

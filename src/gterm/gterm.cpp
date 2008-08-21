@@ -186,10 +186,10 @@ void GTerm::input(const int32_t* text, size_t len) {
 			}
 
 			if (is_mode_set(INSERT)) {
-				row->insert(cursor_x, syms, n);
+				bufrow_insert(row, cursor_x, syms, n);
 				changed_line(cursor_y, cursor_x, width);
 			} else {
-				row->replace(cursor_x, syms, n);
+				bufrow_replace(row, cursor_x, syms, n);
 				changed_line(cursor_y, cursor_x, cursor_x+n);
 			}
 
@@ -212,10 +212,10 @@ void GTerm::input(const int32_t* text, size_t len) {
 			syms[i] = sym;
 		}
 		if (is_mode_set(INSERT)) {
-			row->insert(cursor_x, syms, n);
+			bufrow_insert(row, cursor_x, syms, n);
 			changed_line(cursor_y, cursor_x, width);
 		} else {
-			row->replace(cursor_x, syms, n);
+			bufrow_replace(row, cursor_x, syms, n);
 			changed_line(cursor_y, cursor_x, cursor_x+n);
 		}
 
@@ -225,7 +225,7 @@ void GTerm::input(const int32_t* text, size_t len) {
 		// the line, update last cell
 		if (len > n) {
 			syms[0] = style | text[len-1];
-			row->replace(width-1, syms, 1);
+			bufrow_replace(row, width-1, syms, 1);
 		}
 	}
 }

@@ -182,7 +182,7 @@ void GTerm::shift_text(int y, int start_x, int end_x, int num) {
 
 	if (num < 0) {
 		BufferRow* row = buffer_get_row(&buffer, y);
-		row->remove(start_x,-num);
+		bufrow_remove(row,start_x,-num);
 	} else {
 		// TODO !?:
 		//buffer->getRow(y)->insert(start_x, )
@@ -203,7 +203,7 @@ void GTerm::clear_area(int start_x, int start_y, int end_x, int end_y)
 
 	for (int y=start_y; y<=end_y; y++) {
 		BufferRow* row = buffer_get_row(&buffer, y);
-		row->fill(start_x, sym, w);
+		bufrow_fill(row, start_x, sym, w);
 		changed_line(y, start_x, end_x);
 	}
 }

@@ -8,15 +8,14 @@
 #ifndef HISTORY_H_
 #define HISTORY_H_
 
+#include "BufferRow.h"
 #include "macros.h"
 
-class BufferRow;
+typedef struct _History{
+	void* a;
+} History;
 
 CDECLS_BEGIN
-
-typedef struct {
-
-} History;
 
 void history_store(History* hist, const BufferRow* row);
 void history_fetch(History* hist, BufferRow* row);

@@ -19,6 +19,6 @@ void history_store(History* hist, const BufferRow* row) {
 
 void history_fetch(History* hist, BufferRow* row) {
 	if (hist == NULL) {
-		row->clear();
+		bufrow_clear(row);
 	}
 }

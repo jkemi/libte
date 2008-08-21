@@ -14,7 +14,7 @@ void buffer_init(Buffer* buf, History* hist, uint nrows, uint ncols) {
 	buf->hist = hist;
 	buf->rows = new BufferRow* [nrows];
 	for (uint rowno = 0; rowno < nrows; rowno++) {
-		buf->rows[rowno] = new BufferRow();
+		buf->rows[rowno] = bufrow_new();
 	}
 	buf->ncols = ncols;
 	buf->nrows = nrows;
@@ -22,7 +22,7 @@ void buffer_init(Buffer* buf, History* hist, uint nrows, uint ncols) {
 
 void buffer_term(Buffer* buf) {
 	for (uint rowno = 0; rowno < buf->nrows; rowno++) {
-		delete buf->rows[rowno];
+		bufrow_free(buf->rows[rowno]);
 	}
 	delete buf->rows;
 }
@@ -41,9 +41,9 @@ void buffer_reshape(Buffer* buf, uint nrows, uint ncols) {
 
 		// Store spilled rows
 		for (uint rowno = 0; rowno < shrunkby; rowno++) {
-			const BufferRow* row = buffer_get_row(buf, rowno);
+			BufferRow* row = buffer_get_row(buf, rowno);
 			history_store(buf->hist, row);
-			delete row;
+			bufrow_free(row);
 		}
 
 		// resize
@@ -68,7 +68,7 @@ void buffer_reshape(Buffer* buf, uint nrows, uint ncols) {
 
 		// Fetch old rows
 		for (uint rowno = grownby-1; rowno >= 0; rowno--) {
-			BufferRow* row = new BufferRow();
+			BufferRow* row = bufrow_new();
 			history_fetch(buf->hist, row);
 			newrows[rowno] = row;
 		}
@@ -88,7 +88,8 @@ void buffer_scroll_up(Buffer* buf, uint top, uint bottom) {
 	for (uint y = top; y < bottom; y++) {
 		buf->rows[y] = buf->rows[y+1];
 	}
-	tmp->clear();
+
+	bufrow_clear(tmp);
 	buf->rows[bottom] = tmp;
 
 /*
