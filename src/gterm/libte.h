@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#include "buffersymbol.h"
+#include "symbol.h"
 
 #include "macros.h"
 

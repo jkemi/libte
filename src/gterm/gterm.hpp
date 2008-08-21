@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#include "buffersymbol.h"
+#include "symbol.h"
 #include "Buffer.h"
 
 #include "states.h"

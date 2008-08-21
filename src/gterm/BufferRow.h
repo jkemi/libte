@@ -9,7 +9,7 @@
 #define BUFFERROW_H_
 
 #include "misc.h"
-#include "buffersymbol.h"
+#include "symbol.h"
 #include "macros.h"
 
 typedef struct {
