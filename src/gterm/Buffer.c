@@ -7,12 +7,13 @@
 
 #include <assert.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "Buffer.h"
 
 void buffer_init(Buffer* buf, History* hist, uint nrows, uint ncols) {
 	buf->hist = hist;
-	buf->rows = new BufferRow* [nrows];
+	buf->rows = (BufferRow**)malloc(sizeof(BufferRow*)*nrows);
 	for (uint rowno = 0; rowno < nrows; rowno++) {
 		buf->rows[rowno] = bufrow_new();
 	}
@@ -24,7 +25,7 @@ void buffer_term(Buffer* buf) {
 	for (uint rowno = 0; rowno < buf->nrows; rowno++) {
 		bufrow_free(buf->rows[rowno]);
 	}
-	delete buf->rows;
+	free (buf->rows);
 }
 
 void buffer_reshape(Buffer* buf, uint nrows, uint ncols) {
@@ -34,6 +35,7 @@ void buffer_reshape(Buffer* buf, uint nrows, uint ncols) {
 		return;
 	}
 
+	BufferRow** newrows = (BufferRow**)malloc(sizeof(BufferRow*)*nrows);
 	if (nrows < buf->nrows) {
 		// Buffer should shrink
 
@@ -47,20 +49,16 @@ void buffer_reshape(Buffer* buf, uint nrows, uint ncols) {
 		}
 
 		// resize
-		BufferRow** newrows = new BufferRow*[nrows];
 		for (uint rowno = 0; rowno < nrows; rowno++) {
 			BufferRow* row = buffer_get_row(buf, rowno+shrunkby);
 			newrows[rowno] = row;
 		}
-
-		buf->rows = newrows;
 	} else {
 		// Buffer should grow
 
 		const uint grownby = buf->nrows-nrows;
 
 		// resize
-		BufferRow** newrows = new BufferRow*[nrows];
 		for (uint rowno = 0; rowno < nrows; rowno++) {
 			BufferRow* row = buffer_get_row(buf, rowno);
 			newrows[rowno+grownby] = row;
@@ -72,10 +70,10 @@ void buffer_reshape(Buffer* buf, uint nrows, uint ncols) {
 			history_fetch(buf->hist, row);
 			newrows[rowno] = row;
 		}
-
-		buf->rows = newrows;
 	}
 
+	free(buf->rows);
+	buf->rows = newrows;
 	buf->nrows = nrows;
 }
 

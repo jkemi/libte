@@ -13,6 +13,7 @@
 #include "History.h"
 #include "buffersymbol.h"
 #include "BufferRow.h"
+#include "macros.h"
 
 typedef struct {
 	History*	hist;
@@ -20,6 +21,8 @@ typedef struct {
 	uint		nrows;
 	uint		ncols;
 } Buffer;
+
+CDECLS_BEGIN
 
 void buffer_init(Buffer* buf, History* hist, uint nrows, uint ncols);
 void buffer_term(Buffer* buf);
@@ -32,5 +35,6 @@ static inline BufferRow* buffer_get_row(Buffer* buf, uint rowno) {
 	return buf->rows[rowno];
 }
 
+CDECLS_END
 
 #endif /* BUFFER_H_ */
