@@ -12,7 +12,7 @@
 void viewport_init (GTerm* gt, uint w, uint h) {
 	gt->viewport.dirty = new Dirty(h, w);
 	gt->viewport.updating = false;
-	gt->viewport.offset = 0;
+	gt->viewport.offset = 1;
 }
 
 void viewport_term (GTerm* gt) {
@@ -42,7 +42,10 @@ void viewport_move (GTerm* gt, uint y, uint n, int offset) {
 
 void viewport_history_inc(GTerm* gt) {
 	if (gt->viewport.offset > 0) {
-		viewport_taint_all(gt);
+		gt->viewport.offset++;
+		if (gt->viewport.offset < gt->height) {
+			viewport_taint_all(gt);
+		}
 	}
 }
 
