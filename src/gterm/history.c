@@ -77,6 +77,7 @@ void history_fetch(History* hist, BufferRow* row) {
 		bufrow_replace(row, 0, e->data, e->size);
 
 		free(e->data);
+		e->data = NULL;
 		e->size = 0;
 	} else {
 		bufrow_clear(row);
