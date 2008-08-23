@@ -18,7 +18,7 @@ static void _report_scroll(GTerm* gt) {
 void viewport_init (GTerm* gt, uint w, uint h) {
 	gt->viewport.dirty = new Dirty(h, w);
 	gt->viewport.updating = false;
-	gt->viewport.offset = 1;
+	gt->viewport.offset = 0;
 	gt->viewport.scroll_lock = false;
 
 	_report_scroll(gt);
@@ -92,6 +92,7 @@ void viewport_set (GTerm* gt, uint offset) {
 		gt->viewport.offset = offset;
 		viewport_taint_all(gt);
 		_report_scroll(gt);
+		gt->update_changes();
 	}
 }
 
