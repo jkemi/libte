@@ -14,28 +14,24 @@
 #include <FL/Fl.H>
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_Button.H>
+#include <FL/Fl_Scrollbar.H>
 
-#include "Fl_Term.h"
+#include "Flx_Terminal.hpp"
 
 #include "pty/pty.h"
 
 
 #include "strutil.h"
 
-#ifdef __APPLE__
-	static int def_fnt_size = 16;
-#else
-	static int def_fnt_size = 15;
-#endif
-
+typedef unsigned int uint;
 
 
 // Set this to use deferred rather than direct terminal updates
 //#define USE_DEFERUPDATE
 
 /************************************************************************/
-static Fl_Window *main_win = NULL;
-static Fl_Term *termBox;
+static Fl_Window* main_win = NULL;
+static Flx_Terminal* term = NULL;
 static int pty_fd = -1;
 
 #define BUFSIZE		1024
@@ -44,7 +40,7 @@ static size_t		buffill = 0;
 
 /************************************************************************/
 
-static void send_back_cb(void* priv, const int32_t* data) {
+static void send_back_cb(const int32_t* data, size_t size, void* priv) {
 	size_t n = str_cpslen(data);
 	size_t nbytes = MB_CUR_MAX*(n+1);
 	char tmp[nbytes];
@@ -56,6 +52,7 @@ static void send_back_cb(void* priv, const int32_t* data) {
 	str_mbs_hexdump("to pty: ", tmp, nwritten);
 	write(pty_fd, tmp, nwritten);
 }
+
 
 /**
  * Called whenever input is received from pty process.
@@ -81,7 +78,9 @@ static void mfd_cb(int mfd, void* unused_priv)
 		abort();*/
 	} else {
 		str_cps_hexdump("from pty: ", cpbuf, cpcount);
-		te_process_input(termBox->_te, cpbuf, cpcount);
+
+		term->fromChild(cpbuf, cpcount);
+
 		const size_t remaining = buffill-bytesread;
 		memcpy(buf, buf+bytesread, remaining);
 		buffill = remaining;
@@ -91,7 +90,7 @@ static void mfd_cb(int mfd, void* unused_priv)
 /************************************************************************/
 static void upd_term_cb(void *v)
 {
-	te_update(termBox->_te);
+//	te_update(termBox->_te);
 	Fl::repeat_timeout(0.1, upd_term_cb, v);
 }
 /************************************************************************/
@@ -105,7 +104,7 @@ static void quit_cb(Fl_Button *, void *)
 	main_win->hide();
 }
 
-/************************************************************************/
+/*
 int main(int argc, char** argv)
 {
 	setlocale(LC_ALL, "");
@@ -124,13 +123,19 @@ int main(int argc, char** argv)
 	int th = 24 * fh + 4 + (fh/2);   // by 24 lines...
 
 	// create the main window and the terminal widget
-	main_win = new Fl_Double_Window(tw+10, th+60);
+	main_win = new Fl_Double_Window(tw+25, th+60);
+	main_win->box(FL_NO_BOX);
 	main_win->begin();
 
+	Fl_Group* term_grp = new Fl_Group(5, 5, tw, th+20);
+	term_grp->begin();
+	term_grp->box(FL_NO_BOX);
+	scroll = new Fl_Scrollbar(tw+5, 5, 15, th);
 	termBox = new Fl_Term(def_fnt_size, 5, 5, tw, th);
+	term_grp->end();
 
 	// create some buttons for controlling the widget
-	Fl_Group * but_grp = new Fl_Group(5, th+8, tw, 40);
+	Fl_Group * but_grp = new Fl_Group(5, th+8, tw+15, 40);
 	but_grp->begin();
 	but_grp->box(FL_ENGRAVED_BOX);
 
@@ -148,7 +153,7 @@ int main(int argc, char** argv)
 
 	main_win->end();
 	main_win->label("Terminal test");
-	Fl::visible_focus(0);
+	//Fl::visible_focus(0);
 
 // DO NOT set a resizable on the terminal window - it does not work right yet!
 //	main_win->resizable(termBox);
@@ -159,8 +164,9 @@ int main(int argc, char** argv)
 
 	// Give the terminal the focus by default
 	Fl::focus(termBox);
+	Fl::focus(scroll);
 
-	/* spawn shell in pseudo terminal */
+	// spawn shell in pseudo terminal
 	mfd = pty_spawn("/bin/sh");
 	if (mfd < 0) {
 		exit(-1);
@@ -168,28 +174,82 @@ int main(int argc, char** argv)
 
 	pty_fd = mfd;
 
-	/* we want non-blocking reads from pty output */
+	// we want non-blocking reads from pty output
 	fcntl(mfd, F_SETFL, O_NONBLOCK);
+
+	scroll_cb(NULL, 0, 0);
 
 	// Attach the GTerm terminal i/o to the fd...
 	termBox->set_send_back_func(&send_back_cb, NULL);
 
-	/*
-	//configure terminal for deferred display updates
-#ifdef USE_DEFERUPDATE
-	termIO->set_mode_flag(GTerm::DEFERUPDATE);   // enable deferred update
-	// basic timeout to poll the terminal for refresh - do this if we select DEFERUPDATE
-	Fl::add_timeout(0.3, upd_term_cb, (void *)termIO);
-#else
-	termIO->clear_mode_flag(GTerm::DEFERUPDATE); // disable deferred - direct updates are used
-#endif
-*/
+	termBox->set_scroll_func(&scroll_cb, NULL);
+
+//	//configure terminal for deferred display updates
+//#ifdef USE_DEFERUPDATE
+//	termIO->set_mode_flag(GTerm::DEFERUPDATE);   // enable deferred update
+//	// basic timeout to poll the terminal for refresh - do this if we select DEFERUPDATE
+//	Fl::add_timeout(0.3, upd_term_cb, (void *)termIO);
+//#else
+//	termIO->clear_mode_flag(GTerm::DEFERUPDATE); // disable deferred - direct updates are used
+//#endif
+
 	// add the pty to the fltk fd list, so we can catch any output
 	Fl::add_fd(mfd, mfd_cb, NULL);
+
+	scroll->callback((Fl_Callback*)&did_scroll);
+//	scroll->when(FL_WHEN_CHANGED);
 
 	int exit_res = Fl::run();
 	pty_restore();
 	return exit_res;
 }
 
-/* End of File */
+*/
+
+int main(int argc, char** argv)
+{
+	setlocale(LC_ALL, "");
+	Fl::args(argc, argv);
+
+	const uint W = 740;
+	const uint H = 440;
+
+	// create the main window and the terminal widget
+	main_win = new Fl_Double_Window(W, H);
+	main_win->box(FL_NO_BOX);
+	main_win->begin();
+
+	// inner dimensions
+	const int iw = W - Fl::box_dw(main_win->box());
+	const int ih = H - Fl::box_dh(main_win->box());
+
+	int x = 0 + Fl::box_dx(main_win->box());
+	int y = 0 + Fl::box_dy(main_win->box());
+
+	term = new Flx_Terminal(x, y, iw, ih, 0);
+
+	main_win->end();
+
+
+	// spawn shell in pseudo terminal
+	pty_fd = pty_spawn("/bin/bash");
+	if (pty_fd < 0) {
+		exit(-1);
+	}
+	// we want non-blocking reads from pty output
+	fcntl(pty_fd, F_SETFL, O_NONBLOCK);
+
+	// add the pty to the fltk fd list, so we can catch any output
+	Fl::add_fd(pty_fd, mfd_cb, NULL);
+
+	term->setToChildCB(&send_back_cb, NULL);
+
+	// show the windows
+	main_win->show(argc, argv);
+
+	int exit_res = Fl::run();
+
+	pty_restore();
+
+	return exit_res;
+}

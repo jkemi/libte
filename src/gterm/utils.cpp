@@ -96,4 +96,3 @@ void GTerm::move_cursor(int x, int y)
 	}
 }
 
-/* End of File */

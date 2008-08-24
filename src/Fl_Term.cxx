@@ -46,6 +46,7 @@ static void _impl_request_resize (void* priv, int width, int height) {
 }
 static void _impl_position (void* priv, int offset, int size) {
 	printf( "scroll position %d of %d\n", offset, size);
+	((Fl_Term*)priv)->_scrollPosition(offset, size);
 }
 
 
@@ -54,6 +55,7 @@ const static TE_Frontend _impl_callbacks = {
 		&_impl_draw_clear,
 		&_impl_draw_cursor,
 		&_impl_draw_move,
+
 		&_impl_updated,
 		&_impl_reset,
 		&_impl_bell,
@@ -100,10 +102,19 @@ Fl_Term::Fl_Term(int sz, int X, int Y, int W, int H, const char *L) : Fl_Box(X,Y
 	tw = (int)((w() - Fl::box_dw(box())) / cw);
 	th = (h() - Fl::box_dh(box())) / fh;
 
+	// TODO: remove these!!
+	tw = 80;
+	th = 24;
+
 	crs_x = crs_y = 1;
 	crs_fg = 7; // white
 	crs_bg = 0; // black
 	crs_flags = 0;
+
+	_send_back_func = 0;
+	_send_back_priv = 0;
+	_scroll_func = 0;
+	_scroll_priv = 0;
 
 	// determine how big the terminal widget actually is, and create a GTerm to fit
 	_te = te_create(&_impl_callbacks, this, tw, th);
@@ -116,8 +127,6 @@ Fl_Term::Fl_Term(int sz, int X, int Y, int W, int H, const char *L) : Fl_Box(X,Y
 		// TODO: handle somehow
 		exit(1);
 	}
-
-	_send_back_func = 0;
 }
 
 Fl_Term::~Fl_Term() {
@@ -284,6 +293,12 @@ void Fl_Term::_sendBackMBS(const char* data) {
 	assert (res == 0);
 
 	_sendBack(buf);
+}
+
+void Fl_Term::_scrollPosition(int offset, int size) {
+	if (_scroll_func != 0) {
+		_scroll_func(_scroll_priv, offset, size);
+	}
 }
 
 /************************************************************************/

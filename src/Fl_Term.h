@@ -31,6 +31,9 @@ private:
 	void			(*_send_back_func)(void* priv, const int32_t* data);
 	void*			_send_back_priv;
 
+	void			(*_scroll_func)(void* priv, int offset, int size);
+	void*			_scroll_priv;
+
 public:
 	//
 	// These are TE_Frontend methods and should be considered private
@@ -62,6 +65,7 @@ public:
 	// font handling
 	void font_size(int sz) {def_fnt_size = sz;}
 
+	void set_scroll_func(void (*funcptr)(void* priv, int offset, int size), void* priv) {_scroll_func = funcptr; _scroll_priv = priv;}
 	void set_send_back_func(void (*funcptr)(void* priv, const int32_t* data), void* priv) {_send_back_func = funcptr; _send_back_priv = priv;}
 
 	void			_sendBack(const int32_t* data);
@@ -69,6 +73,7 @@ public:
 	//TODO: remove me
 	void 			_sendBackMBS(const char* data);
 
+	void			_scrollPosition(int offset, int size);
 };
 /************************************************************************/
 
