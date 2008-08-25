@@ -296,9 +296,9 @@ void Fl_Term::draw(void)
 	Fl_Box::draw();
 	fl_push_clip(xo, yo, wd, ht);
 
-	fl_rectf(xo, yo, wd, ht, 255, 0, 255);
+	//fl_rectf(xo, yo, wd, ht, 255, 0, 255);
 
-	teRequestRedraw(0, 0, gfx.ncols, gfx.nrows, true);
+	teRequestRedraw(0, 0, gfx.ncols, gfx.nrows, false);
 
 	// restore the clipping rectangle...
 	fl_pop_clip();
@@ -334,8 +334,8 @@ void Fl_Term::fe_draw_text(int xpos, int ypos, const symbol_t* symbols, int len)
 		const symbol_color_t fg_color = symbol_get_fg(sym);
 		const symbol_color_t bg_color = symbol_get_bg(sym);
 
-/*		assert (fg_color >= 0 && fg_color <= 7);
-		assert (bg_color >= 0 && bg_color <= 7);*/
+		assert (fg_color >= 0 && fg_color <= 7);
+		assert (bg_color >= 0 && bg_color <= 7);
 
 		Fl_Color fg = col_table[fg_color];
 		Fl_Color bg = col_table[bg_color];
@@ -387,6 +387,7 @@ void Fl_Term::fe_draw_clear(int xpos, int ypos, const symbol_color_t bg_color, i
 		str[1] = '\0';
 
 		for (int i = 0; i < len; i++) {
+			assert (bg_color >= 0 && bg_color <= 7);
 			Fl_Color bg = col_table[bg_color];
 
 			fl_color(bg);
@@ -400,6 +401,7 @@ void Fl_Term::fe_draw_cursor(symbol_color_t fg_color, symbol_color_t bg_color, s
 	const int xp = x() + gfx.xoff + font.pixw * xpos;
 	const int yp = y() + gfx.yoff + font.pixh * ypos;
 
+	assert (fg_color >= 0 && fg_color <= 7);
 	const Fl_Color fg = col_table[fg_color];
 
 	// now draw a simple box cursor

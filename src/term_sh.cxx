@@ -124,7 +124,7 @@ int main(int argc, char** argv)
 	const uint H = 410;
 
 	// create the main window and the terminal widget
-	main_win = new Fl_Window(W, H);
+	main_win = new Fl_Double_Window(W, H);
 	main_win->box(FL_NO_BOX);
 	main_win->begin();
 
@@ -136,7 +136,7 @@ int main(int argc, char** argv)
 	int y = 0 + Fl::box_dy(main_win->box());
 
 	term = new Flx_Terminal(x, y, iw, ih, 0);
-	term->box(FL_DOWN_BOX);
+	term->box(FL_DOWN_FRAME);
 
 	main_win->end();
 
