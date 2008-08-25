@@ -18,7 +18,6 @@ class Fl_Term : public Fl_Box, public TE
 protected:
 	void draw(void);
 	int tw, th, fh, fw, fnt_desc;
-	int crs_x, crs_y, crs_fg, crs_bg, crs_flags;
 	float cw;
 	int def_fnt_size;
 
@@ -75,10 +74,6 @@ public:
 	void set_send_back_func(void (*funcptr)(void* priv, const int32_t* data), void* priv) {_send_back_func = funcptr; _send_back_priv = priv;}
 
 	void			_sendBack(const int32_t* data);
-
-	//TODO: remove me
-	void 			_sendBackMBS(const char* data);
-
 	void			_scrollPosition(int offset, int size);
 };
 /************************************************************************/

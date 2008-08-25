@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <wchar.h>
 #include <errno.h>
 #include <alloca.h>
 
@@ -50,11 +49,6 @@ Fl_Term::Fl_Term(int sz, int X, int Y, int W, int H, const char *L) : Fl_Box(X,Y
 	// TODO: remove these!!
 	tw = 80;
 	th = 24;
-
-	crs_x = crs_y = 1;
-	crs_fg = 7; // white
-	crs_bg = 0; // black
-	crs_flags = 0;
 
 	_send_back_func = 0;
 	_send_back_priv = 0;
@@ -226,16 +220,6 @@ void Fl_Term::_sendBack(const int32_t* data) {
 	if (_send_back_func != 0) {
 		_send_back_func(_send_back_priv, data);
 	}
-}
-
-// TODO: remove this method
-void Fl_Term::_sendBackMBS(const char* data) {
-	const size_t len = str_mbslen(data);
-	int32_t* buf = (int32_t*)alloca(sizeof(int32_t*)*(len+1));
-	int res = str_mbs_to_cps_n(buf, data, len+1, strlen(data), NULL, NULL);
-	assert (res == 0);
-
-	_sendBack(buf);
 }
 
 void Fl_Term::_scrollPosition(int offset, int size) {
