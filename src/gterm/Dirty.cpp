@@ -38,14 +38,14 @@ Dirty::Dirty(uint nrows, uint ncols) {
 //Dirty::Dirty(const Dirty& old) {}
 
 Dirty::~Dirty() {
-	delete start;
-	delete end;
+	delete[] start;
+	delete[] end;
 }
 
 
 void Dirty::reshape(uint nrows, uint ncols) {
-	delete start;
-	delete end;
+	delete[] start;
+	delete[] end;
 
 	_init(nrows, ncols);
 }
