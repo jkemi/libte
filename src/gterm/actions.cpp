@@ -8,6 +8,8 @@
 
 #include "Buffer.h"
 #include "misc.h"
+#include "history.h"
+#include "viewport.h"
 
 #include "actions.hpp"
 
@@ -157,6 +159,10 @@ void ac_reset(GTerm* gt)
 
 	gt->clear_area(0, 0, gt->width, gt->height-1);
 	gt->move_cursor(0, 0);
+
+	history_clear(&gt->history);
+	viewport_set(gt, 0);
+	viewport_taint_all(gt);
 }
 
 // Cursor Backward P s Times (default = 1) (CUB)
