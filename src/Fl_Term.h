@@ -17,9 +17,15 @@ class Fl_Term : public Fl_Box, public TE
 {
 protected:
 	void draw(void);
-	int tw, th, fh, fw, fnt_desc;
-	float cw;
+	int tw, th;
+
 	int def_fnt_size;
+
+	struct {
+		int pixw;		// width of each font cell in pixels
+		int pixh;		// height of each font cell in pixels
+		int descent;	// TODO
+	} font;
 
 	iconv_t		_fltk_to_cp;
 

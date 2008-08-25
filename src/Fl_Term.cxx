@@ -38,13 +38,15 @@ Fl_Term::Fl_Term(int sz, int X, int Y, int W, int H, const char *L) : Fl_Box(X,Y
 
 	def_fnt_size = sz;
 	fl_font(FL_COURIER, def_fnt_size);
-	fh = fl_height();
-	cw = fl_width("MHW#i1l") / 7; // get an average char width, in case of Prop Fonts!
-	fw = (int)(cw + 0.5);
-	fnt_desc = fl_descent();
 
-	tw = (int)((w() - Fl::box_dw(box())) / cw);
-	th = (h() - Fl::box_dh(box())) / fh;
+	const double cw = fl_width("MHW#i1l") / 7; // get an average char width, in case of Prop Fonts!
+
+	font.pixh = fl_height();
+	font.pixw = (int)(cw + 0.5);
+	font.descent = fl_descent();
+
+	tw = (w() - Fl::box_dw(box())) / font.pixw;
+	th = (h() - Fl::box_dh(box())) / font.pixh;
 
 	// TODO: remove these!!
 	tw = 80;
@@ -255,8 +257,8 @@ void Fl_Term::resize(int x, int y, int W, int H)
 {
 	Fl_Box::resize(x, y, W, H);
 
-	tw = (w() - Fl::box_dw(box())) / cw;
-	th = (h() - Fl::box_dh(box())) / fh;
+	tw = (w() - Fl::box_dw(box())) / font.pixw;
+	th = (h() - Fl::box_dh(box())) / font.pixh;
 
 	if (tw != teGetWidth() || th != teGetHeight()) {
 		// Then tell the GTerm the new character sizes sizes...
@@ -302,8 +304,8 @@ void Fl_Term::fe_draw_text(int xpos, int ypos, const symbol_t* symbols, int len)
 	// Now prepare to draw the actual terminal text
 	fl_font(FL_COURIER, def_fnt_size);
 
-	int xp = xo + xpos*fw;
-	const int yp = yo + ypos*fh;
+	int xp = xo + xpos*font.pixw;
+	const int yp = yo + ypos*font.pixh;
 
 	char str[4];
 	str[1] = '\0';
@@ -326,7 +328,7 @@ void Fl_Term::fe_draw_text(int xpos, int ypos, const symbol_t* symbols, int len)
 		}
 
 		fl_color(bg);
-		fl_rectf(xp, yp, fw, fh);
+		fl_rectf(xp, yp, font.pixw, font.pixh);
 
 		if ((attrs & (SYMBOL_BOLD|SYMBOL_BLINK)) == (SYMBOL_BOLD|SYMBOL_BLINK)) {
 			fl_font(FL_COURIER_BOLD_ITALIC, (def_fnt_size));
@@ -340,13 +342,13 @@ void Fl_Term::fe_draw_text(int xpos, int ypos, const symbol_t* symbols, int len)
 
 		str[0] = cp;
 		fl_color(fg);
-		fl_draw(str, 1, xp, yp+fh-fnt_desc);
+		fl_draw(str, 1, xp, yp+font.pixh-font.descent);
 
 		if (attrs & SYMBOL_UNDERLINE) {
-			fl_line(xp, yp, (xp+fw), fh);
+			fl_line(xp, yp, (xp+font.pixw), font.pixh);
 		}
 
-		xp += fw;
+		xp += font.pixw;
 	}
 }
 
@@ -359,8 +361,8 @@ void Fl_Term::fe_draw_clear(int xpos, int ypos, const symbol_color_t bg_color, i
 		// Now prepare to draw the actual terminal text
 		fl_font(FL_COURIER, def_fnt_size);
 
-		int xp = xo + xpos*fw;
-		const int yp = yo + ypos*fh;
+		int xp = xo + xpos*font.pixw;
+		const int yp = yo + ypos*font.pixh;
 
 		char str[4];
 		str[1] = '\0';
@@ -369,9 +371,9 @@ void Fl_Term::fe_draw_clear(int xpos, int ypos, const symbol_color_t bg_color, i
 			Fl_Color bg = col_table[bg_color];
 
 			fl_color(bg);
-			fl_rectf(xp, yp, fw, fh);
+			fl_rectf(xp, yp, font.pixw, font.pixh);
 
-			xp += fw;
+			xp += font.pixw;
 		}
 }
 
@@ -379,22 +381,18 @@ void Fl_Term::fe_draw_cursor(symbol_color_t fg_color, symbol_color_t bg_color, s
 	const int xo = x() + Fl::box_dx(this->box());
 	const int yo = y() + Fl::box_dy(this->box());
 
-	const int xp = (int)( xo + (float)cw * xpos);
-	const int yp = (int)( yo + (float)fh * ypos);
-
-	const int w = fw;
-	const int h = fh;
+	const int xp = xo + font.pixw * xpos;
+	const int yp = yo + font.pixh * ypos;
 
 	const Fl_Color fg = col_table[fg_color];
-	const Fl_Color bg = col_table[bg_color];
 
-
-	fl_color(bg);
-	fl_rectf(xp, yp, w, h);
+//	const Fl_Color bg = col_table[bg_color];
+//	fl_color(bg);
+//	fl_rectf(xp, yp, font.pixw, font.pixh);
 
 	// now draw a simple box cursor
 	fl_color(fg);
-	fl_rectf(xp, yp, w, h);
+	fl_rectf(xp, yp, font.pixw, font.pixh);
 }
 
 void Fl_Term::fe_draw_move(int y, int height, int byoffset) {
