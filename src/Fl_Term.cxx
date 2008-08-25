@@ -354,7 +354,7 @@ void Fl_Term::draw(void)
 
 //	fl_rectf(xo, yo, wd, ht, 255, 0, 255);
 
-	te_reqest_redraw(_te, 0, 0, tw, th, false);
+	te_request_redraw(_te, 0, 0, tw, th, false);
 
 	// restore the clipping rectangle...
 	fl_pop_clip();

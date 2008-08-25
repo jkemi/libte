@@ -373,7 +373,7 @@ int te_get_height(TE_Backend* te) {
 	return te->gt->height;
 }
 
-void te_reqest_redraw(TE_Backend* te, int x, int y, int w, int h, bool force) {
+void te_request_redraw(TE_Backend* te, int x, int y, int w, int h, bool force) {
 	viewport_request_redraw(te->gt, x, y, w, h, force);
 }
 
