@@ -99,6 +99,8 @@ size_t str_mbslen(const char* mbs) {
 	return ret;
 }
 
+#ifndef NDEBUG
+
 // TODO: remove this when unused...
 #include <stdio.h>
 
@@ -131,3 +133,5 @@ void str_cps_hexdump(const char* label, const int32_t* cps, size_t len) {
 	}
 	printf("\n");
 }
+
+#endif

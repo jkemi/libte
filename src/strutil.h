@@ -15,8 +15,13 @@ size_t str_cpslen(const int32_t* cps);
 size_t str_mbslen(const char* mbs);
 
 // TODO: remove this when unused...
-void str_mbs_hexdump(const char* label, const char* mbs, size_t len);
-void str_cps_hexdump(const char* label, const int32_t* cps, size_t len);
+#ifndef NDEBUG
+	void str_mbs_hexdump(const char* label, const char* mbs, size_t len);
+	void str_cps_hexdump(const char* label, const int32_t* cps, size_t len);
+#else
+	static inline void str_mbs_hexdump(const char* label, const char* mbs, size_t len) {}
+	static inline void str_cps_hexdump(const char* label, const int32_t* cps, size_t len) {}
+#endif
 
 #ifdef __cplusplus
 }
