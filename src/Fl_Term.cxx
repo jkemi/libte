@@ -11,60 +11,6 @@
 
 #include "Fl_Term.h"
 
-static void _impl_draw_text (void* priv, int x, int y, const symbol_t* data, int len) {
-	((Fl_Term*)priv)->_fe_DrawText(x, y, data, len);
-}
-static void _impl_draw_clear (void* priv, int x, int y, const symbol_color_t bg_color, int len) {
-	((Fl_Term*)priv)->_fe_DrawClear(bg_color, x, y, len);
-}
-static void _impl_draw_cursor (void* priv, symbol_color_t fg_color, symbol_color_t bg_color, symbol_attributes_t attrs, int x, int y, int32_t cp) {
-	((Fl_Term*)priv)->_fe_DrawCursor(fg_color, bg_color, attrs, x, y, cp);
-}
-static void _impl_draw_move (void* priv, int y, int height, int byoffset) {
-	((Fl_Term*)priv)->_fe_DrawMove(y, height, byoffset);
-}
-static void _impl_updated (void* priv) {
-	((Fl_Term*)priv)->_fe_Updated();
-}
-static void _impl_reset (void* priv) {
-	//TODO: implement me
-}
-static void _impl_bell (void* priv) {
-	fl_beep();
-}
-static void _impl_mouse (void* priv, int x, int y) {
-	//TODO: implement me
-}
-static void _impl_title (void* priv, const int32_t* text) {
-	//TODO: implement me
-}
-static void _impl_send_back (void* priv, const int32_t* data) {
-	((Fl_Term*)priv)->_sendBack(data);
-}
-static void _impl_request_resize (void* priv, int width, int height) {
-	//TODO: implement me
-}
-static void _impl_position (void* priv, int offset, int size) {
-	((Fl_Term*)priv)->_scrollPosition(offset, size);
-}
-
-
-const static TE_Frontend _impl_callbacks = {
-		&_impl_draw_text,
-		&_impl_draw_clear,
-		&_impl_draw_cursor,
-		&_impl_draw_move,
-
-		&_impl_updated,
-		&_impl_reset,
-		&_impl_bell,
-		&_impl_mouse,
-		&_impl_title,
-		&_impl_send_back,
-		&_impl_request_resize,
-		&_impl_position,
-};
-
 // VT100 color table - map Colors to FL-colors:
 static Fl_Color col_table[] = {
 	FL_BLACK,
@@ -87,7 +33,7 @@ static Fl_Color col_table[] = {
 /************************************************************************/
 // This is the implementation of the user-facing parts of the widget...
 /************************************************************************/
-Fl_Term::Fl_Term(int sz, int X, int Y, int W, int H, const char *L) : Fl_Box(X,Y,W,H,L)
+Fl_Term::Fl_Term(int sz, int X, int Y, int W, int H, const char *L) : Fl_Box(X,Y,W,H,L), TE()
 {
 	box(FL_THIN_DOWN_FRAME);
 
@@ -115,8 +61,7 @@ Fl_Term::Fl_Term(int sz, int X, int Y, int W, int H, const char *L) : Fl_Box(X,Y
 	_scroll_func = 0;
 	_scroll_priv = 0;
 
-	// determine how big the terminal widget actually is, and create a GTerm to fit
-	_te = te_create(&_impl_callbacks, this, tw, th);
+	teInit(tw, th);
 
 	// TODO: something weird here:
 	// FLTK-1.1 _should_ really return iso8859-1 in event_text() but gives us UTF8 instead
@@ -129,7 +74,6 @@ Fl_Term::Fl_Term(int sz, int X, int Y, int W, int H, const char *L) : Fl_Box(X,Y
 }
 
 Fl_Term::~Fl_Term() {
-	te_destroy(_te);
 	iconv_close(_fltk_to_cp);
 }
 
@@ -221,7 +165,7 @@ bool Fl_Term::_handle_keyevent(void) {
 	}
 
 	if (tekey != TE_KEY_UNDEFINED) {
-		return (te_handle_button(_te, tekey) != 0);
+		return teHandleButton(tekey) != 0;
 	}
 
 	if (Fl::event_length() > 0) {
@@ -250,7 +194,7 @@ bool Fl_Term::_handle_keyevent(void) {
 		}
 
 		if (cp >= 0) {
-			te_handle_keypress(_te, cp, (te_modifier_t)mod);
+			teHandleKeypress(cp, (te_modifier_t)mod);
 			return true;
 		}
 	}
@@ -330,12 +274,12 @@ void Fl_Term::resize(int x, int y, int W, int H)
 	tw = (w() - Fl::box_dw(box())) / cw;
 	th = (h() - Fl::box_dh(box())) / fh;
 
-	if (tw != te_get_width(_te) || th != te_get_height(_te)) {
+	if (tw != teGetWidth() || th != teGetHeight()) {
 		// Then tell the GTerm the new character sizes sizes...
-		te_resize(_te, tw, th);
+		teResize(tw, th);
 
-		int nw = te_get_width(_te);
-		int nh = te_get_height(_te);
+		int nw = teGetWidth();
+		int nh = teGetHeight();
 
 		printf("terminal resized to: %d, %d\n", nw, nh);
 	}
@@ -354,7 +298,7 @@ void Fl_Term::draw(void)
 
 //	fl_rectf(xo, yo, wd, ht, 255, 0, 255);
 
-	te_request_redraw(_te, 0, 0, tw, th, false);
+	teRequestRedraw(0, 0, tw, th, false);
 
 	// restore the clipping rectangle...
 	fl_pop_clip();
@@ -365,11 +309,7 @@ void Fl_Term::draw(void)
 // TE_Frontend methods
 //////////////////////////////////////////////////////////////////////
 
-void Fl_Term::_fe_Updated(void) {
-	redraw();
-}
-
-void Fl_Term::_fe_DrawText(int xpos, int ypos, const symbol_t* symbols, int len) {
+void Fl_Term::fe_draw_text(int xpos, int ypos, const symbol_t* symbols, int len) {
 	const int xo = x() + Fl::box_dx(this->box());
 	const int yo = y() + Fl::box_dy(this->box());
 
@@ -426,41 +366,32 @@ void Fl_Term::_fe_DrawText(int xpos, int ypos, const symbol_t* symbols, int len)
 	}
 }
 
-void Fl_Term::_fe_DrawClear(symbol_color_t bg_color, int xpos, int ypos, int len)
-{
-//	printf("DrawClear: %d, %d (%d))\n", xpos, ypos, len);
+void Fl_Term::fe_draw_clear(int xpos, int ypos, const symbol_color_t bg_color, int len) {
+	//	printf("DrawClear: %d, %d (%d))\n", xpos, ypos, len);
 
-	const int xo = x() + Fl::box_dx(this->box());
-	const int yo = y() + Fl::box_dy(this->box());
+		const int xo = x() + Fl::box_dx(this->box());
+		const int yo = y() + Fl::box_dy(this->box());
 
-	// Now prepare to draw the actual terminal text
-	fl_font(FL_COURIER, def_fnt_size);
+		// Now prepare to draw the actual terminal text
+		fl_font(FL_COURIER, def_fnt_size);
 
-	int xp = xo + xpos*fw;
-	const int yp = yo + ypos*fh;
+		int xp = xo + xpos*fw;
+		const int yp = yo + ypos*fh;
 
-	char str[4];
-	str[1] = '\0';
+		char str[4];
+		str[1] = '\0';
 
-	for (int i = 0; i < len; i++) {
-		Fl_Color bg = col_table[bg_color];
+		for (int i = 0; i < len; i++) {
+			Fl_Color bg = col_table[bg_color];
 
-		fl_color(bg);
-		fl_rectf(xp, yp, fw, fh);
+			fl_color(bg);
+			fl_rectf(xp, yp, fw, fh);
 
-		xp += fw;
-	}
+			xp += fw;
+		}
 }
 
-void Fl_Term::_fe_DrawMove(int y, int height, int byoffset)
-{
-	//redraw();
-}
-
-
-void Fl_Term::_fe_DrawCursor(symbol_color_t fg_color, symbol_color_t bg_color, symbol_attributes_t attrs,
-                int xpos, int ypos, int32_t cp)
-{
+void Fl_Term::fe_draw_cursor(symbol_color_t fg_color, symbol_color_t bg_color, symbol_attributes_t attrs, int xpos, int ypos, int32_t cp) {
 	const int xo = x() + Fl::box_dx(this->box());
 	const int yo = y() + Fl::box_dy(this->box());
 
@@ -481,3 +412,40 @@ void Fl_Term::_fe_DrawCursor(symbol_color_t fg_color, symbol_color_t bg_color, s
 	fl_color(fg);
 	fl_rectf(xp, yp, w, h);
 }
+
+void Fl_Term::fe_draw_move(int y, int height, int byoffset) {
+	// TODO: implement
+}
+
+void Fl_Term::fe_updated() {
+	redraw();
+}
+
+void Fl_Term::fe_reset() {
+	// TODO: implement
+}
+
+void Fl_Term::fe_bell() {
+	fl_beep();
+}
+
+void Fl_Term::fe_mouse(int x, int y) {
+	// TODO: implement
+}
+
+void Fl_Term::fe_title(const int32_t* text) {
+	// TODO: implement
+}
+
+void Fl_Term::fe_send_back(const int32_t* data) {
+	_sendBack(data);
+}
+
+void Fl_Term::fe_request_resize(int width, int height) {
+	// TODO: implement
+}
+
+void Fl_Term::fe_position(int offset, int size) {
+	_scrollPosition(offset, size);
+}
+

@@ -8,12 +8,12 @@
 #include <FL/fl_draw.H>
 #include <FL/fl_ask.H>
 
-#include "gterm/libte.h"
+#include "LibTE.hpp"
 
 
 /************************************************************************/
 // This class is what the world should use...
-class Fl_Term : public Fl_Box
+class Fl_Term : public Fl_Box, public TE
 {
 protected:
 	void draw(void);
@@ -38,16 +38,22 @@ public:
 	//
 	// These are TE_Frontend methods and should be considered private
 	//
-	void _fe_Updated(void);
-	void _fe_DrawText(int x, int y, const symbol_t* symbols, int len);
-	void _fe_DrawClear(symbol_color_t bg_color, int x, int y, int len);
-	void _fe_DrawMove(int y, int height, int byoffset);
-	void _fe_DrawCursor(symbol_color_t fg_color, symbol_color_t bg_color, symbol_attributes_t attrs, int x, int y, int32_t cp);
+	void fe_draw_text(int x, int y, const symbol_t* data, int len);
+	void fe_draw_clear(int x, int y, const symbol_color_t bg_color, int len);
+	void fe_draw_cursor(symbol_color_t fg_color, symbol_color_t bg_color, symbol_attributes_t attrs, int x, int y, int32_t cp);
+	void fe_draw_move(int y, int height, int byoffset);
+
+	void fe_updated();
+	void fe_reset();
+	void fe_bell();
+	void fe_mouse(int x, int y);
+	void fe_title(const int32_t* text);
+	void fe_send_back(const int32_t* data);
+	void fe_request_resize(int width, int height);
+	void fe_position(int offset, int size);
 
 
 public:
-	TE_Backend*	_te;
-
 	// constructor
 	Fl_Term(int fs, int X, int Y, int W, int H, const char *L=0);
 	virtual ~Fl_Term();

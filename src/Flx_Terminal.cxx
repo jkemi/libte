@@ -44,7 +44,7 @@ public:
 		} else if (widget == scrollbar) {
 			printf( "scrollbar: %d\n", scrollbar->value());
 			scrollbar->redraw();
-			te_position(term->_te, scrollbar->value());
+			term->tePosition(scrollbar->value());
 		}
 	}
 
@@ -179,17 +179,17 @@ int Flx_Terminal::handle(int event) {
 
 // Scrolling
 void Flx_Terminal::scrollReset(void) {
-	te_position(_impl->term->_te, 0);
+	_impl->term->tePosition(0);
 }
 
 void Flx_Terminal::scrollUp(void) {
-	const int h = te_get_height(_impl->term->_te);
-	te_position(_impl->term->_te, _impl->scrollbar->value() + (2*h)/3);
+	const int h = _impl->term->teGetHeight();
+	_impl->term->tePosition(_impl->scrollbar->value() + (2*h)/3);
 }
 
 void Flx_Terminal::scrollDown(void) {
-	const int h = te_get_height(_impl->term->_te);
-	te_position(_impl->term->_te, _impl->scrollbar->value() - (2*h)/3);
+	const int h = _impl->term->teGetHeight();
+	_impl->term->tePosition(_impl->scrollbar->value() - (2*h)/3);
 }
 
 // Scroll-locking
@@ -198,12 +198,12 @@ bool Flx_Terminal::getScrollLock() {
 }
 
 void Flx_Terminal::setScrollLock(bool lock) {
-	te_lock_scroll(_impl->term->_te, lock);
+	_impl->term->teLockScroll(lock);
 }
 
 
 size_t Flx_Terminal::fromChild(const int32_t* data, size_t size) {
-	te_process_input(_impl->term->_te, data, size);
+	_impl->term->teProcessInput(data, size);
 	return size;
 }
 
