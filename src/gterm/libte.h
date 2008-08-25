@@ -21,7 +21,7 @@ typedef struct _TE_Frontend	TE_Frontend;
  */
 struct _TE_Frontend {
 	// Drawing methods
-	void (*draw_text)	(void* priv, int x, int y, const symbol_t* data, int len);
+	void (*draw_text)	(void* priv, int x, int y, const symbol_t* symbols, int len);
 	void (*draw_clear)	(void* priv, int x, int y, const symbol_color_t bg_color, int len);
 	void (*draw_cursor)	(void* priv, symbol_color_t fg_color, symbol_color_t bg_color, symbol_attributes_t attrs, int x, int y, int32_t cp);
 	void (*draw_move)	(void* priv, int y, int height, int byoffset);
