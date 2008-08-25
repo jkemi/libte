@@ -12,7 +12,7 @@ static void _impl_draw_text (void* priv, int x, int y, const symbol_t* symbols, 
 	((TE*)priv)->fe_draw_text(x, y, symbols, len);
 }
 static void _impl_draw_clear (void* priv, int x, int y, const symbol_color_t bg_color, int len) {
-	((TE*)priv)->fe_draw_clear(bg_color, x, y, len);
+	((TE*)priv)->fe_draw_clear(x, y, bg_color, len);
 }
 static void _impl_draw_cursor (void* priv, symbol_color_t fg_color, symbol_color_t bg_color, symbol_attributes_t attrs, int x, int y, int32_t cp) {
 	((TE*)priv)->fe_draw_cursor(fg_color, bg_color, attrs, x, y, cp);
