@@ -248,6 +248,9 @@ void GTerm::resize_terminal(int w, int h)
 	scroll_top = 0;
 	scroll_bot = h-1;
 
+	width = w;
+	height = h;
+
 	int cx = int_min(width-1, cursor_x);
 	int cy = int_min(height-1, cursor_y);
 	move_cursor(cx, cy);
@@ -255,8 +258,6 @@ void GTerm::resize_terminal(int w, int h)
 	buffer_reshape(&buffer, h, w);
 
 	viewport_reshape(this, w, h);
-	width = w;
-	height = h;
 
 	fe_updated();
 }
