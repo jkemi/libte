@@ -49,6 +49,9 @@ private:
 	void			(*_scroll_func)(void* priv, int offset, int size);
 	void*			_scroll_priv;
 
+	void			(*_size_func)(void* priv, int width, int height);
+	void*			_size_priv;
+
 public:
 	//
 	// These are TE_Frontend methods and should be considered private
@@ -84,9 +87,11 @@ public:
 
 	void set_scroll_func(void (*funcptr)(void* priv, int offset, int size), void* priv) {_scroll_func = funcptr; _scroll_priv = priv;}
 	void set_send_back_func(void (*funcptr)(void* priv, const int32_t* data), void* priv) {_send_back_func = funcptr; _send_back_priv = priv;}
+	void set_size_func(void (*funcptr)(void* priv, int width, int height), void* priv) {_size_func = funcptr; _size_priv = priv;}
 
 	void			_sendBack(const int32_t* data);
 	void			_scrollPosition(int offset, int size);
+	void			_termSize(int width, int height);
 };
 /************************************************************************/
 

@@ -31,6 +31,8 @@ class Flx_Terminal_Impl {
 public:
 	void (*_to_child_cb)(const int32_t* data, size_t size, void* priv);
 	void* _to_child_cb_data;
+	void (*_term_size_cb)(int width, int height, void* priv);
+	void* _term_size_cb_data;
 
 	Fl_Term*		term;
 	Fl_Scrollbar*	scrollbar;
@@ -85,6 +87,10 @@ private:
 			_to_child_cb(data, size, _to_child_cb_data);
 		}
 	}
+
+	void termSize(int width, int height) {
+
+	}
 };
 
 // Called by FLTK widget actions
@@ -100,6 +106,15 @@ static void _scroll_cb(void* priv, int offset, int size) {
 // Called by Fl_Term on sendback
 static void _send_back_cb(void* priv, const int32_t* data) {
 	((Flx_Terminal_Impl*)priv)->_send_back_cb(data);
+}
+
+// Called by Fl_Term on terminal resize
+static void _term_size_cb(void* priv, int width, int height) {
+	Flx_Terminal_Impl* impl = (Flx_Terminal_Impl*)priv;
+
+	if (impl->_term_size_cb != 0) {
+		impl->_term_size_cb(width, height, impl->_term_size_cb_data);
+	}
 }
 
 Flx_Terminal::Flx_Terminal(int X, int Y, int W, int H, const char* label) : Fl_Group(X,Y,W,H) {
@@ -124,6 +139,7 @@ Flx_Terminal::Flx_Terminal(int X, int Y, int W, int H, const char* label) : Fl_G
 
 	_impl->term->set_scroll_func(&_scroll_cb, _impl);
 	_impl->term->set_send_back_func(&_send_back_cb, _impl);
+	_impl->term->set_size_func(_term_size_cb, _impl);
 
 	_impl->_scroll_cb(0, 0);
 
@@ -210,4 +226,9 @@ size_t Flx_Terminal::fromChild(const int32_t* data, size_t size) {
 void Flx_Terminal::setToChildCB(void (*func)(const int32_t* data, size_t size, void* priv), void* priv) {
 	_impl->_to_child_cb = func;
 	_impl->_to_child_cb_data = priv;
+}
+
+void Flx_Terminal::setTermSizeCB(void (*func)(int width, int height, void* priv), void* priv) {
+	_impl->_term_size_cb = func;
+	_impl->_term_size_cb_data = priv;
 }

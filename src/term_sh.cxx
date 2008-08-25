@@ -19,6 +19,7 @@
 #include "Flx_Terminal.hpp"
 
 #include "pty/pty.h"
+#include "pty/term.h"
 
 
 #include "strutil.h"
@@ -53,6 +54,10 @@ static void send_back_cb(const int32_t* data, size_t size, void* priv) {
 	write(pty_fd, tmp, nwritten);
 }
 
+
+static void term_size_cb(int width, int height, void* priv)  {
+	term_set_window_size(pty_fd, width, height);
+}
 
 /**
  * Called whenever input is received from pty process.
@@ -109,107 +114,6 @@ static void quit_cb(Fl_Button *, void *)
 	main_win->hide();
 }
 
-/*
-int main(int argc, char** argv)
-{
-	setlocale(LC_ALL, "");
-	Fl::args(argc, argv);
-
-	int mfd; // master fd for pty
-
-	// measure the default font, determine how big to make the terminal window
-	// This is just a cheat to save working out how big to make the box for a
-	// 80x24 terminal window...
-	fl_font(FL_COURIER, def_fnt_size);
-	int fh = fl_height();
-	float cw = fl_width("MHW#i1l") / 7; // get an average char width, in case of Prop Fonts!
-
-	int tw = (int)(cw * 80.5 + 4.0); // 80 chars...
-	int th = 24 * fh + 4 + (fh/2);   // by 24 lines...
-
-	// create the main window and the terminal widget
-	main_win = new Fl_Double_Window(tw+25, th+60);
-	main_win->box(FL_NO_BOX);
-	main_win->begin();
-
-	Fl_Group* term_grp = new Fl_Group(5, 5, tw, th+20);
-	term_grp->begin();
-	term_grp->box(FL_NO_BOX);
-	scroll = new Fl_Scrollbar(tw+5, 5, 15, th);
-	termBox = new Fl_Term(def_fnt_size, 5, 5, tw, th);
-	term_grp->end();
-
-	// create some buttons for controlling the widget
-	Fl_Group * but_grp = new Fl_Group(5, th+8, tw+15, 40);
-	but_grp->begin();
-	but_grp->box(FL_ENGRAVED_BOX);
-
-	Fl_Button *dummy = new Fl_Button(6, th+10, 2, 2);
-	dummy->box(FL_NO_BOX);
-	dummy->clear_visible_focus();
-
-	Fl_Button *quit = new Fl_Button((tw - 65), th+12, 60, 30);
-	quit->label("Quit");
-	quit->box(FL_THIN_UP_BOX);
-	quit->callback((Fl_Callback *)quit_cb);
-
-	but_grp->end();
-	but_grp->resizable(dummy);
-
-	main_win->end();
-	main_win->label("Terminal test");
-	//Fl::visible_focus(0);
-
-// DO NOT set a resizable on the terminal window - it does not work right yet!
-//	main_win->resizable(termBox);
-//	main_win->size_range(500, 200, 0, 0, 0, 0, 0);
-
-	// show the windows
-	main_win->show(argc, argv);
-
-	// Give the terminal the focus by default
-	Fl::focus(termBox);
-	Fl::focus(scroll);
-
-	// spawn shell in pseudo terminal
-	mfd = pty_spawn("/bin/sh");
-	if (mfd < 0) {
-		exit(-1);
-	}
-
-	pty_fd = mfd;
-
-	// we want non-blocking reads from pty output
-	fcntl(mfd, F_SETFL, O_NONBLOCK);
-
-	scroll_cb(NULL, 0, 0);
-
-	// Attach the GTerm terminal i/o to the fd...
-	termBox->set_send_back_func(&send_back_cb, NULL);
-
-	termBox->set_scroll_func(&scroll_cb, NULL);
-
-//	//configure terminal for deferred display updates
-//#ifdef USE_DEFERUPDATE
-//	termIO->set_mode_flag(GTerm::DEFERUPDATE);   // enable deferred update
-//	// basic timeout to poll the terminal for refresh - do this if we select DEFERUPDATE
-//	Fl::add_timeout(0.3, upd_term_cb, (void *)termIO);
-//#else
-//	termIO->clear_mode_flag(GTerm::DEFERUPDATE); // disable deferred - direct updates are used
-//#endif
-
-	// add the pty to the fltk fd list, so we can catch any output
-	Fl::add_fd(mfd, mfd_cb, NULL);
-
-	scroll->callback((Fl_Callback*)&did_scroll);
-//	scroll->when(FL_WHEN_CHANGED);
-
-	int exit_res = Fl::run();
-	pty_restore();
-	return exit_res;
-}
-
-*/
 
 int main(int argc, char** argv)
 {
@@ -220,7 +124,7 @@ int main(int argc, char** argv)
 	const uint H = 410;
 
 	// create the main window and the terminal widget
-	main_win = new Fl_Double_Window(W, H);
+	main_win = new Fl_Window(W, H);
 	main_win->box(FL_NO_BOX);
 	main_win->begin();
 
@@ -232,6 +136,7 @@ int main(int argc, char** argv)
 	int y = 0 + Fl::box_dy(main_win->box());
 
 	term = new Flx_Terminal(x, y, iw, ih, 0);
+	term->box(FL_DOWN_BOX);
 
 	main_win->end();
 
@@ -250,6 +155,7 @@ int main(int argc, char** argv)
 
 
 	term->setToChildCB(&send_back_cb, NULL);
+	term->setTermSizeCB(&term_size_cb, NULL);
 
 	// show the windows
 	main_win->show(argc, argv);

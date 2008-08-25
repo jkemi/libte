@@ -229,6 +229,12 @@ void Fl_Term::_scrollPosition(int offset, int size) {
 	}
 }
 
+void Fl_Term::_termSize(int width, int height) {
+	if (_size_func != 0) {
+		_size_func(_size_priv, width, height);
+	}
+}
+
 /************************************************************************/
 // handle keyboard focus etc
 int Fl_Term::handle(int event)
@@ -258,19 +264,24 @@ void Fl_Term::resize(int x, int y, int W, int H)
 
 	gfx.ncols = (w()-Fl::box_dw(box())) / font.pixw;
 	gfx.nrows = (h()-Fl::box_dh(box())) / font.pixh;
-	gfx.pixw = gfx.ncols*font.pixw;
-	gfx.pixh = gfx.nrows*font.pixh;
-	gfx.xoff = ((w()-Fl::box_dw(box())) - gfx.pixw) / 2 + Fl::box_dx(box());
-	gfx.yoff = ((h()-Fl::box_dh(box())) - gfx.pixh) / 2 + Fl::box_dy(box());
 
 	if (gfx.ncols != teGetWidth() || gfx.nrows != teGetHeight()) {
 		// Then tell the GTerm the new character sizes sizes...
 		teResize(gfx.ncols, gfx.nrows);
 
-		int nw = teGetWidth();
-		int nh = teGetHeight();
 
-		printf("terminal resized to: %d, %d\n", nw, nh);
+
+		gfx.ncols = teGetWidth();
+		gfx.nrows = teGetHeight();
+		gfx.pixw = gfx.ncols*font.pixw;
+		gfx.pixh = gfx.nrows*font.pixh;
+		gfx.xoff = ((w()-Fl::box_dw(box())) - gfx.pixw) / 2 + Fl::box_dx(box());
+		gfx.yoff = ((h()-Fl::box_dh(box())) - gfx.pixh) / 2 + Fl::box_dy(box());
+
+
+		_termSize(gfx.ncols, gfx.nrows);
+
+		printf("terminal resized to: %d, %d\n", gfx.ncols, gfx.nrows);
 	}
 }
 

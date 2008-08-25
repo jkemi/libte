@@ -36,6 +36,7 @@ public:
 	// Terminal I/O
 	size_t	fromChild(const int32_t* data, size_t size);
 	void	setToChildCB(void (*func)(const int32_t* data, size_t size, void* priv), void* priv);
+	void	setTermSizeCB(void (*func)(int width, int height, void* priv), void* priv);
 };
 
 
