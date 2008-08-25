@@ -231,26 +231,34 @@ void GTerm::resize_terminal(int w, int h)
 {
 	bool* newtabs = new bool[w];
 	if (w > width) {
-		memset(newtabs+width, 0, sizeof(bool)*(width-w));
+		memset(newtabs+width, 0, sizeof(bool)*(w-width));
 	}
 	memcpy(newtabs, tab_stops, sizeof(bool)*int_min(width,w));
 	tab_stops = newtabs;
 
-	clear_area(int_min(width,w), 0, int_max(width,w)-1, h-1);
-	clear_area(0, int_min(height,h), w-1, int_min(height,h)-1);
+/*	clear_area(int_min(width,w), 0, int_max(width,w)-1, h-1);
+	clear_area(0, int_min(height,h), w-1, int_min(height,h)-1);*/
 
-	width = w;
-	height = h;
-	scroll_bot = height-1;
+	// reset scroll margins
+/*	scroll_bot = height-1;
 	if (scroll_top >= height) {
 		scroll_top = 0;
-	}
+	}*/
+
+	scroll_top = 0;
+	scroll_bot = h-1;
+
 	int cx = int_min(width-1, cursor_x);
 	int cy = int_min(height-1, cursor_y);
 	move_cursor(cx, cy);
 
 	buffer_reshape(&buffer, h, w);
+
 	viewport_reshape(this, w, h);
+	width = w;
+	height = h;
+
+	fe_updated();
 }
 
 GTerm::GTerm(const TE_Frontend* fe, void* fe_priv, int w, int h)

@@ -39,8 +39,21 @@ void buffer_reshape(Buffer* buf, uint nrows, uint ncols) {
 	if (nrows < buf->nrows) {
 		// Buffer should shrink
 
-		const uint shrunkby = nrows-buf->nrows;
+		const int shrunkby = buf->nrows - nrows;
 
+		// Store spilled rows
+		for (uint rowno = 0; rowno < nrows; rowno++) {
+			BufferRow* row = buffer_get_row(buf, rowno);
+			newrows[rowno] = row;
+		}
+
+
+		for (uint rowno = nrows; rowno < buf->nrows; rowno++) {
+			BufferRow* row = buffer_get_row(buf, rowno);
+			bufrow_free(row);
+		}
+
+/*
 		// Store spilled rows
 		for (uint rowno = 0; rowno < shrunkby; rowno++) {
 			BufferRow* row = buffer_get_row(buf, rowno);
@@ -53,21 +66,19 @@ void buffer_reshape(Buffer* buf, uint nrows, uint ncols) {
 			BufferRow* row = buffer_get_row(buf, rowno+shrunkby);
 			newrows[rowno] = row;
 		}
+*/
 	} else {
 		// Buffer should grow
 
-		const uint grownby = buf->nrows-nrows;
-
 		// resize
-		for (uint rowno = 0; rowno < nrows; rowno++) {
+		for (uint rowno = 0; rowno < buf->nrows; rowno++) {
 			BufferRow* row = buffer_get_row(buf, rowno);
-			newrows[rowno+grownby] = row;
+			newrows[rowno] = row;
 		}
 
-		// Fetch old rows
-		for (uint rowno = grownby-1; rowno >= 0; rowno--) {
+		// Create new rows
+		for (int rowno = buf->nrows; rowno < nrows; rowno++) {
 			BufferRow* row = bufrow_new();
-			history_fetch(buf->hist, row);
 			newrows[rowno] = row;
 		}
 	}
