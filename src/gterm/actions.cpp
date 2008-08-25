@@ -244,7 +244,7 @@ void ac_line_position(GTerm* gt)
 	gt->move_cursor(gt->cursor_x, y-1);
 }
 
-
+// 	Send Device Attributes (Primary DA)
 void ac_device_attrib(GTerm* gt)
 {
 	gt->fe_send_back("\033[?1;2c");

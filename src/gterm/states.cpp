@@ -132,7 +132,7 @@ static const StateOption _state_csi[] = {
     { 'M', &ac_delete_line,		state_normal },
     { 'P', &ac_delete_char,		state_normal },
     { 'X', &ac_erase_char,		state_normal },
-    { 'c', &ac_device_attrib,	state_normal },
+    { 'c', &ac_device_attrib,	state_normal },	// Send Device Attributes (Primary DA)
     { 'd', &ac_line_position,	state_normal },
     { 'f', &ac_cursor_position,	state_normal },
     { 'g', &ac_clear_tab,		state_normal },
