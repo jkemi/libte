@@ -40,24 +40,23 @@ Fl_Term::Fl_Term(int sz, int X, int Y, int W, int H, const char *L) : Fl_Box(X,Y
 	fl_font(FL_COURIER, def_fnt_size);
 
 	const double cw = fl_width("MHW#i1l") / 7; // get an average char width, in case of Prop Fonts!
-
 	font.pixh = fl_height();
 	font.pixw = (int)(cw + 0.5);
 	font.descent = fl_descent();
 
-	tw = (w() - Fl::box_dw(box())) / font.pixw;
-	th = (h() - Fl::box_dh(box())) / font.pixh;
-
-	// TODO: remove these!!
-	tw = 80;
-	th = 24;
+	gfx.ncols = (w()-Fl::box_dw(box())) / font.pixw;
+	gfx.nrows = (h()-Fl::box_dh(box())) / font.pixh;
+	gfx.pixw = gfx.ncols*font.pixw;
+	gfx.pixh = gfx.nrows*font.pixh;
+	gfx.xoff = ((w()-Fl::box_dw(box())) - gfx.pixw) / 2 + Fl::box_dx(box());
+	gfx.yoff = ((h()-Fl::box_dh(box())) - gfx.pixh) / 2 + Fl::box_dy(box());
 
 	_send_back_func = 0;
 	_send_back_priv = 0;
 	_scroll_func = 0;
 	_scroll_priv = 0;
 
-	teInit(tw, th);
+	teInit(gfx.ncols, gfx.nrows);
 
 	// TODO: something weird here:
 	// FLTK-1.1 _should_ really return iso8859-1 in event_text() but gives us UTF8 instead
@@ -257,12 +256,16 @@ void Fl_Term::resize(int x, int y, int W, int H)
 {
 	Fl_Box::resize(x, y, W, H);
 
-	tw = (w() - Fl::box_dw(box())) / font.pixw;
-	th = (h() - Fl::box_dh(box())) / font.pixh;
+	gfx.ncols = (w()-Fl::box_dw(box())) / font.pixw;
+	gfx.nrows = (h()-Fl::box_dh(box())) / font.pixh;
+	gfx.pixw = gfx.ncols*font.pixw;
+	gfx.pixh = gfx.nrows*font.pixh;
+	gfx.xoff = ((w()-Fl::box_dw(box())) - gfx.pixw) / 2 + Fl::box_dx(box());
+	gfx.yoff = ((h()-Fl::box_dh(box())) - gfx.pixh) / 2 + Fl::box_dy(box());
 
-	if (tw != teGetWidth() || th != teGetHeight()) {
+	if (gfx.ncols != teGetWidth() || gfx.nrows != teGetHeight()) {
 		// Then tell the GTerm the new character sizes sizes...
-		teResize(tw, th);
+		teResize(gfx.ncols, gfx.nrows);
 
 		int nw = teGetWidth();
 		int nh = teGetHeight();
@@ -282,13 +285,13 @@ void Fl_Term::draw(void)
 	Fl_Box::draw();
 	fl_push_clip(xo, yo, wd, ht);
 
-//	fl_rectf(xo, yo, wd, ht, 255, 0, 255);
+	fl_rectf(xo, yo, wd, ht, 255, 0, 255);
 
-	teRequestRedraw(0, 0, tw, th, false);
+	teRequestRedraw(0, 0, gfx.ncols, gfx.nrows, true);
 
 	// restore the clipping rectangle...
 	fl_pop_clip();
-} /* end of draw() method */
+}
 
 
 //////////////////////////////////////////////////////////////////////
@@ -296,10 +299,12 @@ void Fl_Term::draw(void)
 //////////////////////////////////////////////////////////////////////
 
 void Fl_Term::fe_draw_text(int xpos, int ypos, const symbol_t* symbols, int len) {
-	const int xo = x() + Fl::box_dx(this->box());
-	const int yo = y() + Fl::box_dy(this->box());
+	const int xo = x() + gfx.xoff;
+	const int yo = y() + gfx.yoff;
 
-//	printf("DrawText(): %d, %d (%d))\n", xpos, ypos, len);
+	if (len > 10) {
+		printf("DrawText(): %d, %d (%d))\n", xpos, ypos, len);
+	}
 
 	// Now prepare to draw the actual terminal text
 	fl_font(FL_COURIER, def_fnt_size);
@@ -317,6 +322,9 @@ void Fl_Term::fe_draw_text(int xpos, int ypos, const symbol_t* symbols, int len)
 
 		const symbol_color_t fg_color = symbol_get_fg(sym);
 		const symbol_color_t bg_color = symbol_get_bg(sym);
+
+/*		assert (fg_color >= 0 && fg_color <= 7);
+		assert (bg_color >= 0 && bg_color <= 7);*/
 
 		Fl_Color fg = col_table[fg_color];
 		Fl_Color bg = col_table[bg_color];
@@ -355,8 +363,8 @@ void Fl_Term::fe_draw_text(int xpos, int ypos, const symbol_t* symbols, int len)
 void Fl_Term::fe_draw_clear(int xpos, int ypos, const symbol_color_t bg_color, int len) {
 	//	printf("DrawClear: %d, %d (%d))\n", xpos, ypos, len);
 
-		const int xo = x() + Fl::box_dx(this->box());
-		const int yo = y() + Fl::box_dy(this->box());
+		const int xo = x() + gfx.xoff;
+		const int yo = y() + gfx.yoff;
 
 		// Now prepare to draw the actual terminal text
 		fl_font(FL_COURIER, def_fnt_size);
@@ -378,17 +386,10 @@ void Fl_Term::fe_draw_clear(int xpos, int ypos, const symbol_color_t bg_color, i
 }
 
 void Fl_Term::fe_draw_cursor(symbol_color_t fg_color, symbol_color_t bg_color, symbol_attributes_t attrs, int xpos, int ypos, int32_t cp) {
-	const int xo = x() + Fl::box_dx(this->box());
-	const int yo = y() + Fl::box_dy(this->box());
-
-	const int xp = xo + font.pixw * xpos;
-	const int yp = yo + font.pixh * ypos;
+	const int xp = x() + gfx.xoff + font.pixw * xpos;
+	const int yp = y() + gfx.yoff + font.pixh * ypos;
 
 	const Fl_Color fg = col_table[fg_color];
-
-//	const Fl_Color bg = col_table[bg_color];
-//	fl_color(bg);
-//	fl_rectf(xp, yp, font.pixw, font.pixh);
 
 	// now draw a simple box cursor
 	fl_color(fg);

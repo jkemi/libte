@@ -17,15 +17,25 @@ class Fl_Term : public Fl_Box, public TE
 {
 protected:
 	void draw(void);
-	int tw, th;
 
 	int def_fnt_size;
 
+	// font stuff
 	struct {
 		int pixw;		// width of each font cell in pixels
 		int pixh;		// height of each font cell in pixels
 		int descent;	// TODO
 	} font;
+
+	// draw stuff
+	struct {
+		int xoff;		// xoffset in pixels
+		int yoff;		// yoffset in pixels
+		int pixw;		// width in pixels
+		int pixh;		// height in pixels
+		int ncols;		// terminal width in chars
+		int nrows;		// terminal height in chars
+	} gfx;
 
 	iconv_t		_fltk_to_cp;
 
@@ -68,10 +78,6 @@ public:
 
 	// handle window resizing (NOT WORKING YET)
 	void resize(int x, int y, int w, int h);
-
-	// text box view width/height
-	int get_w(void) {return tw;}
-	int get_h(void) {return th;}
 
 	// font handling
 	void font_size(int sz) {def_fnt_size = sz;}
