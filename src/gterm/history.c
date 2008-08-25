@@ -36,7 +36,8 @@ void history_clear(History* hist) {
 			entry->size = 0;
 		}
 	}
-
+	hist->size = 0;
+	hist->pos = 0;
 }
 
 uint history_size(History* hist) {
