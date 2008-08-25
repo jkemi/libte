@@ -19,6 +19,13 @@ typedef unsigned int uint;
 
 #define SCROLLBAR_WIDTH		12
 
+static double dbl_min(double a, double b) {
+	return (a < b) ? a : b;
+}
+
+static double dbl_max(double a, double b) {
+	return (a > b) ? a : b;
+}
 
 class Flx_Terminal_Impl {
 public:
@@ -27,6 +34,7 @@ public:
 
 	Fl_Term*		term;
 	Fl_Scrollbar*	scrollbar;
+	bool			scroll_lock;
 
 public:
 	// Called by FLTK widget actions
@@ -50,7 +58,7 @@ public:
 		} else {
 			scrollbar->minimum(size);
 			scrollbar->maximum(0);
-			scrollbar->slider_size(1.0/(size+1));
+			scrollbar->slider_size( dbl_max(1.0/(size+1), 1.0/20.0) );
 			scrollbar->Fl_Slider::value((double)offset);
 
 			// TODO: this isn't honored!?
@@ -105,7 +113,7 @@ Flx_Terminal::Flx_Terminal(int X, int Y, int W, int H, const char* label) : Fl_G
 	uint y = Y + Fl::box_dy(box());
 
 
-	_impl->term = new Fl_Term(15, x, y, iw-SCROLLBAR_WIDTH, ih);
+	_impl->term = new Fl_Term(14, x, y, iw-SCROLLBAR_WIDTH, ih);
 	x += iw-SCROLLBAR_WIDTH;
 
 	_impl->scrollbar = new Fl_Scrollbar(x, y, SCROLLBAR_WIDTH, ih);
@@ -118,6 +126,8 @@ Flx_Terminal::Flx_Terminal(int X, int Y, int W, int H, const char* label) : Fl_G
 	_impl->term->set_send_back_func(&_send_back_cb, _impl);
 
 	_impl->_scroll_cb(0, 0);
+
+	_impl->scroll_lock = false;
 }
 
 Flx_Terminal::~Flx_Terminal() {
@@ -127,22 +137,66 @@ Flx_Terminal::~Flx_Terminal() {
 }
 
 int Flx_Terminal::handle(int event) {
-	return Fl_Group::handle(event);
-/*	switch (event) {
+	switch (event) {
 	case FL_FOCUS:
 	case FL_UNFOCUS:
 		return 1;
 	case FL_KEYBOARD: {
-		if (_handle_keyevent()) {
+		const bool shift = (Fl::event_shift() != 0);
+		switch (Fl::event_key()) {
+		case FL_Page_Up:
+			if (shift) {
+				printf ("page up!\n");
+				scrollUp();
+				return 1;
+			}
+			break;
+		case FL_Page_Down:
+			if (shift) {
+				printf ("page down!\n");
+				scrollDown();
+				return 1;
+			}
+			break;
+		case FL_Scroll_Lock:
+			const bool scroll_lock = !getScrollLock();
+			printf("scroll lock: %d\n", scroll_lock);
+			setScrollLock(scroll_lock);
 			return 1;
+			break;
 		}
+		return _impl->term->handle(event);
 		break;
 	}
 	default:
 		break;
 	}
 
-	return 0;*/
+	return Fl_Group::handle(event);
+}
+
+// Scrolling
+void Flx_Terminal::scrollReset(void) {
+	te_position(_impl->term->_te, 0);
+}
+
+void Flx_Terminal::scrollUp(void) {
+	const int h = te_get_height(_impl->term->_te);
+	te_position(_impl->term->_te, _impl->scrollbar->value() + (2*h)/3);
+}
+
+void Flx_Terminal::scrollDown(void) {
+	const int h = te_get_height(_impl->term->_te);
+	te_position(_impl->term->_te, _impl->scrollbar->value() - (2*h)/3);
+}
+
+// Scroll-locking
+bool Flx_Terminal::getScrollLock() {
+	return _impl->scroll_lock;
+}
+
+void Flx_Terminal::setScrollLock(bool lock) {
+	te_lock_scroll(_impl->term->_te, lock);
 }
 
 

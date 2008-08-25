@@ -59,9 +59,12 @@ static void send_back_cb(const int32_t* data, size_t size, void* priv) {
  */
 static void mfd_cb(int mfd, void* unused_priv)
 {
-	size_t bytesread;
+	ssize_t ret = read(mfd, buf+buffill, (BUFSIZE-buffill)*sizeof(unsigned char));
+	if (ret == -1) {
+		return;
+	}
 
-	bytesread = read(mfd, buf+buffill, (BUFSIZE-buffill)*sizeof(unsigned char));
+	size_t bytesread = ret;
 	str_mbs_hexdump("from pty(mbs): ", buf+buffill, bytesread);
 
 	buffill += bytesread;
@@ -211,8 +214,8 @@ int main(int argc, char** argv)
 	setlocale(LC_ALL, "");
 	Fl::args(argc, argv);
 
-	const uint W = 740;
-	const uint H = 440;
+	const uint W = 654;
+	const uint H = 410;
 
 	// create the main window and the terminal widget
 	main_win = new Fl_Double_Window(W, H);
@@ -236,11 +239,11 @@ int main(int argc, char** argv)
 	if (pty_fd < 0) {
 		exit(-1);
 	}
+	// add the pty to the fltk fd list, so we can catch any output
+	Fl::add_fd(pty_fd, mfd_cb, NULL);
 	// we want non-blocking reads from pty output
 	fcntl(pty_fd, F_SETFL, O_NONBLOCK);
 
-	// add the pty to the fltk fd list, so we can catch any output
-	Fl::add_fd(pty_fd, mfd_cb, NULL);
 
 	term->setToChildCB(&send_back_cb, NULL);
 

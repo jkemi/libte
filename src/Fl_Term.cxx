@@ -45,7 +45,6 @@ static void _impl_request_resize (void* priv, int width, int height) {
 	//TODO: implement me
 }
 static void _impl_position (void* priv, int offset, int size) {
-	printf( "scroll position %d of %d\n", offset, size);
 	((Fl_Term*)priv)->_scrollPosition(offset, size);
 }
 

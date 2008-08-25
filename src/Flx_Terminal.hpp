@@ -24,8 +24,17 @@ public:
 
 	virtual int handle(int event);
 
-	size_t	fromChild(const int32_t* data, size_t size);
+	// Scrolling
+	void scrollReset(void);
+	void scrollUp(void);
+	void scrollDown(void);
 
+	// Scroll-locking
+	bool getScrollLock();
+	void setScrollLock(bool lock);
+
+	// Terminal I/O
+	size_t	fromChild(const int32_t* data, size_t size);
 	void	setToChildCB(void (*func)(const int32_t* data, size_t size, void* priv), void* priv);
 };
 
