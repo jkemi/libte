@@ -84,12 +84,12 @@ void viewport_history_dec(GTerm* gt) {
 	_report_scroll(gt);
 }
 
-void viewport_set (GTerm* gt, uint offset) {
+void viewport_set (GTerm* gt, int offset) {
 	uint hsz = history_size(&gt->history);
-	offset = uint_clamp(offset, 0, hsz);
+	const uint off = int_clamp(offset, 0, hsz);
 
-	if (offset != gt->viewport.offset) {
-		gt->viewport.offset = offset;
+	if (off != gt->viewport.offset) {
+		gt->viewport.offset = off;
 		viewport_taint_all(gt);
 		_report_scroll(gt);
 		gt->update_changes();

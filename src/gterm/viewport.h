@@ -25,7 +25,7 @@ void viewport_move		(GTerm* gt, uint y, uint n, int offset);
 void viewport_history_inc(GTerm* gt);
 void viewport_history_dec(GTerm* gt);
 
-void viewport_set		(GTerm* gt, uint offset);
+void viewport_set		(GTerm* gt, int offset);
 void viewport_lock_scroll (GTerm* gt, bool lock);
 
 void viewport_request_redraw(GTerm* gt, int x, int y, int w, int h, bool force);
