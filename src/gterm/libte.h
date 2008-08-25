@@ -128,7 +128,7 @@ DLLEXPORT int te_get_height(TE_Backend* te);
  * Sent from GUI to terminal to request a redraw.
  * This might trigger multiple calls to DrawText etc..
  */
-DLLEXPORT void te_request_redraw(TE_Backend* te, int x, int y, int w, int h, bool force);
+DLLEXPORT void te_request_redraw(TE_Backend* te, int x, int y, int w, int h, int force);
 
 /**
  * Send data from client here
