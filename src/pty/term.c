@@ -15,6 +15,8 @@ void term_set_window_size(int fd, int width, int height) {
 
 	ws.ws_col = width;
 	ws.ws_row = height;
+	ws.ws_xpixel = 0;	// TODO: unused!?
+	ws.ws_ypixel = 0;	// TODO: unused!?
 	ioctl(fd, TIOCSWINSZ, &ws);
 }
 
