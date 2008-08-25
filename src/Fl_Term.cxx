@@ -325,14 +325,19 @@ int Fl_Term::handle(int event)
 // handle window resizing - THIS DOES NOT WORK RIGHT!
 void Fl_Term::resize(int x, int y, int W, int H)
 {
-	Fl_Box::resize( x, y, W, H);
+	Fl_Box::resize(x, y, W, H);
 
-	tw = (int)((w() - Fl::box_dw(box())) / cw);
+	tw = (w() - Fl::box_dw(box())) / cw;
 	th = (h() - Fl::box_dh(box())) / fh;
 
 	if (tw != te_get_width(_te) || th != te_get_height(_te)) {
 		// Then tell the GTerm the new character sizes sizes...
 		te_resize(_te, tw, th);
+
+		int nw = te_get_width(_te);
+		int nh = te_get_height(_te);
+
+		printf("terminal resized to: %d, %d\n", nw, nh);
 	}
 }
 
@@ -346,6 +351,8 @@ void Fl_Term::draw(void)
 
 	Fl_Box::draw();
 	fl_push_clip(xo, yo, wd, ht);
+
+//	fl_rectf(xo, yo, wd, ht, 255, 0, 255);
 
 	te_reqest_redraw(_te, 0, 0, tw, th, false);
 

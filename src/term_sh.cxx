@@ -61,7 +61,9 @@ static void mfd_cb(int mfd, void* unused_priv)
 {
 	ssize_t ret = read(mfd, buf+buffill, (BUFSIZE-buffill)*sizeof(unsigned char));
 	if (ret == -1) {
-		return;
+		// TODO: hello
+		exit(0);
+		//return;
 	}
 
 	size_t bytesread = ret;
@@ -232,6 +234,8 @@ int main(int argc, char** argv)
 	term = new Flx_Terminal(x, y, iw, ih, 0);
 
 	main_win->end();
+
+	main_win->resizable(term);
 
 
 	// spawn shell in pseudo terminal

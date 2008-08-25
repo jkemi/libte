@@ -15,7 +15,7 @@
 
 class Flx_Terminal_Impl;
 
-class Flx_Terminal : Fl_Group {
+class Flx_Terminal : public Fl_Group {
 private:
 	Flx_Terminal_Impl* 	_impl;
 public:

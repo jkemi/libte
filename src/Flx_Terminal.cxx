@@ -128,6 +128,8 @@ Flx_Terminal::Flx_Terminal(int X, int Y, int W, int H, const char* label) : Fl_G
 	_impl->_scroll_cb(0, 0);
 
 	_impl->scroll_lock = false;
+
+	resizable(_impl->term);
 }
 
 Flx_Terminal::~Flx_Terminal() {
