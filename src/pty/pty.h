@@ -1,5 +1,5 @@
 #ifndef PTY_H_
-#define PPTY_H_
+#define PTY_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -17,4 +17,4 @@ void		pty_restore(void);
 #endif
 
 
-#endif /* PSEUDO_HPP_ */
+#endif

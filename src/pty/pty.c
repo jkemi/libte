@@ -21,6 +21,8 @@
 #endif
 #include <stdlib.h>
 
+#include "pty.h"
+
 static int master_fd;
 static char pty_name[32];
 
