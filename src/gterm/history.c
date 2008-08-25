@@ -23,12 +23,20 @@ void history_init(History* hist, uint capacity) {
 }
 
 void history_term(History* hist) {
+	history_clear(hist);
+	free (hist->data);
+}
+
+void history_clear(History* hist) {
 	for (uint i = 0; i < hist->capacity; i++) {
-		if (hist->data->data != NULL) {
-			free (hist->data->data);
+		HistoryEntry* entry = hist->data+i;
+		if (entry->data != NULL) {
+			free (entry->data);
+			entry->data = NULL;
+			entry->size = 0;
 		}
 	}
-	free (hist->data);
+
 }
 
 uint history_size(History* hist) {
@@ -39,7 +47,7 @@ uint history_peek(History* hist, uint age, symbol_t* dest, uint n) {
 	if (age >= hist->capacity) {
 		return 0;
 	}
-	const HistoryEntry* e = hist->data + (hist->pos-1+age)%hist->capacity;
+	const HistoryEntry* e = hist->data + (hist->pos-1-age)%hist->capacity;
 	if (e->data == NULL) {
 		return 0;
 	}

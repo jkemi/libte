@@ -28,6 +28,8 @@ CDECLS_BEGIN
 void history_init(History* hist, uint capacity);
 void history_term(History* hist);
 
+void history_clear(History* hist);
+
 uint history_size(History* hist);
 uint history_peek(History* hist, uint age, symbol_t* dest, uint n);
 
