@@ -28,7 +28,6 @@ static Fl_Color col_table[] = {
 	FL_DARK_MAGENTA
 };
 
-
 /************************************************************************/
 // This is the implementation of the user-facing parts of the widget...
 /************************************************************************/
@@ -48,8 +47,8 @@ Fl_Term::Fl_Term(int sz, int X, int Y, int W, int H, const char *L) : Fl_Box(X,Y
 	gfx.nrows = (h()-Fl::box_dh(box())) / font.pixh;
 	gfx.pixw = gfx.ncols*font.pixw;
 	gfx.pixh = gfx.nrows*font.pixh;
-	gfx.xoff = ((w()-Fl::box_dw(box())) - gfx.pixw) / 2 + Fl::box_dx(box());
-	gfx.yoff = ((h()-Fl::box_dh(box())) - gfx.pixh) / 2 + Fl::box_dy(box());
+	gfx.xoff = Fl::box_dx(box()); // ((w()-Fl::box_dw(box())) - gfx.pixw) / 2 + Fl::box_dx(box());
+	gfx.yoff = Fl::box_dy(box()); // ((h()-Fl::box_dh(box())) - gfx.pixh) / 2 + Fl::box_dy(box());
 
 	_send_back_func = 0;
 	_send_back_priv = 0;
@@ -269,14 +268,12 @@ void Fl_Term::resize(int x, int y, int W, int H)
 		// Then tell the GTerm the new character sizes sizes...
 		teResize(gfx.ncols, gfx.nrows);
 
-
-
 		gfx.ncols = teGetWidth();
 		gfx.nrows = teGetHeight();
 		gfx.pixw = gfx.ncols*font.pixw;
 		gfx.pixh = gfx.nrows*font.pixh;
-		gfx.xoff = ((w()-Fl::box_dw(box())) - gfx.pixw) / 2 + Fl::box_dx(box());
-		gfx.yoff = ((h()-Fl::box_dh(box())) - gfx.pixh) / 2 + Fl::box_dy(box());
+		gfx.xoff = Fl::box_dx(box()); // ((w()-Fl::box_dw(box())) - gfx.pixw) / 2 + Fl::box_dx(box());
+		gfx.yoff = Fl::box_dy(box()); // ((h()-Fl::box_dh(box())) - gfx.pixh) / 2 + Fl::box_dy(box());
 
 
 		_termSize(gfx.ncols, gfx.nrows);
@@ -296,9 +293,13 @@ void Fl_Term::draw(void)
 	Fl_Box::draw();
 	fl_push_clip(xo, yo, wd, ht);
 
-	//fl_rectf(xo, yo, wd, ht, 255, 0, 255);
+	const bool forced = ((damage() & FL_DAMAGE_ALL) != 0);
+	if (forced) {
+		printf("forced redraw: 0x%02x.\n", damage());
+		fl_rectf(xo, yo, wd, ht, 0, 0, 0);
+	}
 
-	teRequestRedraw(0, 0, gfx.ncols, gfx.nrows, false);
+	teRequestRedraw(0, 0, gfx.ncols, gfx.nrows, forced);
 
 	// restore the clipping rectangle...
 	fl_pop_clip();
@@ -314,7 +315,7 @@ void Fl_Term::fe_draw_text(int xpos, int ypos, const symbol_t* symbols, int len)
 	const int yo = y() + gfx.yoff;
 
 	if (len > 10) {
-		printf("DrawText(): %d, %d (%d))\n", xpos, ypos, len);
+		//printf("DrawText(): %d, %d (%d))\n", xpos, ypos, len);
 	}
 
 	// Now prepare to draw the actual terminal text
@@ -414,7 +415,7 @@ void Fl_Term::fe_draw_move(int y, int height, int byoffset) {
 }
 
 void Fl_Term::fe_updated() {
-	redraw();
+	damage(FL_DAMAGE_USER1);
 }
 
 void Fl_Term::fe_reset() {
