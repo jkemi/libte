@@ -33,66 +33,57 @@ void GTerm::scroll_region(uint start_y, uint end_y, int num)
 //	buffer_scroll(&buffer, start_y, end_y, num);
 
 	for (uint y = start_y; y <= end_y; y++) {
-		changed_line(y, 0, width-1);
+		changed_line(y, 0, width);
 	}
 }
 
-
-void GTerm::shift_text(int y, int start_x, int end_x, int num) {
-	if (num == 0)
-		return;
-
-	if (num < 0) {
-		BufferRow* row = buffer_get_row(&buffer, y);
-		bufrow_remove(row,start_x,-num);
-	} else {
-		// TODO !?:
-		//buffer->getRow(y)->insert(start_x, )
-	}
-
-	changed_line(y, start_x, end_x);
-}
-
-void GTerm::clear_area(int start_x, int start_y, int end_x, int end_y)
+void GTerm::clear_area(int xpos, int ypos, int width, int height)
 {
 	const symbol_t style = symbol_make_style(fg_color, bg_color, attributes);
 	const symbol_t sym = ' ' | style;
 
-	int w = end_x - start_x + 1;
-	if (w<1) {
+	if (width < 1) {
 		return;
 	}
 
-	for (int y=start_y; y<=end_y; y++) {
+	for (int y=ypos; y < ypos+height; y++) {
 		BufferRow* row = buffer_get_row(&buffer, y);
-		bufrow_fill(row, start_x, sym, w);
-		changed_line(y, start_x, end_x);
+		bufrow_fill(row, xpos, sym, width);
+		changed_line(y, xpos, width);
 	}
 }
 
-void GTerm::changed_line(int y, int start_x, int end_x)
+/**
+ * Mark portions of line y dirty.
+ * \param y	line to taint
+ * \param start_x	first dirty col
+ * \param len		number to taint
+ */
+void GTerm::changed_line(int y, int start_x, int len)
 {
-	viewport_taint(this, y, start_x, end_x);
+	viewport_taint(this, y, start_x, len);
 }
 
 void GTerm::move_cursor(int x, int y)
 {
-	if (cursor_x >= width) {
+/*	if (cursor_x >= width) {
 		cursor_x = width-1;
 	}
 	if (cursor_y >= height) {
 		cursor_y = height-1;
-	}
+	}*/
+	x = int_clamp(x, 0, width-1);
+	y = int_clamp(y, 0, height-1);
 
 	if (x != cursor_x || y != cursor_y) {
 		// Old cursor position is dirty
-		changed_line(cursor_y, cursor_x, cursor_x+1);
+		changed_line(cursor_y, cursor_x, 1);
 
 		cursor_x = x;
 		cursor_y = y;
 
 		// New cursor position is dirty
-		changed_line(cursor_y, cursor_x, cursor_x+1);
+		changed_line(cursor_y, cursor_x, 1);
 	}
 }
 

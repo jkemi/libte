@@ -32,10 +32,10 @@ void viewport_reshape(GTerm* gt, uint w, uint h) {
 	gt->viewport.dirty->reshape(h, w);
 }
 
-void viewport_taint (GTerm* gt, uint y, uint start_x, uint end_x) {
+void viewport_taint (GTerm* gt, uint y, uint x, uint len) {
 	y += gt->viewport.offset;
 	if (y >= 0 && y < gt->height) {
-		gt->viewport.dirty->setDirty(y, start_x, end_x);
+		gt->viewport.dirty->setDirty(y, x, x+len);
 	}
 }
 

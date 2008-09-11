@@ -184,10 +184,10 @@ void GTerm::input(const int32_t* text, size_t len) {
 
 			if (is_mode_set(MODE_INSERT)) {
 				bufrow_insert(row, cursor_x, syms, n);
-				changed_line(cursor_y, cursor_x, width);
+				changed_line(cursor_y, cursor_x, width-cursor_x);
 			} else {
 				bufrow_replace(row, cursor_x, syms, n);
-				changed_line(cursor_y, cursor_x, cursor_x+n);
+				changed_line(cursor_y, cursor_x, n);
 			}
 
 			move_cursor(cursor_x+n, cursor_y);
@@ -210,10 +210,10 @@ void GTerm::input(const int32_t* text, size_t len) {
 		}
 		if (is_mode_set(MODE_INSERT)) {
 			bufrow_insert(row, cursor_x, syms, n);
-			changed_line(cursor_y, cursor_x, width);
+			changed_line(cursor_y, cursor_x, width-cursor_x);
 		} else {
 			bufrow_replace(row, cursor_x, syms, n);
-			changed_line(cursor_y, cursor_x, cursor_x+n);
+			changed_line(cursor_y, cursor_x, n);
 		}
 
 		move_cursor(cursor_x+n, cursor_y);

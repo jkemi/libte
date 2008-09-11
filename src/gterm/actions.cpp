@@ -68,7 +68,7 @@ void ac_bs(GTerm* gt)
 		gt->move_cursor(gt->cursor_x-1, gt->cursor_y);
 	}
 	if (gt->is_mode_set(MODE_DESTRUCTBS)) {
-		gt->clear_area(gt->cursor_x, gt->cursor_y, gt->cursor_x, gt->cursor_y);
+		gt->clear_area(gt->cursor_x, gt->cursor_y, 1, 1);
 	}
 }
 
@@ -157,7 +157,7 @@ void ac_reset(GTerm* gt)
 
 	gt->attributes = 0;
 
-	gt->clear_area(0, 0, gt->width, gt->height-1);
+	gt->clear_area(0, 0, gt->width, gt->height);
 	gt->move_cursor(0, 0);
 
 	history_clear(&gt->history);
@@ -256,11 +256,13 @@ void ac_delete_char(GTerm* gt)
 	int n, mx;
 	n = int_max(1, _get_param(gt,0,1) );
 
-	mx = gt->width-gt->cursor_x;
+	mx = gt->width - gt->cursor_x;
 	if (n >= mx) {
-		gt->clear_area(gt->cursor_x, gt->cursor_y, gt->width-1, gt->cursor_y);
+		gt->clear_area(gt->cursor_x, gt->cursor_y, gt->width-gt->cursor_x, 1);
 	} else {
-		gt->shift_text(gt->cursor_y, gt->cursor_x, gt->width-1, -n);
+		BufferRow* row = buffer_get_row(&gt->buffer, gt->cursor_y);
+		bufrow_remove(row,gt->cursor_x,n);
+		gt->changed_line(gt->cursor_y, gt->cursor_x, gt->width-gt->cursor_x);
 	}
 }
 
@@ -377,7 +379,7 @@ void ac_delete_line(GTerm* gt)
 	n = int_max(_get_param(gt, 0, 1), 1);
 	mx = gt->scroll_bot-gt->cursor_y+1;
 	if (n>=mx) {
-		gt->clear_area(0, gt->cursor_y, gt->width-1, gt->scroll_bot);
+		gt->clear_area(0, gt->cursor_y, gt->width, gt->scroll_bot-gt->cursor_y);
 	} else {
 		gt->scroll_region(gt->cursor_y, gt->scroll_bot, n);
 	}
@@ -402,20 +404,24 @@ void ac_status_report(GTerm* gt)
 void ac_erase_display(GTerm* gt)
 {
 	switch ( _get_param(gt, 0, 0) ) {
-	case 0:
-		gt->clear_area(gt->cursor_x, gt->cursor_y, gt->width-1, gt->cursor_y);
+	case 0:	// Erase Below (default)
+		gt->clear_area(gt->cursor_x, gt->cursor_y, gt->width-gt->cursor_x, 1);
 		if (gt->cursor_y < gt->height-1) {
-			gt->clear_area(0, gt->cursor_y+1, gt->width-1, gt->height-1);
+			gt->clear_area(0, gt->cursor_y+1, gt->width, gt->height-gt->cursor_y-1);
 		}
 		break;
-	case 1:
-		gt->clear_area(0, gt->cursor_y, gt->cursor_x, gt->cursor_y);
+	case 1: // Erase Above
+		gt->clear_area(0, gt->cursor_y, gt->cursor_x+1, 1);
 		if (gt->cursor_y > 0) {
-			gt->clear_area(0, 0, gt->width-1, gt->cursor_y-1);
+			gt->clear_area(0, 0, gt->width, gt->cursor_y);
 		}
 		break;
-	case 2:
-		gt->clear_area(0, 0, gt->width-1, gt->height-1);
+	case 2: // Erase All
+		gt->clear_area(0, 0, gt->width, gt->height);
+		break;
+	case 3:	// Erase Saved Lines (xterm)
+	default:
+		printf("unhandled param(%d) in erase in display\n");
 		break;
 	}
 }
@@ -425,13 +431,13 @@ void ac_erase_line(GTerm* gt)
 {
 	switch ( _get_param(gt, 0, 0) ) {
 	case 0:	// Erase to Right (default)
-		gt->clear_area(gt->cursor_x, gt->cursor_y, gt->width, gt->cursor_y);
+		gt->clear_area(gt->cursor_x, gt->cursor_y, gt->width-gt->cursor_x, 1);
 		break;
 	case 1:	// Erase to Left
-		gt->clear_area(0, gt->cursor_y, gt->cursor_x, gt->cursor_y);
+		gt->clear_area(0, gt->cursor_y, gt->cursor_x+1, 1);
 		break;
 	case 2: // Erase All
-		gt->clear_area(0, gt->cursor_y, gt->width, gt->cursor_y);
+		gt->clear_area(0, gt->cursor_y, gt->width, 1);
 		break;
 	}
 }
@@ -443,7 +449,7 @@ void ac_insert_line(GTerm* gt)
 	n = int_max(1, _get_param(gt, 0, 1) );
 	mx = gt->scroll_bot-gt->cursor_y+1;
 	if (n >= mx) {
-		gt->clear_area(0, gt->cursor_y, gt->width-1, gt->scroll_bot);
+		gt->clear_area(0, gt->cursor_y, gt->width, gt->scroll_bot-gt->cursor_y);
 	} else {
 		gt->scroll_region(gt->cursor_y, gt->scroll_bot, -n);
 	}
@@ -522,9 +528,17 @@ void ac_insert_char(GTerm* gt)
 	n = int_max(1, _get_param(gt,0,1) );
 	mx = gt->width-gt->cursor_x;
 	if (n >= mx) {
-		gt->clear_area(gt->cursor_x, gt->cursor_y, gt->width-1, gt->cursor_y);
+		gt->clear_area(gt->cursor_x, gt->cursor_y, gt->width-gt->cursor_x, 1);
 	} else {
-		gt->shift_text(gt->cursor_y, gt->cursor_x, gt->width-1, n);
+		BufferRow* row = buffer_get_row(&gt->buffer, gt->cursor_y);
+
+		// TODO: remove this buffer
+		symbol_t buf[n];
+		for (int i = 0; i < n; i++) {
+			buf[i] = ' ';
+		}
+		bufrow_insert(row, gt->cursor_x, buf, n);
+		gt->changed_line(gt->cursor_y, gt->cursor_x, gt->width-gt->cursor_x);
 	}
 }
 
@@ -542,7 +556,7 @@ void ac_screen_align(GTerm* gt)
 
 	for (int y=0; y<gt->height; y++) {
 		BufferRow* row = buffer_get_row(&gt->buffer, y);
-		gt->changed_line(y, 0, gt->width-1);
+		gt->changed_line(y, 0, gt->width);
 		bufrow_replace(row, 0, syms, gt->width);
 	}
 }
@@ -552,5 +566,5 @@ void ac_erase_char(GTerm* gt)
 {
 	// number of characters to erase
 	const int n = int_clamp(_get_param(gt,0,1), 1, gt->width-gt->cursor_x);
-	gt->clear_area(gt->cursor_x, gt->cursor_y, gt->cursor_x+n-1, gt->cursor_y);
+	gt->clear_area(gt->cursor_x, gt->cursor_y, n, 1);
 }
