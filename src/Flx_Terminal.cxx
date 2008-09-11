@@ -176,11 +176,19 @@ int Flx_Terminal::handle(int event) {
 				return 1;
 			}
 			break;
-		case FL_Scroll_Lock:
+		case FL_Scroll_Lock: {
 			const bool scroll_lock = !getScrollLock();
 			printf("scroll lock: %d\n", scroll_lock);
 			setScrollLock(scroll_lock);
 			return 1;
+			break;
+		}
+		case 'r':
+			if (shift && Fl::event_ctrl()) {
+				printf("forced redraw!\n");
+				_impl->term->redraw();
+				return 1;
+			}
 			break;
 		}
 		return _impl->term->handle(event);
