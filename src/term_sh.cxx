@@ -87,7 +87,7 @@ static void mfd_cb(int mfd, void* unused_priv)
 /*		main_win->hide();
 		abort();*/
 	} else {
-		str_cps_hexdump("from pty: ", cpbuf, cpcount);
+//		str_cps_hexdump("from pty: ", cpbuf, cpcount);
 
 		term->fromChild(cpbuf, cpcount);
 
