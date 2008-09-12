@@ -1,0 +1,23 @@
+=== Needed for release ===
+
+libte:
+
+ * alternate screen buffer
+ * limit row-buffer dynamic growth to screen width
+ * c-ify remaining files
+ * versioning
+ * create actual library
+ * copyright texts
+ * dynamic scroll history
+
+flterm:
+
+ * implement rate-limited redraws
+ * cleanup and join Fl_Term and Flx_Terminal ?
+ * nice abstraction for standard pty-based terminal I/O
+ * augment process environment 
+ * correct line drawing
+ * use libppty from rxvt?
+ * add menu and about-box
+ * multiple tabs
+ * parse some common command-line options
