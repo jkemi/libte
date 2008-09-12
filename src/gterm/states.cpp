@@ -131,6 +131,8 @@ static const StateOption _state_csi[] = {
     { 'L', &ac_insert_line,		state_normal },
     { 'M', &ac_delete_line,		state_normal },
     { 'P', &ac_delete_char,		state_normal },
+    { 'S', &ac_scroll_up,		state_normal },	// Scroll Up (SU)
+    { 'T', &ac_scroll_down,		state_normal },	// Scroll Down (SD)
     { 'X', &ac_erase_char,		state_normal },
     { 'c', &ac_device_attrib,	state_normal },	// Send Device Attributes (Primary DA)
     { 'd', &ac_line_position,	state_normal },

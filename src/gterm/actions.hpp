@@ -50,6 +50,8 @@ DLLLOCAL void ac_clear_tab		(GTerm* gt);		// Tab Clear (TBC)
 DLLLOCAL void ac_insert_char	(GTerm* gt);		// Insert P s (Blank) Character(s) (default = 1) (ICH)
 DLLLOCAL void ac_screen_align	(GTerm* gt);		// DEC Screen Alignment Test (DECALN)
 DLLLOCAL void ac_erase_char		(GTerm* gt);		// Erase P s Character(s) (default = 1) (ECH)
+DLLLOCAL void ac_scroll_up		(GTerm* gt);		// Scroll up Ps lines (default = 1) (SU)
+DLLLOCAL void ac_scroll_down		(GTerm* gt);		// Scroll up Ps lines (default = 1) (SD)
 DLLLOCAL void ac_vt52_cursor	(GTerm* gt);
 DLLLOCAL void ac_vt52_ident		(GTerm* gt);
 

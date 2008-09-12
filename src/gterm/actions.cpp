@@ -421,7 +421,7 @@ void ac_erase_display(GTerm* gt)
 		break;
 	case 3:	// Erase Saved Lines (xterm)
 	default:
-		printf("unhandled param(%d) in erase in display\n");
+		printf("unhandled parameter in erase in display\n");
 		break;
 	}
 }
@@ -567,4 +567,27 @@ void ac_erase_char(GTerm* gt)
 	// number of characters to erase
 	const int n = int_clamp(_get_param(gt,0,1), 1, gt->width-gt->cursor_x);
 	gt->clear_area(gt->cursor_x, gt->cursor_y, n, 1);
+}
+
+// Scroll up Ps lines (default = 1) (SU)
+// (Pan Down)
+// Ps is the number of lines to move the user window down in page memory.
+// Ps new lines appear at the bottom of the display. Ps old lines disappear at the top
+// of the display. You cannot pan past the bottom margin of the current page.
+void ac_scroll_up (GTerm* gt) {
+	const int n = int_clamp(_get_param(gt,0,1), 1, gt->scroll_bot-gt->scroll_top);
+
+	printf("scroll up by %d\n", n);
+
+	gt->scroll_region(gt->scroll_top, gt->scroll_bot, n);
+}
+
+// Scroll up Ps lines (default = 1) (SD)
+// (Pan Up)
+void ac_scroll_down (GTerm* gt) {
+	const int n = int_clamp(_get_param(gt,0,1), 1, gt->scroll_bot-gt->scroll_top);
+
+	printf("scroll down by %d\n", n);
+
+	gt->scroll_region(gt->scroll_top, gt->scroll_bot, -n);
 }
