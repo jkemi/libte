@@ -23,6 +23,10 @@ static const keymap _keys_normal[] = {
 	{TE_KEY_RIGHT,		"\033[C"},
 	{TE_KEY_LEFT,		"\033[D"},
 
+	{TE_KEY_HOME,		"\033[H"},	// "\033[1~" for vt220 (or "\033[7~" in rxvt?)
+	{TE_KEY_END,		"\033[F"},	// "\033[4~" for vt200 (or "\033[8~" in rxvt?)
+
+
 	{TE_KP_EQUAL,		"="},
 	{TE_KP_DIVIDE,		"/"},
 	{TE_KP_MULTIPLY,	"*"},
@@ -52,6 +56,9 @@ static const keymap _keys_app[] = {
 	{TE_KEY_RIGHT,		"\033OC"},
 	{TE_KEY_LEFT,		"\033OD"},
 
+	{TE_KEY_HOME,		"\033OH"},	// "\033[1~" for vt220 (or "\033[7~" in rxvt?)
+	{TE_KEY_END,		"\033OF"},	// "\033[4~" for vt200 (or "\033[8~" in rxvt?)
+
 	{TE_KP_EQUAL,		"\033OX"},
 	{TE_KP_DIVIDE,		"\033Oo"},
 	{TE_KP_MULTIPLY,	"\033Oj"},	//
@@ -80,10 +87,8 @@ static const keymap _keys_common[] = {
 	{TE_KEY_ESCAPE,		"\033"},
 	{TE_KEY_BACKSPACE,	"\010"},	// ^H
 
-	{TE_KEY_HOME,		"\033[1~"},	//	"\033[\000" ??
 	{TE_KEY_INSERT,		"\033[2~"},
 	{TE_KEY_DELETE,		"\033[3~"},
-	{TE_KEY_END,		"\033[4~"},	// 	"\033[e" ??
 	{TE_KEY_PGUP,		"\033[5~"},
 	{TE_KEY_PGDN,		"\033[6~"},
 
