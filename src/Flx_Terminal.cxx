@@ -5,9 +5,9 @@
  *      Author: jakob
  */
 
-#include <Fl/Fl.H>
-#include <Fl/Fl_Button.H>
-#include <Fl/Fl_Scrollbar.H>
+#include <FL/Fl.H>
+#include <FL/Fl_Button.H>
+#include <FL/Fl_Scrollbar.H>
 
 #include <stdio.h>
 

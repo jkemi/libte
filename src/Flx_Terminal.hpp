@@ -8,7 +8,7 @@
 #ifndef FLX_TERMINAL_HPP_
 #define FLX_TERMINAL_HPP_
 
-#include <Fl/Fl_Group.H>
+#include <FL/Fl_Group.H>
 
 #include <stdint.h>		// for int32_t
 #include <stddef.h>		// for size_t
