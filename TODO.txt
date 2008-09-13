@@ -18,6 +18,7 @@ flterm:
  * augment process environment 
  * correct line drawing
  * use libppty from rxvt?
+ * sane encoding support
  * add menu and about-box
  * multiple tabs
  * parse some common command-line options

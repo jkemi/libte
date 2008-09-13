@@ -332,6 +332,7 @@ void GTerm::fe_send_back(const char* data) {
 
 void GTerm::fe_request_resize(int width, int height) {
 	_fe->request_resize(_fe_priv, width, height);
+	clear_area(0, 0, width, height);
 }
 
 void GTerm::fe_updated(void) {
