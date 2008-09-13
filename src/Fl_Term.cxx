@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <alloca.h>
+#include <sys/time.h>
 
 #include "strutil.h"
 
@@ -27,6 +28,18 @@ static Fl_Color col_table[] = {
 	FL_DARK_GREEN,
 	FL_DARK_MAGENTA
 };
+
+#define _DEFER_DRAWING_US	20000
+#define _DEFERRED_DRAWING_DELAY	0.06
+
+static uint64_t getCurrentTime_us(void) {
+	struct timeval tv;
+	if (gettimeofday(&tv, NULL) == -1) {
+		// TODO: handle
+	}
+
+	return (uint64_t)tv.tv_sec * 1000000L + tv.tv_usec;
+}
 
 /************************************************************************/
 // This is the implementation of the user-facing parts of the widget...
@@ -234,6 +247,10 @@ void Fl_Term::_termSize(int width, int height) {
 	}
 }
 
+void Fl_Term::_deferred_update_cb() {
+	damage(FL_DAMAGE_USER1);
+}
+
 /************************************************************************/
 // handle keyboard focus etc
 int Fl_Term::handle(int event)
@@ -303,6 +320,8 @@ void Fl_Term::draw(void)
 
 	// restore the clipping rectangle...
 	fl_pop_clip();
+
+	last_draw = getCurrentTime_us();
 }
 
 
@@ -415,6 +434,12 @@ void Fl_Term::fe_draw_move(int y, int height, int byoffset) {
 }
 
 void Fl_Term::fe_updated() {
+	const uint64_t now = getCurrentTime_us();
+	if (now-last_draw < _DEFER_DRAWING_US) {
+		Fl::remove_timeout(&_s_deferred_update_cb, this);
+		Fl::add_timeout(_DEFERRED_DRAWING_DELAY, &_s_deferred_update_cb, this);
+		return;
+	}
 	damage(FL_DAMAGE_USER1);
 }
 

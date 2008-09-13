@@ -18,6 +18,8 @@ class Fl_Term : public Fl_Box, public TE
 protected:
 	void draw(void);
 
+	uint64_t	last_draw;
+
 	int def_fnt_size;
 
 	// font stuff
@@ -51,6 +53,10 @@ private:
 
 	void			(*_size_func)(void* priv, int width, int height);
 	void*			_size_priv;
+
+	static void		_s_deferred_update_cb(void* data) { ((Fl_Term*)data)->_deferred_update_cb();}
+
+	void			_deferred_update_cb();
 
 public:
 	//
