@@ -20,6 +20,7 @@
 #  include <util.h> //imm
 #endif
 #include <stdlib.h>
+#include <stdint.h>
 
 #include "pty.h"
 
@@ -28,6 +29,91 @@ static char pty_name[32];
 
 static void remove_utmp();
 static void add_utmp(int);
+
+static const char* _find_env_value(const char* const* envdata, const char* needle, size_t needlelen) {
+	for (const char* const* envpos = envdata; *envpos != NULL; envpos++) {
+		const char* env = *envpos;
+
+		if (strncmp(env, needle, needlelen) == 0) {
+			return env+needlelen+1;
+		}
+	}
+
+	return NULL;
+}
+
+static const char* _find_env_value_(char** envdata, const char* needle, size_t needlelen) {
+	return _find_env_value((const char* const*)envdata, needle, needlelen);
+}
+
+static void _free_env(char** env) {
+	for (char** e = env; *e != NULL; e++) {
+		free (*e);
+	}
+	free(env);
+}
+
+static char**_augment_environment(const char* const* envdata) {
+	// Count number of environment variables
+	int n = 0;
+	for (char** e = environ; *e != NULL; e++) {
+		n++;
+	}
+
+	// Count number of arguments to augment with
+	int nextra = 0;
+	for (const char* const* e = envdata; *e != NULL; e++) {
+		nextra++;
+	}
+
+	char** ret = (char**)malloc(sizeof(char*)*(n+nextra+1));
+	memset(ret, 0, sizeof(char*)*(n+nextra+1));
+
+	int retp = 0;
+
+	for (int i = 0; i < n; i++) {
+		const char* org = environ[i];
+		const char* pos = strchr(org, '=');
+		if (pos == NULL) {
+			free(ret);
+			return NULL;
+		}
+
+		const size_t len = (size_t)((uintptr_t)pos-(uintptr_t)org);
+
+		const char* newval = _find_env_value(envdata, org, len);
+		char* val = NULL;
+		if (newval) {
+			size_t sz = len+1+strlen(newval)+1;
+			val = (char*)malloc(sizeof(char)*sz);
+			char* pos = val;
+			memcpy(pos, org, sizeof(char)*(len+1));
+			pos += len+1;
+			strcpy(pos, newval);
+		} else {
+			val = strdup(org);
+		}
+
+		ret[retp++] = val;
+	}
+
+	for (const char* const* e = envdata; *e != NULL; e++) {
+		const char* env = *e;
+		const char* pos = strchr(env, '=');
+		if (pos == NULL) {
+			_free_env(ret);
+			return NULL;
+		}
+
+		const size_t len = (size_t)((uintptr_t)pos-(uintptr_t)env);
+		if (_find_env_value_(environ, env, len) == NULL) {
+			ret[retp++] = strdup(env);
+		}
+
+	}
+
+	return ret;
+}
 
 int pts_slave(int mfd)
 {
@@ -49,7 +135,7 @@ int pts_slave(int mfd)
 
 struct stat tty_stat;
 
-int pty_spawn(const char *exe)
+int pty_spawn(const char *exe, const char* const* envdata)
 {
 	int mfd, pid, sfd;
 	int uid, gid;
@@ -123,7 +209,13 @@ int pty_spawn(const char *exe)
 		if (sfd > 2)
 			close(sfd);
 
-		execl(exe, exe, NULL);
+		char** env = _augment_environment(envdata);
+		if (env == NULL) {
+			fprintf(stderr, "big problems...\n");
+			exit(1);
+		}
+		execle(exe, exe, NULL, env);
+		_free_env(env);
 		exit(0);
 	} // end of slave process
 // else the master process...

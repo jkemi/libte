@@ -50,7 +50,7 @@ static void send_back_cb(const int32_t* data, size_t size, void* priv) {
 
 	str_cps_to_mbs_n(tmp, data, nbytes, n, &nwritten, NULL);
 
-	str_mbs_hexdump("to pty: ", tmp, nwritten);
+//	str_mbs_hexdump("to pty: ", tmp, nwritten);
 	write(pty_fd, tmp, nwritten);
 }
 
@@ -72,7 +72,7 @@ static void mfd_cb(int mfd, void* unused_priv)
 	}
 
 	size_t bytesread = ret;
-	str_mbs_hexdump("from pty(mbs): ", buf+buffill, bytesread);
+//	str_mbs_hexdump("from pty(mbs): ", buf+buffill, bytesread);
 
 	buffill += bytesread;
 
@@ -142,9 +142,18 @@ int main(int argc, char** argv)
 
 	main_win->resizable(term);
 
+	static const char*const envdata[] = {
+		"TERM=xterm",
+		"LANG=en_US.UTF-8",
+		NULL
+	};
 
+	const char* shell = getenv("SHELL");
+	if (shell == NULL) {
+		shell = "/bin/sh";
+	}
 	// spawn shell in pseudo terminal
-	pty_fd = pty_spawn("/bin/bash");
+	pty_fd = pty_spawn(shell, envdata);
 	if (pty_fd < 0) {
 		exit(-1);
 	}
