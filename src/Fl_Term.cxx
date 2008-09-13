@@ -439,7 +439,13 @@ void Fl_Term::fe_send_back(const int32_t* data) {
 }
 
 void Fl_Term::fe_request_resize(int width, int height) {
-	// TODO: implement
+	// TODO: almost working, needs to be able resize parent widget as well...
+	printf("requested resized to: %d, %d\n", width, height);
+
+	int pixwidth = (width*font.pixw)+Fl::box_dw(box());
+	int pixheight = (height*font.pixh)+Fl::box_dh(box());
+
+	resize(x(), y(), pixwidth, pixheight);
 }
 
 void Fl_Term::fe_position(int offset, int size) {
