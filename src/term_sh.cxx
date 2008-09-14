@@ -153,10 +153,12 @@ int main(int argc, char** argv)
 		shell = "/bin/sh";
 	}
 	// spawn shell in pseudo terminal
-	pty_fd = pty_spawn(shell, envdata);
-	if (pty_fd < 0) {
-		exit(-1);
+	PTY* pty = pty_spawn(shell, envdata);
+	if (pty == NULL) {
+		exit(EXIT_FAILURE);
 	}
+	pty_fd = pty_getfd(pty);
+
 	// add the pty to the fltk fd list, so we can catch any output
 	Fl::add_fd(pty_fd, mfd_cb, NULL);
 	// we want non-blocking reads from pty output
@@ -171,7 +173,7 @@ int main(int argc, char** argv)
 
 	int exit_res = Fl::run();
 
-	pty_restore();
+	pty_restore(pty);
 
 	return exit_res;
 }

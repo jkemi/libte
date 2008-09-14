@@ -129,40 +129,72 @@ static char**_env_augment(const char* const* envdata) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 
-static char pty_name[32];
+#include <limits.h>
+
+struct _PTY {
+	int			mfd;
+	char		ptyname[128];
+	struct stat	ttystat;
+
+#ifdef __APPLE__
+	struct utmpx	ut_entry;
+#else
+	struct utmp		ut_entry;
+#endif
+};
+
+int pty_getfd(PTY* pty) {
+	return pty->mfd;
+}
 
 static void remove_utmp();
-static void add_utmp(int);
+static void add_utmp(PTY* pty, int);
 
-
-struct stat tty_stat;
-
-
-int pts_slave(int mfd)
-{
+static int _pts_slave(PTY* pty) {
 	struct stat statbuf;
 	int sfd;
-	int fail = grantpt(mfd);
-	if (fail)
+	if (grantpt(pty->mfd) != 0) {
+		// TODO: handle? (errno set)
 		return -1;
-	fail = unlockpt(mfd);
-	if (fail)
-		return -2;
-	strncpy(pty_name, ptsname(mfd), 255);
-	if (stat(pty_name, &statbuf) < 0)
-		return -3;
+	}
+	if (unlockpt(pty->mfd) != 0) {
+		// TODO: handle? (errno set)
+		return -1;
+	}
 
-	sfd = open(pty_name, O_RDWR);
+	// Portable, non-reentrant version
+	/*
+	const char* name = ptsname(pty->mfd);
+	if (name == NULL) {
+		// TODO: handle? (errno set)
+		return -1;
+	}
+	strncpy(pty->ptyname, name, 128);
+	pty->ptyname[127] = '\0';
+	*/
+
+	// Linux-specific reentrant version
+	if (ptsname_r(pty->mfd, pty->ptyname, 128) != 0) {
+		// TODO: handle? (errno set)
+		return -1;
+	}
+
+	if (stat(pty->ptyname, &statbuf) != 0) {
+		// TODO: handle? (errno set)
+		return -1;
+	}
+
+	sfd = open(pty->ptyname, O_RDWR);
 	return sfd;
 }
 
-int pty_spawn(const char *exe, const char* const* envdata)
-{
-	int mfd, pid, sfd;
-	int uid, gid;
+PTY* pty_spawn(const char *exe, const char* const* envdata) {
+	int pid, sfd;
 
-	uid = getuid();
-	gid = getgid();
+	const int uid = getuid();
+	const int gid = getgid();
+
+	PTY* pty = (PTY*)malloc(sizeof(PTY));
 
 #ifdef __APPLE__ /* or other BSD's? */
 	pid = forkpty(&mfd, pty_name, NULL, NULL);
@@ -190,29 +222,29 @@ int pty_spawn(const char *exe, const char* const* envdata)
 	master_fd = mfd;
 	return mfd;
 #else // non-Apple pty fork
-	mfd = getpt();
+	pty->mfd = getpt();
 
-	if (mfd < 0) {
+	if (pty->mfd < 0) {
 		fprintf(stderr, "Can't open master pty\n");
-		return -1;
+		free(pty);
+		return NULL;
 	}
 
 	pid = fork();
-	if (pid < 0)
-	{
+	if (pid < 0) {
 		fprintf(stderr, "Can't fork\n");
-		return -1;
+		free(pty);
+		return NULL;
 	}
 
-	if (!pid)
-	{ // slave process
-		sfd = pts_slave(mfd);
-		close(mfd);
+	if (!pid) { // slave process
+		sfd = _pts_slave(pty);
+		close(pty->mfd);
 
-		if (sfd < 0)
-		{
+		if (sfd < 0) {
 			fprintf(stderr, "Can't open child (%d)\n", sfd);
-			return -1;
+			free(pty);
+			return NULL;
 		}
 
 //		setuid(uid);
@@ -240,18 +272,19 @@ int pty_spawn(const char *exe, const char* const* envdata)
 		exit(0);
 	} // end of slave process
 // else the master process...
-	add_utmp(pid);
+	add_utmp(pty, pid);
 
-	return mfd;
+	return pty;
 #endif /* end of "non-Apple" pts fork */
 }
 
-void pty_restore()
-{
-	chown(pty_name, tty_stat.st_uid, tty_stat.st_gid);
-	chmod(pty_name, tty_stat.st_mode);
+void pty_restore(PTY* pty) {
+	chown(pty->ptyname, pty->ttystat.st_uid, pty->ttystat.st_gid);
+	chmod(pty->ptyname, pty->ttystat.st_mode);
 
 	remove_utmp();
+
+	free(pty);
 }
 
 /*
@@ -276,20 +309,14 @@ struct utmpx {
      };
 #endif
 
-#ifdef __APPLE__
-struct utmpx ut_entry;
-#else
-struct utmp ut_entry;
-#endif
 
-static void add_utmp(int spid)
-{
+static void add_utmp(PTY* pty, int spid) {
 
-	ut_entry.ut_type = USER_PROCESS;
-	ut_entry.ut_pid = spid;
-	strcpy(ut_entry.ut_line, pty_name+5);
-	strcpy(ut_entry.ut_id, pty_name+8);
-	strcpy(ut_entry.ut_user, getpwuid(getuid())->pw_name);
+	pty->ut_entry.ut_type = USER_PROCESS;
+	pty->ut_entry.ut_pid = spid;
+	strcpy(pty->ut_entry.ut_line, pty->ptyname+5);
+	strcpy(pty->ut_entry.ut_id, pty->ptyname+8);
+	strcpy(pty->ut_entry.ut_user, getpwuid(getuid())->pw_name);
 
 //	printf("ut name \"%s\" (%d)\n", ut_entry.ut_user, getuid());
 
@@ -300,22 +327,22 @@ static void add_utmp(int spid)
 	pututxline(&ut_entry);
 	endutxent();
 #else
-	strcpy(ut_entry.ut_host, getenv("DISPLAY"));
+	strcpy(pty->ut_entry.ut_host, getenv("DISPLAY"));
 
 	time_t tt;
 	time(&tt);
-	ut_entry.ut_time = tt;
-	ut_entry.ut_addr = 0;
+	pty->ut_entry.ut_time = tt;
+	pty->ut_entry.ut_addr = 0;
 
 	setutent();
-	pututline(&ut_entry);
+	pututline(&pty->ut_entry);
 	endutent();
 #endif
 }
 
-static void remove_utmp()
+static void remove_utmp(PTY* pty)
 {
-	ut_entry.ut_type = DEAD_PROCESS;
+	pty->ut_entry.ut_type = DEAD_PROCESS;
 #ifdef __APPLE__
 	memset(ut_entry.ut_line, 0, _UTX_LINESIZE);
 	ut_entry.ut_tv.tv_sec = 0;
@@ -326,12 +353,12 @@ static void remove_utmp()
 	pututxline(&ut_entry);
 	endutxent();
 #else
-	memset(ut_entry.ut_line, 0, UT_LINESIZE);
-	ut_entry.ut_time = 0;
-	memset(ut_entry.ut_user, 0, UT_NAMESIZE);
+	memset(pty->ut_entry.ut_line, 0, UT_LINESIZE);
+	pty->ut_entry.ut_time = 0;
+	memset(pty->ut_entry.ut_user, 0, UT_NAMESIZE);
 
 	setutent();
-	pututline(&ut_entry);
+	pututline(&pty->ut_entry);
 	endutent();
 #endif
 }
