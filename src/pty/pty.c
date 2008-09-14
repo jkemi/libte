@@ -24,6 +24,10 @@
 
 #include "pty.h"
 
+// TODO: gross hack, please remove
+#ifdef __APPLE__ // maybe other BSD's too?
+	char** environ;
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -163,7 +167,7 @@ static int _pts_slave(PTY* pty) {
 	}
 
 	// Portable, non-reentrant version
-	/*
+#ifdef __APPLE__
 	const char* name = ptsname(pty->mfd);
 	if (name == NULL) {
 		// TODO: handle? (errno set)
@@ -171,8 +175,7 @@ static int _pts_slave(PTY* pty) {
 	}
 	strncpy(pty->ptyname, name, 128);
 	pty->ptyname[127] = '\0';
-	*/
-
+#else
 	// Linux-specific reentrant version
 	if (ptsname_r(pty->mfd, pty->ptyname, 128) != 0) {
 		// TODO: handle? (errno set)
@@ -183,7 +186,7 @@ static int _pts_slave(PTY* pty) {
 		// TODO: handle? (errno set)
 		return -1;
 	}
-
+#endif
 	sfd = open(pty->ptyname, O_RDWR);
 	return sfd;
 }
@@ -197,7 +200,7 @@ PTY* pty_spawn(const char *exe, const char* const* envdata) {
 	PTY* pty = (PTY*)malloc(sizeof(PTY));
 
 #ifdef __APPLE__ /* or other BSD's? */
-	pid = forkpty(&mfd, pty_name, NULL, NULL);
+	pid = forkpty(&pty->mfd, pty->ptyname, NULL, NULL);
 	if (pid < 0)
 	{
 		fprintf(stderr, "Can't fork\n");
@@ -217,10 +220,9 @@ PTY* pty_spawn(const char *exe, const char* const* envdata) {
 	}
 	// else master process
 //printf("pty is: %s\n", pty_name);
-	add_utmp(pid);
+	add_utmp(pty, pid);
 
-	master_fd = mfd;
-	return mfd;
+	return pty;
 #else // non-Apple pty fork
 	pty->mfd = getpt();
 
@@ -321,10 +323,10 @@ static void add_utmp(PTY* pty, int spid) {
 //	printf("ut name \"%s\" (%d)\n", ut_entry.ut_user, getuid());
 
 #ifdef __APPLE__
-	gettimeofday(&ut_entry.ut_tv, NULL);
+	gettimeofday(&pty->ut_entry.ut_tv, NULL);
 
 	setutxent();
-	pututxline(&ut_entry);
+	pututxline(&pty->ut_entry);
 	endutxent();
 #else
 	strcpy(pty->ut_entry.ut_host, getenv("DISPLAY"));
@@ -344,13 +346,13 @@ static void remove_utmp(PTY* pty)
 {
 	pty->ut_entry.ut_type = DEAD_PROCESS;
 #ifdef __APPLE__
-	memset(ut_entry.ut_line, 0, _UTX_LINESIZE);
-	ut_entry.ut_tv.tv_sec = 0;
-	ut_entry.ut_tv.tv_usec = 0;
-	memset(ut_entry.ut_user, 0, _UTX_USERSIZE);
+	memset(pty->ut_entry.ut_line, 0, _UTX_LINESIZE);
+	pty->ut_entry.ut_tv.tv_sec = 0;
+	pty->ut_entry.ut_tv.tv_usec = 0;
+	memset(pty->ut_entry.ut_user, 0, _UTX_USERSIZE);
 
 	setutxent();
-	pututxline(&ut_entry);
+	pututxline(&pty->ut_entry);
 	endutxent();
 #else
 	memset(pty->ut_entry.ut_line, 0, UT_LINESIZE);
