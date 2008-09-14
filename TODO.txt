@@ -12,10 +12,10 @@ libte:
 
 flterm:
 
- * implement rate-limited redraws
+ * implement rate-limited redraws (done)
  * cleanup and join Fl_Term and Flx_Terminal ?
  * nice abstraction for standard pty-based terminal I/O
- * augment process environment 
+ * augment process environment (done)
  * correct line drawing
  * use libppty from rxvt?
  * sane encoding support
