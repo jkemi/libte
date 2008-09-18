@@ -247,7 +247,7 @@ void ac_line_position(GTerm* gt)
 // 	Send Device Attributes (Primary DA)
 void ac_device_attrib(GTerm* gt)
 {
-	gt->fe_send_back("\033[?1;2c");
+	gt_fe_send_back(gt, "\033[?1;2c");
 }
 
 // Delete P s Character(s) (default = 1) (DCH)
@@ -279,7 +279,7 @@ void ac_set_mode(GTerm* gt)  // h
 		switch (p) {
 		case 1:	gt_set_mode_flag(gt, MODE_CURSORAPP);		break;	// Normal Cursor Keys (DECCKM)
 //		case 2:											// Designate VT52 mode (DECANM).
-		case 3:	gt->fe_request_resize(132, gt->height);	break;	// 132 Column Mode (DECCOLM)
+		case 3:	gt_fe_request_resize(gt, 132, gt->height);	break;	// 132 Column Mode (DECCOLM)
 		case 6: gt_set_mode_flag(gt, MODE_ORIGIN);			break;	// Origin mode (DECOM)
 		case 7:	gt_set_mode_flag(gt, MODE_AUTOWRAP);		break;	// Wraparound Mode (DECAWM)
 		case 25:										// Hide Cursor (DECTCEM)
@@ -315,7 +315,7 @@ void ac_clear_mode(GTerm* gt)  // l
 		switch (_get_param(gt,0,-1)) {
 		case 1:	gt_clear_mode_flag(gt, MODE_CURSORAPP);		break;	// Normal Cursor Keys (DECCKM)
 //		case 2:	current_state = vt52_normal_state; break;	// Designate VT52 mode (DECANM).
-		case 3:	gt->fe_request_resize(80, gt->height);		break;	// 132 Column Mode (DECCOLM)
+		case 3:	gt_fe_request_resize(gt, 80, gt->height);		break;	// 132 Column Mode (DECCOLM)
 		case 6: gt_clear_mode_flag(gt, MODE_ORIGIN);			break;	// Origin mode (DECOM)
 		case 7:	gt_clear_mode_flag(gt, MODE_AUTOWRAP);			break;	// Wraparound Mode (DECAWM)
 		case 25:											// Hide Cursor (DECTCEM)
@@ -349,7 +349,7 @@ void ac_request_param(GTerm* gt)
 	char str[40];
 	sprintf(str, "\033[%d;1;1;120;120;1;0x", gt->parser.params[0]+2);
 
-	gt->fe_send_back(str);
+	gt_fe_send_back(gt, str);
 }
 
 // Set Scrolling Region [top;bottom] (default = full size of window) (DECSTBM)
@@ -391,11 +391,11 @@ void ac_status_report(GTerm* gt)
 	char str[20];
 	switch (_get_param(gt, 0, -1)) {
 	case 5:
-		gt->fe_send_back("\033[0n");
+		gt_fe_send_back(gt, "\033[0n");
 		break;
 	case 6:
 		sprintf(str, "\033[%d;%dR", gt->cursor_y+1, gt->cursor_x+1);
-		gt->fe_send_back(str);
+		gt_fe_send_back(gt, str);
 		break;
 	}
 }

@@ -141,14 +141,6 @@ public:
 		const StateOption* current_state;
 	} parser;
 
-	// Ordinary printable character are sent here from parser
-	void input(const int32_t* text, size_t len);
-
-	void fe_send_back (const char* data);
-	void fe_request_resize (int width, int height);
-	void fe_updated (void);
-	void fe_move (int y, int height, int byoffset);
-
 	GTerm(const TE_Frontend* fe, void* fe_priv, int w, int h);
 	GTerm(const GTerm& old);
 	virtual ~GTerm();
@@ -174,6 +166,14 @@ static inline bool gt_is_mode_flag(GTerm* gt, te_mode_t flag) { return (gt->mode
 static inline void gt_set_mode_flag(GTerm* gt, te_mode_t flag) {gt->mode_flags |= flag;}
 static inline void gt_clear_mode_flag(GTerm* gt, te_mode_t flag) {gt->mode_flags &= ~flag;}
 static inline void gt_clear_mode_flags(GTerm* gt, int flags) {gt->mode_flags &= ~flags;}
+
+// Ordinary printable character are sent here from parser
+void gt_input(GTerm* gt, const int32_t* text, size_t len);
+
+void gt_fe_send_back (GTerm* gt, const char* data);
+void gt_fe_request_resize (GTerm* gt, int width, int height);
+void gt_fe_updated (GTerm* gt);
+void gt_fe_move (GTerm* gt, int y, int height, int byoffset);
 
 
 #endif

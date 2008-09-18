@@ -9,7 +9,7 @@
 
 void GTerm::update_changes(void)
 {
-    fe_updated();
+    gt_fe_updated(this);
 }
 
 void gt_scroll_region(GTerm* gt, uint start_y, uint end_y, int num)

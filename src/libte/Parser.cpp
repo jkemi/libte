@@ -141,7 +141,7 @@ void _parser_normal_input(GTerm* gt)
 		}
 	}
 
-	gt->input(gt->parser.input_data, n);
+	gt_input(gt, gt->parser.input_data, n);
 
 	// Only advance the number of extra characters consumed by this operation
 	// One character is always consumed by process_input(), hence n-1 here

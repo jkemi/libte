@@ -154,7 +154,7 @@ int GTerm::handle_button(te_key_t key)
 	}
 
 	if (s != NULL) {
-		fe_send_back(s);
+		gt_fe_send_back(this, s);
 		return 1;
 	} else {
 		return 0;
@@ -172,62 +172,62 @@ void GTerm::handle_keypress(int32_t cp, te_modifier_t modifiers) {
 	}
 }
 
-void GTerm::input(const int32_t* text, size_t len) {
+void gt_input(GTerm* gt, const int32_t* text, size_t len) {
 	// TODO: remove temporary stack buffer from here..
-	symbol_t syms[width];
-	symbol_t style = symbol_make_style(fg_color, bg_color, attributes);
+	symbol_t syms[gt->width];
+	symbol_t style = symbol_make_style(gt->fg_color, gt->bg_color, gt->attributes);
 
-	if (gt_is_mode_set(this, MODE_AUTOWRAP)) {
+	if (gt_is_mode_set(gt, MODE_AUTOWRAP)) {
 		while (len > 0) {
-			BufferRow* row = buffer_get_row(&buffer, cursor_y);
+			BufferRow* row = buffer_get_row(&gt->buffer, gt->cursor_y);
 
-			size_t n = uint_min(len, width-cursor_x);
+			size_t n = uint_min(len, gt->width-gt->cursor_x);
 			for (size_t i = 0; i < n; i++) {
 				const symbol_t sym = style | text[i];
 				syms[i] = sym;
 			}
 
-			if (gt_is_mode_set(this, MODE_INSERT)) {
-				bufrow_insert(row, cursor_x, syms, n);
-				gt_changed_line(this, cursor_y, cursor_x, width-cursor_x);
+			if (gt_is_mode_set(gt, MODE_INSERT)) {
+				bufrow_insert(row, gt->cursor_x, syms, n);
+				gt_changed_line(gt, gt->cursor_y, gt->cursor_x, gt->width-gt->cursor_x);
 			} else {
-				bufrow_replace(row, cursor_x, syms, n);
-				gt_changed_line(this, cursor_y, cursor_x, n);
+				bufrow_replace(row, gt->cursor_x, syms, n);
+				gt_changed_line(gt, gt->cursor_y, gt->cursor_x, n);
 			}
 
-			gt_move_cursor(this, cursor_x+n, cursor_y);
+			gt_move_cursor(gt, gt->cursor_x+n, gt->cursor_y);
 
 			len -= n;
 			text += n;
 
 			if (len > 0) {
-				ac_next_line(this);
+				ac_next_line(gt);
 			}
 		}
 	} else {
-		BufferRow* row = buffer_get_row(&buffer, cursor_y);
+		BufferRow* row = buffer_get_row(&gt->buffer, gt->cursor_y);
 
-		size_t n = uint_min(len, width-cursor_x-1);
+		size_t n = uint_min(len, gt->width-gt->cursor_x-1);
 
 		for (size_t i = 0; i < n; i++) {
 			const symbol_t sym = style | text[i];
 			syms[i] = sym;
 		}
-		if (gt_is_mode_set(this, MODE_INSERT)) {
-			bufrow_insert(row, cursor_x, syms, n);
-			gt_changed_line(this, cursor_y, cursor_x, width-cursor_x);
+		if (gt_is_mode_set(gt, MODE_INSERT)) {
+			bufrow_insert(row, gt->cursor_x, syms, n);
+			gt_changed_line(gt, gt->cursor_y, gt->cursor_x, gt->width-gt->cursor_x);
 		} else {
-			bufrow_replace(row, cursor_x, syms, n);
-			gt_changed_line(this, cursor_y, cursor_x, n);
+			bufrow_replace(row, gt->cursor_x, syms, n);
+			gt_changed_line(gt, gt->cursor_y, gt->cursor_x, n);
 		}
 
-		gt_move_cursor(this, cursor_x+n, cursor_y);
+		gt_move_cursor(gt, gt->cursor_x+n, gt->cursor_y);
 
 		// There were more data than we have remaining space on
 		// the line, update last cell
 		if (len > n) {
 			syms[0] = style | text[len-1];
-			bufrow_replace(row, width-1, syms, 1);
+			bufrow_replace(row, gt->width-1, syms, 1);
 		}
 	}
 }
@@ -264,7 +264,7 @@ void GTerm::resize_terminal(int w, int h)
 
 	viewport_reshape(this, w, h);
 
-	fe_updated();
+	gt_fe_updated(this);
 }
 
 GTerm::GTerm(const TE_Frontend* fe, void* fe_priv, int w, int h)
@@ -317,7 +317,7 @@ GTerm::~GTerm()
 	viewport_term(this);
 }
 
-void GTerm::fe_send_back(const char* data) {
+void gt_fe_send_back(GTerm* gt, const char* data) {
 	// TODO: speedup ?!
 	size_t len = strlen(data);
 	int32_t buf[len+1];
@@ -326,21 +326,21 @@ void GTerm::fe_send_back(const char* data) {
 		buf[i] = data[i];
 	}
 
-	_fe->send_back(_fe_priv, buf);
+	gt->_fe->send_back(gt->_fe_priv, buf);
 }
 
 
-void GTerm::fe_request_resize(int width, int height) {
-	_fe->request_resize(_fe_priv, width, height);
-	gt_clear_area(this, 0, 0, width, height);
+void gt_fe_request_resize(GTerm* gt, int width, int height) {
+	gt->_fe->request_resize(gt->_fe_priv, width, height);
+	gt_clear_area(gt, 0, 0, width, height);
 }
 
-void GTerm::fe_updated(void) {
-	_fe->updated(_fe_priv);
+void gt_fe_updated(GTerm* gt) {
+	gt->_fe->updated(gt->_fe_priv);
 }
 
-void GTerm::fe_move(int y, int height, int byoffset) {
-	_fe->draw_move(_fe_priv, y, height, byoffset);
+void gt_fe_move(GTerm* gt, int y, int height, int byoffset) {
+	gt->_fe->draw_move(gt->_fe_priv, y, height, byoffset);
 }
 
 //
