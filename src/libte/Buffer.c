@@ -39,7 +39,8 @@ void buffer_reshape(Buffer* buf, uint nrows, uint ncols) {
 	if (nrows < buf->nrows) {
 		// Buffer should shrink
 
-		const int shrunkby = buf->nrows - nrows;
+		// TODO: what is this?
+		//const int shrunkby = buf->nrows - nrows;
 
 		// Store spilled rows
 		for (uint rowno = 0; rowno < nrows; rowno++) {
@@ -54,6 +55,7 @@ void buffer_reshape(Buffer* buf, uint nrows, uint ncols) {
 		}
 
 /*
+ * 		// TODO: what is this?
 		// Store spilled rows
 		for (uint rowno = 0; rowno < shrunkby; rowno++) {
 			BufferRow* row = buffer_get_row(buf, rowno);

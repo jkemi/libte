@@ -10,7 +10,7 @@
 
 #include "misc.h"
 
-#include "viewport_dirty.h"
+typedef struct Viewport_ Viewport;
 
 void viewport_init	(GTerm* gt, uint w, uint h);
 void viewport_term	(GTerm* gt);

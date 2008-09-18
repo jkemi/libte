@@ -5,43 +5,55 @@
  *      Author: jakob
  */
 
+#include "misc.h"
+
 #include "gterm.h"
 #include "viewport_dirty.h"
 #include "viewport.h"
 
 
+struct Viewport_ {
+	uint	offset;
+	Dirty	dirty;
+	bool	updating;
+	bool	scroll_lock;
+};
+
 static void _report_scroll(GTerm* gt) {
-	gt->_fe->position(gt->_fe_priv, gt->viewport.offset, history_size(&gt->history));
+	gt->_fe->position(gt->_fe_priv, gt->viewport->offset, history_size(&gt->history));
 }
 
 
 void viewport_init (GTerm* gt, uint w, uint h) {
-	dirty_init(&gt->viewport.dirty, h, w);
-	gt->viewport.updating = false;
-	gt->viewport.offset = 0;
-	gt->viewport.scroll_lock = false;
+	gt->viewport = xnew(Viewport, 1);
+
+	dirty_init(&gt->viewport->dirty, h, w);
+	gt->viewport->updating = false;
+	gt->viewport->offset = 0;
+	gt->viewport->scroll_lock = false;
 
 	_report_scroll(gt);
 }
 
 void viewport_term (GTerm* gt) {
-	dirty_free(&gt->viewport.dirty);
+	dirty_free(&gt->viewport->dirty);
+	free(gt->viewport);
 }
 
 void viewport_reshape(GTerm* gt, uint w, uint h) {
-	dirty_reshape(&gt->viewport.dirty, h, w);
+	dirty_reshape(&gt->viewport->dirty, h, w);
 }
 
 void viewport_taint (GTerm* gt, uint y, uint x, uint len) {
-	y += gt->viewport.offset;
+	y += gt->viewport->offset;
 	if (y >= 0 && y < gt->height) {
-		dirty_taint(&gt->viewport.dirty, y, x, x+len);
+		dirty_taint(&gt->viewport->dirty, y, x, x+len);
 	}
 }
 
 void viewport_taint_all	(GTerm* gt) {
 	for (uint y = 0; y < gt->height; y++) {
-		dirty_taint_row(&gt->viewport.dirty, y);
+		dirty_taint_row(&gt->viewport->dirty, y);
 	}
 }
 
@@ -50,15 +62,15 @@ void viewport_move (GTerm* gt, uint y, uint n, int offset) {
 }
 
 void viewport_history_inc(GTerm* gt) {
-	if (gt->viewport.offset > 0) {
-		if (gt->viewport.scroll_lock) {
-			gt->viewport.offset++;
-			for (int y = (int)gt->height-(int)gt->viewport.offset; y < gt->height; y++) {
-				dirty_taint_row(&gt->viewport.dirty, y);
+	if (gt->viewport->offset > 0) {
+		if (gt->viewport->scroll_lock) {
+			gt->viewport->offset++;
+			for (int y = (int)gt->height-(int)gt->viewport->offset; y < gt->height; y++) {
+				dirty_taint_row(&gt->viewport->dirty, y);
 			}
 		} else {
 			// TODO: do we need to taint all here?
-			gt->viewport.offset = 0;
+			gt->viewport->offset = 0;
 			viewport_taint_all(gt);
 		}
 	}
@@ -68,15 +80,15 @@ void viewport_history_inc(GTerm* gt) {
 
 void viewport_history_dec(GTerm* gt) {
 	uint hsz = history_size(&gt->history);
-	if (gt->viewport.offset > 0) {
-		if (gt->viewport.scroll_lock) {
-			if (gt->viewport.offset > hsz) {
-				gt->viewport.offset = hsz;
+	if (gt->viewport->offset > 0) {
+		if (gt->viewport->scroll_lock) {
+			if (gt->viewport->offset > hsz) {
+				gt->viewport->offset = hsz;
 				viewport_taint_all(gt);
 			}
 		} else {
 			// TODO: do we need to taint all here?
-			gt->viewport.offset = 0;
+			gt->viewport->offset = 0;
 			viewport_taint_all(gt);
 		}
 
@@ -88,8 +100,8 @@ void viewport_set (GTerm* gt, int offset) {
 	uint hsz = history_size(&gt->history);
 	const uint off = int_clamp(offset, 0, hsz);
 
-	if (off != gt->viewport.offset) {
-		gt->viewport.offset = off;
+	if (off != gt->viewport->offset) {
+		gt->viewport->offset = off;
 		viewport_taint_all(gt);
 		gt_update_changes(gt);
 	}
@@ -98,15 +110,15 @@ void viewport_set (GTerm* gt, int offset) {
 }
 
 void viewport_lock_scroll (GTerm* gt, bool lock) {
-	gt->viewport.scroll_lock = lock;
+	gt->viewport->scroll_lock = lock;
 }
 
 void viewport_request_redraw(GTerm* gt, int x, int y, int w, int h, bool force) {
-	if (gt->viewport.updating) {
+	if (gt->viewport->updating) {
 		printf("bad update!\n");
 		return;
 	}
-	gt->viewport.updating = true;
+	gt->viewport->updating = true;
 
 	y = int_clamp(y, 0, gt->height-1);
 	h = int_clamp(h, 0, gt->height-y);
@@ -115,7 +127,7 @@ void viewport_request_redraw(GTerm* gt, int x, int y, int w, int h, bool force) 
 
 	symbol_t buf[gt->width];
 
-	int offset = gt->viewport.offset;
+	int offset = gt->viewport->offset;
 
     // then update characters
     for (int rowno = y; rowno < y+h; rowno++) {
@@ -139,8 +151,8 @@ void viewport_request_redraw(GTerm* gt, int x, int y, int w, int h, bool force) 
 			dirtstart = x;
 			dirtend = x+w;
 		} else {
-			dirtstart = int_max(x, gt->viewport.dirty.start[rowno]);
-			dirtend = int_min(x+w, gt->viewport.dirty.end[rowno]);
+			dirtstart = int_max(x, gt->viewport->dirty.start[rowno]);
+			dirtend = int_min(x+w, gt->viewport->dirty.end[rowno]);
 		}
 
 		const int a = int_max(0, ndata-dirtstart) - int_max(0, ndata-dirtend);
@@ -152,7 +164,7 @@ void viewport_request_redraw(GTerm* gt, int x, int y, int w, int h, bool force) 
 			gt->_fe->draw_clear(gt->_fe_priv, dirtstart+a, rowno, SYMBOL_BG_DEFAULT, b);
 		}
 
-		dirty_cleanse(&gt->viewport.dirty, rowno, dirtstart, dirtend);
+		dirty_cleanse(&gt->viewport->dirty, rowno, dirtstart, dirtend);
     }
 
 	if (!gt_is_mode_set(gt, MODE_CURSORINVISIBLE)) {
@@ -175,6 +187,6 @@ void viewport_request_redraw(GTerm* gt, int x, int y, int w, int h, bool force) 
 		}
 	}
 
-	gt->viewport.updating = false;
+	gt->viewport->updating = false;
 }
 

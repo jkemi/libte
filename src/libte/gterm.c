@@ -8,6 +8,7 @@
 #include "actions.h"
 
 #include "viewport.h"
+#include "parser.h"
 #include "gterm.h"
 
 

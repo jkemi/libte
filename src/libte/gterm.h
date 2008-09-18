@@ -12,10 +12,7 @@
 
 #include "libte.h"
 
-#include "parser.h"
 #include "macros.h"
-
-#include "viewport_dirty.h"
 
 #include "gt_typedef.h"
 
@@ -104,12 +101,6 @@ struct GTerm_ {
 	Buffer	buffer;
 	History	history;
 
-	struct {
-		uint	offset;
-		Dirty	dirty;
-		bool	updating;
-		bool	scroll_lock;
-	} viewport;
 
 	// Scroll margins, as set by DECSTBM
 	int scroll_top, scroll_bot;
@@ -129,8 +120,8 @@ struct GTerm_ {
 		bool autowrap;
 	} stored;
 
-	Parser* parser;
-
+	struct Parser_* parser;
+	struct Viewport_* viewport;
 };
 
 GTerm* gterm_new(const TE_Frontend* fe, void* fe_priv, int w, int h);

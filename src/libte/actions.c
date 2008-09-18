@@ -10,6 +10,7 @@
 #include "misc.h"
 #include "history.h"
 #include "viewport.h"
+#include "parser.h"
 
 #include "actions.h"
 

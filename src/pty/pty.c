@@ -194,8 +194,10 @@ static int _pts_slave(PTY* pty) {
 PTY* pty_spawn(const char *exe, const char* const* envdata) {
 	int pid, sfd;
 
+/*
 	const int uid = getuid();
 	const int gid = getgid();
+*/
 
 	PTY* pty = (PTY*)malloc(sizeof(PTY));
 
