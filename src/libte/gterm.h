@@ -93,8 +93,8 @@ struct GTerm_ {
 	// An boolean array where true means that there exists a tab-stop at that column
 	bool* tab_stops;
 
-	const TE_Frontend*	_fe;
-	void*				_fe_priv;
+	const TE_Frontend*	fe;
+	void*				fe_priv;
 
 	// terminal info
 	int width, height;

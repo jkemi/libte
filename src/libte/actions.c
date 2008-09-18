@@ -67,7 +67,7 @@ void ac_bs(GTerm* gt)
 
 void ac_bell(GTerm* gt)
 {
-	gt->_fe->bell(gt->_fe_priv);
+	gt->fe->bell(gt->fe_priv);
 }
 
 void ac_keypad_normal(GTerm* gt) {

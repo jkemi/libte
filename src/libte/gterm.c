@@ -164,10 +164,10 @@ int gt_handle_button(GTerm* gt, te_key_t key)
 void gt_handle_keypress(GTerm* gt, int32_t cp, te_modifier_t modifiers) {
 	if (modifiers & TE_MOD_META) {
 		int32_t buf[] = {'\033', cp, '\0'};
-		gt->_fe->send_back(gt->_fe_priv, buf);
+		gt->fe->send_back(gt->fe_priv, buf);
 	} else {
 		int32_t buf[] = {cp, '\0'};
-		gt->_fe->send_back(gt->_fe_priv, buf);
+		gt->fe->send_back(gt->fe_priv, buf);
 	}
 }
 
@@ -270,8 +270,8 @@ GTerm* gterm_new(const TE_Frontend* fe, void* fe_priv, int w, int h)
 {
 	GTerm* gt = (GTerm*)malloc(sizeof(GTerm));
 
-	gt->_fe = fe;
-	gt->_fe_priv = fe_priv;
+	gt->fe = fe;
+	gt->fe_priv = fe_priv;
 
 	gt->parser = parser_new();
 
@@ -329,21 +329,21 @@ void gt_fe_send_back(GTerm* gt, const char* data) {
 		buf[i] = data[i];
 	}
 
-	gt->_fe->send_back(gt->_fe_priv, buf);
+	gt->fe->send_back(gt->fe_priv, buf);
 }
 
 
 void gt_fe_request_resize(GTerm* gt, int width, int height) {
-	gt->_fe->request_resize(gt->_fe_priv, width, height);
+	gt->fe->request_resize(gt->fe_priv, width, height);
 	gt_clear_area(gt, 0, 0, width, height);
 }
 
 void gt_fe_updated(GTerm* gt) {
-	gt->_fe->updated(gt->_fe_priv);
+	gt->fe->updated(gt->fe_priv);
 }
 
 void gt_fe_move(GTerm* gt, int y, int height, int byoffset) {
-	gt->_fe->draw_move(gt->_fe_priv, y, height, byoffset);
+	gt->fe->draw_move(gt->fe_priv, y, height, byoffset);
 }
 
 //
