@@ -4,7 +4,7 @@ libte:
 
  * alternate screen buffer
  * limit row-buffer dynamic growth to screen width
- * c-ify remaining files
+ * c-ify remaining files (done)
  * versioning
  * create actual library
  * copyright texts
