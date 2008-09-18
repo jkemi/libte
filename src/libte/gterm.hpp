@@ -144,15 +144,6 @@ public:
 	// Ordinary printable character are sent here from parser
 	void input(const int32_t* text, size_t len);
 
-	// terminal actions
-
-	int get_mode() { return mode_flags; }
-	void set_mode(int mode) { mode_flags = mode; }
-	bool is_mode_flag(te_mode_t flag) { return (mode_flags & flag) != 0; }
-	void set_mode_flag(te_mode_t flag) {mode_flags |= flag;}
-	void clear_mode_flag(te_mode_t flag) {mode_flags &= ~flag;}
-	void clear_mode_flags(int flags) {mode_flags &= ~flags;}
-
 	void fe_send_back (const char* data);
 	void fe_request_resize (int width, int height);
 	void fe_updated (void);
@@ -175,6 +166,14 @@ void gt_scroll_region(GTerm* gt, uint start_y, uint end_y, int num);	// does cle
 void gt_clear_area(GTerm* gt, int start_x, int start_y, int end_x, int end_y);
 void gt_changed_line(GTerm* gt, int y, int start_x, int end_x);
 void gt_move_cursor(GTerm* gt, int x, int y);
+
+// terminal actions
+static inline int gt_get_mode(GTerm* gt) { return gt->mode_flags; }
+static inline void gt_set_mode(GTerm* gt, int mode) { gt->mode_flags = mode; }
+static inline bool gt_is_mode_flag(GTerm* gt, te_mode_t flag) { return (gt->mode_flags & flag) != 0; }
+static inline void gt_set_mode_flag(GTerm* gt, te_mode_t flag) {gt->mode_flags |= flag;}
+static inline void gt_clear_mode_flag(GTerm* gt, te_mode_t flag) {gt->mode_flags &= ~flag;}
+static inline void gt_clear_mode_flags(GTerm* gt, int flags) {gt->mode_flags &= ~flags;}
 
 
 #endif
