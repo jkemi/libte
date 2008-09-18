@@ -117,8 +117,6 @@ static const keymap _keys_common[] = {
 	{TE_KEY_UNDEFINED,	NULL}
 };
 
-extern void parser_init (GTerm* gt);
-
 int gt_handle_button(GTerm* gt, te_key_t key)
 {
 	const char* s = NULL;
