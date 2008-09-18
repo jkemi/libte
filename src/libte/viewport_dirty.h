@@ -26,8 +26,6 @@ typedef struct {
 	int*	end;		// last dirty column+1
 } Dirty;
 
-CDECLS_BEGIN
-
 void dirty_init(Dirty* d, uint nrows, uint ncols);
 void dirty_free(Dirty* d);
 
@@ -42,7 +40,5 @@ static inline void dirty_cleanse_row(Dirty* d, int row) {d->start[row] = INT_MAX
  */
 void dirty_taint(Dirty* d, int row, int start, int end);
 void dirty_cleanse(Dirty* d, int row, int start, int end);
-
-CDECLS_END
 
 #endif /* DIRTY_H_ */

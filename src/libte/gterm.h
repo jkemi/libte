@@ -12,10 +12,10 @@
 
 #include "libte.h"
 
-#include "Dirty.h"
-
 #include "parser.h"
 #include "macros.h"
+
+#include "viewport_dirty.h"
 
 #include "gt_typedef.h"
 
@@ -133,8 +133,6 @@ struct GTerm_ {
 
 };
 
-CDECLS_BEGIN
-
 GTerm* gterm_new(const TE_Frontend* fe, void* fe_priv, int w, int h);
 void gterm_delete(GTerm* gt);
 
@@ -166,8 +164,6 @@ void gt_update_changes(GTerm* gt);
 void gt_resize_terminal(GTerm* gt, int w, int h);
 int gt_handle_button(GTerm* gt, te_key_t key);
 void gt_handle_keypress(GTerm* gt, int32_t cp, te_modifier_t modifiers);
-
-CDECLS_END
 
 #endif
 

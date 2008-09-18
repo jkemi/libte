@@ -4,7 +4,7 @@
 #include "actions.h"
 
 #include "parser_internal.h"
-#include "states.h"
+#include "parser_states.h"
 
 
 // these are documented here:
@@ -180,15 +180,3 @@ static const StateOption state_dcs[] = {
 	{ 27, 	&_parser_dcs_end,		state_esc	 },
 	{ -1, 	&_parser_dcs_put,		state_dcs	}
 };
-
-/*
-const StateOption* const state_normal =			_state_normal;
-const StateOption* const state_esc =			_state_esc;
-const StateOption* const state_csi =			_state_csi;
-const StateOption* const state_osc =			_state_osc;
-const StateOption* const state_ignore_to_st =	_state_ignore_to_st;
-const StateOption* const state_dcs =			_state_dcs;
-const StateOption* const state_cset_shiftin =	_state_cset_shiftin;
-const StateOption* const state_cset_shiftout =	_state_cset_shiftout;
-const StateOption* const state_hash =			_state_hash;
-*/

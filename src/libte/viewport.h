@@ -9,9 +9,8 @@
 #define VIEWPORT_H_
 
 #include "misc.h"
-#include "macros.h"
 
-CDECLS_BEGIN
+#include "viewport_dirty.h"
 
 void viewport_init	(GTerm* gt, uint w, uint h);
 void viewport_term	(GTerm* gt);
@@ -29,7 +28,5 @@ void viewport_set		(GTerm* gt, int offset);
 void viewport_lock_scroll (GTerm* gt, bool lock);
 
 void viewport_request_redraw(GTerm* gt, int x, int y, int w, int h, bool force);
-
-CDECLS_END
 
 #endif /* VIEWPORT_H_ */

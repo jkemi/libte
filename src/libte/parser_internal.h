@@ -8,6 +8,8 @@
 #ifndef PARSER_INTERNAL_H_
 #define PARSER_INTERNAL_H_
 
+#include "gt_typedef.h"
+
 void _parser_unknown_esc(GTerm* gt);
 void _parser_unknown_csi(GTerm* gt);
 

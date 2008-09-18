@@ -5,14 +5,10 @@
  *      Author: jakob
  */
 
-#ifndef STATES_H_
-#define STATES_H_
-
-#include "macros.h"
+#ifndef PARSER_STATES_H_
+#define PARSER_STATES_H_
 
 #include "gt_typedef.h"
-
-CDECLS_BEGIN
 
 typedef void (*StateFunc)(GTerm* gt);
 
@@ -24,6 +20,4 @@ typedef struct StateOption_ {
 
 extern const StateOption state_normal[];
 
-CDECLS_END
-
-#endif /* STATES_H_ */
+#endif /* PARSER_STATES_H_ */

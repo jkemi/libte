@@ -22,8 +22,6 @@ typedef struct {
 	uint		ncols;
 } Buffer;
 
-CDECLS_BEGIN
-
 void buffer_init(Buffer* buf, History* hist, uint nrows, uint ncols);
 void buffer_term(Buffer* buf);
 void buffer_reshape(Buffer* buf, uint nrows, uint ncols);
@@ -34,7 +32,5 @@ void buffer_scroll_down(Buffer* buf, uint top, uint bottom);
 static inline BufferRow* buffer_get_row(Buffer* buf, uint rowno) {
 	return buf->rows[rowno];
 }
-
-CDECLS_END
 
 #endif /* BUFFER_H_ */

@@ -14,7 +14,8 @@
 
 #include "gterm.h"
 
-#include "states.h"
+#include "parser_states.h"
+#include "parser_internal.h"
 
 #include "parser.h"
 

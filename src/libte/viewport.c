@@ -6,7 +6,7 @@
  */
 
 #include "gterm.h"
-#include "Dirty.h"
+#include "viewport_dirty.h"
 #include "viewport.h"
 
 

@@ -18,8 +18,6 @@ typedef struct {
 	symbol_t*	data;
 } BufferRow;
 
-CDECLS_BEGIN
-
 BufferRow* bufrow_new(void);
 void bufrow_free(BufferRow* br);
 
@@ -35,7 +33,5 @@ void bufrow_remove(BufferRow* br, uint x, uint len);
 	void _ensureCapacity(uint capacity);
 	void _pad(uint x, int len);
 	*/
-
-CDECLS_END
 
 #endif /* BUFFERROW_H_ */

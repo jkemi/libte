@@ -23,8 +23,6 @@ typedef struct  {
 	uint			pos;
 } History;
 
-CDECLS_BEGIN
-
 void history_init(History* hist, uint capacity);
 void history_term(History* hist);
 
@@ -35,7 +33,5 @@ uint history_peek(History* hist, uint age, symbol_t* dest, uint n);
 
 void history_store(History* hist, const BufferRow* row);
 void history_fetch(History* hist, BufferRow* row);
-
-CDECLS_END
 
 #endif /* HISTORY_H_ */

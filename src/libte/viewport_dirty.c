@@ -13,7 +13,7 @@
 
 #include "misc.h"
 
-#include "Dirty.h"
+#include "viewport_dirty.h"
 
 void dirty_init(Dirty* d, uint nrows, uint ncols) {
 	d->_nrows = nrows;
