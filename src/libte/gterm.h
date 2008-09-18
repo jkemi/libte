@@ -10,12 +10,14 @@
 #include "symbol.h"
 #include "Buffer.h"
 
-#include "states.h"
-
 #include "libte.h"
 
-
 #include "Dirty.h"
+
+#include "parser.h"
+#include "macros.h"
+
+#include "gt_typedef.h"
 
 // mode flags
 typedef enum {
@@ -86,7 +88,7 @@ typedef enum {
 } te_mode_t;
 
 
-struct _GTerm {
+struct GTerm_ {
 
 	// Contains the currently set mode flags
 	int mode_flags;
@@ -127,22 +129,11 @@ struct _GTerm {
 		bool autowrap;
 	} stored;
 
-	struct {
-		// action parameters
-		int num_params;
-		int params[16];
-
-		unsigned char intermediate_chars[2];
-
-		const int32_t*	input_data;
-		size_t			input_remaining;
-
-		const StateOption* current_state;
-	} parser;
+	Parser* parser;
 
 };
 
-typedef struct _GTerm GTerm;
+CDECLS_BEGIN
 
 GTerm* gterm_new(const TE_Frontend* fe, void* fe_priv, int w, int h);
 void gterm_delete(GTerm* gt);
@@ -175,6 +166,8 @@ void gt_update_changes(GTerm* gt);
 void gt_resize_terminal(GTerm* gt, int w, int h);
 int gt_handle_button(GTerm* gt, te_key_t key);
 void gt_handle_keypress(GTerm* gt, int32_t cp, te_modifier_t modifiers);
+
+CDECLS_END
 
 #endif
 

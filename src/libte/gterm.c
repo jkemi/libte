@@ -92,26 +92,26 @@ static const keymap _keys_common[] = {
 	{TE_KEY_PGUP,		"\033[5~"},
 	{TE_KEY_PGDN,		"\033[6~"},
 
-	{te_key_t(TE_KEY_F+1),		"\033[11~"},
-	{te_key_t(TE_KEY_F+2),		"\033[12~"},
-	{te_key_t(TE_KEY_F+3),		"\033[13~"},
-	{te_key_t(TE_KEY_F+4),		"\033[14~"},
-	{te_key_t(TE_KEY_F+5),		"\033[15~"},
-	{te_key_t(TE_KEY_F+6),		"\033[17~"},
-	{te_key_t(TE_KEY_F+7),		"\033[18~"},
-	{te_key_t(TE_KEY_F+8),		"\033[19~"},
-	{te_key_t(TE_KEY_F+9),		"\033[20~"},
-	{te_key_t(TE_KEY_F+10),		"\033[21~"},
-	{te_key_t(TE_KEY_F+11),		"\033[23~"},
-	{te_key_t(TE_KEY_F+12),		"\033[24~"},
-	{te_key_t(TE_KEY_F+13),		"\033[25~"},
-	{te_key_t(TE_KEY_F+14),		"\033[26~"},
-	{te_key_t(TE_KEY_F+15),		"\033[28~"},
-	{te_key_t(TE_KEY_F+16),		"\033[29~"},
-	{te_key_t(TE_KEY_F+17),		"\033[31~"},
-	{te_key_t(TE_KEY_F+18),		"\033[32~"},
-	{te_key_t(TE_KEY_F+19),		"\033[33~"},
-	{te_key_t(TE_KEY_F+20),		"\033[34~"},
+	{(te_key_t)(TE_KEY_F+1),		"\033[11~"},
+	{(te_key_t)(TE_KEY_F+2),		"\033[12~"},
+	{(te_key_t)(TE_KEY_F+3),		"\033[13~"},
+	{(te_key_t)(TE_KEY_F+4),		"\033[14~"},
+	{(te_key_t)(TE_KEY_F+5),		"\033[15~"},
+	{(te_key_t)(TE_KEY_F+6),		"\033[17~"},
+	{(te_key_t)(TE_KEY_F+7),		"\033[18~"},
+	{(te_key_t)(TE_KEY_F+8),		"\033[19~"},
+	{(te_key_t)(TE_KEY_F+9),		"\033[20~"},
+	{(te_key_t)(TE_KEY_F+10),		"\033[21~"},
+	{(te_key_t)(TE_KEY_F+11),		"\033[23~"},
+	{(te_key_t)(TE_KEY_F+12),		"\033[24~"},
+	{(te_key_t)(TE_KEY_F+13),		"\033[25~"},
+	{(te_key_t)(TE_KEY_F+14),		"\033[26~"},
+	{(te_key_t)(TE_KEY_F+15),		"\033[28~"},
+	{(te_key_t)(TE_KEY_F+16),		"\033[29~"},
+	{(te_key_t)(TE_KEY_F+17),		"\033[31~"},
+	{(te_key_t)(TE_KEY_F+18),		"\033[32~"},
+	{(te_key_t)(TE_KEY_F+19),		"\033[33~"},
+	{(te_key_t)(TE_KEY_F+20),		"\033[34~"},
 
 	{TE_KEY_UNDEFINED,	NULL}
 };
@@ -234,7 +234,7 @@ void gt_input(GTerm* gt, const int32_t* text, size_t len) {
 
 void gt_resize_terminal(GTerm* gt, int w, int h)
 {
-	bool* newtabs = new bool[w];
+	bool* newtabs = xnew(bool, w);
 	if (w > gt->width) {
 		memset(newtabs+gt->width, 0, sizeof(bool)*(w-gt->width));
 	}
@@ -274,7 +274,7 @@ GTerm* gterm_new(const TE_Frontend* fe, void* fe_priv, int w, int h)
 	gt->_fe = fe;
 	gt->_fe_priv = fe_priv;
 
-	parser_init(gt);
+	gt->parser = parser_new();
 
 	gt->width = w;
 	gt->height = h;
@@ -285,7 +285,7 @@ GTerm* gterm_new(const TE_Frontend* fe, void* fe_priv, int w, int h)
 	viewport_init(gt, w, h);
 
 	// Create tab stops
-	gt->tab_stops = new bool[w];
+	gt->tab_stops = xnew(bool, w);
 	memset(gt->tab_stops, 0, sizeof(bool)*w);
 
 	gt->cursor_x = 0;
@@ -318,6 +318,7 @@ GTerm* gterm_new(const TE_Frontend* fe, void* fe_priv, int w, int h)
 void gterm_delete(GTerm* gt) {
 	buffer_term(&gt->buffer);
 	viewport_term(gt);
+	parser_delete(gt->parser);
 }
 
 void gt_fe_send_back(GTerm* gt, const char* data) {
@@ -367,7 +368,7 @@ TE_Backend* te_create(const TE_Frontend* front, void* priv, int width, int heigh
 }
 
 void te_destroy(TE_Backend* te) {
-	delete te->gt;
+	gterm_delete(te->gt);
 	free(te);
 }
 
@@ -388,7 +389,7 @@ void te_request_redraw(TE_Backend* te, int x, int y, int w, int h, int force) {
 }
 
 void te_process_input(TE_Backend* te, const int32_t* data, size_t len) {
-	gt_process_input(te->gt, len, data);
+	parser_input(te->gt->parser, len, data, te->gt);
 }
 
 int te_handle_button(TE_Backend* te, te_key_t key) {

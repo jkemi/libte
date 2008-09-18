@@ -10,7 +10,7 @@
 
 #include "macros.h"
 
-typedef struct _GTerm GTerm;
+#include "gt_typedef.h"
 
 DLLLOCAL void ac_cr					(GTerm* gt);	// Carriage-return
 DLLLOCAL void ac_lf					(GTerm* gt);	// Line-Feed, same as Vertical-Tab and Form-Feed

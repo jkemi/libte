@@ -1,26 +1,26 @@
 // Copyright Timothy Miller, 1999
 
 #include <stddef.h>
-#include "Parser.h"
 #include "actions.h"
 
+#include "parser_internal.h"
 #include "states.h"
 
-extern const StateOption* const state_normal;
-extern const StateOption* const state_esc;
-extern const StateOption* const state_csi;
-extern const StateOption* const state_osc;
-extern const StateOption* const state_ignore_to_st;
-extern const StateOption* const state_dcs;
-extern const StateOption* const state_cset_shiftin;
-extern const StateOption* const state_cset_shiftout;
-extern const StateOption* const state_hash;
 
 // these are documented here:
 // http://www.xfree86.org/current/ctlseqs.html
 
+static const StateOption state_esc[];
+static const StateOption state_csi[];
+static const StateOption state_osc[];
+static const StateOption state_ignore_to_st[];
+static const StateOption state_dcs[];
+static const StateOption state_cset_shiftin[];
+static const StateOption state_cset_shiftout[];
+static const StateOption state_hash[];
+
 // state machine transition tables
-static const StateOption _state_normal[] = {
+const StateOption state_normal[] = {
     { '\r', &ac_cr,		state_normal },	// CR
     { '\n', &ac_lf,		state_normal },	// LF
     { '\f', &ac_lf,		state_normal },	// FF (xterm spec says same as LF)
@@ -52,7 +52,7 @@ static const StateOption _state_normal[] = {
 };
 
 //const StateOption state_esc[] = {
-static const StateOption _state_esc[] = {
+static const StateOption state_esc[] = {
     { '[', &_parser_clear_param,	state_csi },
     { ']', &_parser_osc_start,		state_osc },
     { '>', &ac_keypad_normal,		state_normal },
@@ -87,24 +87,24 @@ static const StateOption _state_esc[] = {
 // Should put cursor control characters in these groups as well.
 // Maybe later.
 
-static const StateOption _state_cset_shiftin[] = {
+static const StateOption state_cset_shiftin[] = {
 	{ 'A',	NULL,	state_normal },	// should set UK characters
 	{ '0',	NULL,	state_normal },	// should set Business Gfx
 	{ -1,	NULL,	state_normal },	// default to ASCII
 };
 
-static const StateOption _state_cset_shiftout[] = {
+static const StateOption state_cset_shiftout[] = {
 	{ 'A',	NULL,	state_normal },	// should set UK characters
 	{ '0',	NULL,	state_normal },	// should set Business Gfx
 	{ -1,	NULL,	state_normal },	// default to ASCII
 };
 
-static const StateOption _state_hash[] = {
+static const StateOption state_hash[] = {
     { '8',	&ac_screen_align,   state_normal },
 	{ -1,	NULL,				state_normal}
 };
 
-static const StateOption _state_csi[] = {
+static const StateOption state_csi[] = {
     { '?', &_parser_set_intermediate,	state_csi },
     { '"', &_parser_set_intermediate,	state_csi },
     { '!', &_parser_set_intermediate,	state_csi },
@@ -160,7 +160,7 @@ static const StateOption _state_csi[] = {
     { -1,   &_parser_unknown_csi,		state_normal	}
  };
 
-static const StateOption _state_osc[] = {
+static const StateOption state_osc[] = {
 	{ '\a',	&_parser_osc_end,		state_normal },
 	{ 0x9c,	&_parser_osc_end,		state_normal },	// 8-bit ST
 	{ 27, 	&_parser_osc_end,		state_esc	 },
@@ -168,20 +168,20 @@ static const StateOption _state_osc[] = {
 };
 
 // APC and PM are ignored (as per xterm spec.)
-static const StateOption _state_ignore_to_st[] = {
+static const StateOption state_ignore_to_st[] = {
 	{ 0x9c,	NULL,		state_normal },	// 8-bit ST
 	{ 27, 	NULL,		state_esc	 },
 	{ -1, 	NULL,		state_ignore_to_st	}
 };
 
 // Device-Control functions
-static const StateOption _state_dcs[] = {
+static const StateOption state_dcs[] = {
 	{ 0x9c,	&_parser_dcs_end,		state_normal },	// 8-bit ST
 	{ 27, 	&_parser_dcs_end,		state_esc	 },
 	{ -1, 	&_parser_dcs_put,		state_dcs	}
 };
 
-
+/*
 const StateOption* const state_normal =			_state_normal;
 const StateOption* const state_esc =			_state_esc;
 const StateOption* const state_csi =			_state_csi;
@@ -191,3 +191,4 @@ const StateOption* const state_dcs =			_state_dcs;
 const StateOption* const state_cset_shiftin =	_state_cset_shiftin;
 const StateOption* const state_cset_shiftout =	_state_cset_shiftout;
 const StateOption* const state_hash =			_state_hash;
+*/

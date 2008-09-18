@@ -13,14 +13,6 @@
 
 #include "actions.h"
 
-static inline int _get_param(GTerm* gt, int index, int default_value) {
-	if (gt->parser.num_params > index) {
-		return gt->parser.params[index];
-	} else {
-		return default_value;
-	}
-}
-
 void ac_cr(GTerm* gt)
 {
 	gt_move_cursor(gt, 0, gt->cursor_y);
@@ -169,7 +161,7 @@ void ac_reset(GTerm* gt)
 void ac_cursor_left(GTerm* gt)
 {
 	int n, x;
-	n = int_max(1, _get_param(gt,0,1) );
+	n = int_max(1, parser_get_param(gt->parser,0,1) );
 
 	x = int_max(0, gt->cursor_x-n);
 	gt_move_cursor(gt, x, gt->cursor_y);
@@ -179,7 +171,7 @@ void ac_cursor_left(GTerm* gt)
 void ac_cursor_right(GTerm* gt)
 {
 	int n, x;
-	n = int_max(1, _get_param(gt,0,1) );
+	n = int_max(1, parser_get_param(gt->parser,0,1) );
 
 	x = int_min(gt->width-1, gt->cursor_x+n);
 	gt_move_cursor(gt, x, gt->cursor_y);
@@ -189,7 +181,7 @@ void ac_cursor_right(GTerm* gt)
 void ac_cursor_up(GTerm* gt)
 {
 	int n, y;
-	n = int_max(1, _get_param(gt,0,1) );
+	n = int_max(1, parser_get_param(gt->parser,0,1) );
 
 	if (gt_is_mode_set(gt, MODE_ORIGIN)) {
 		y = int_max(gt->scroll_top, gt->cursor_y-n);
@@ -203,7 +195,7 @@ void ac_cursor_up(GTerm* gt)
 void ac_cursor_down(GTerm* gt)
 {
 	int n, y;
-	n = int_max(1, _get_param(gt,0,1) );
+	n = int_max(1, parser_get_param(gt->parser,0,1) );
 
 	if (gt_is_mode_set(gt, MODE_ORIGIN)) {
 		y = int_min(gt->scroll_bot, gt->cursor_y+n);
@@ -219,11 +211,11 @@ void ac_cursor_position(GTerm* gt)
 	int y, x;
 
 	if (gt_is_mode_set(gt, MODE_ORIGIN)) {
-		y = int_clamp(_get_param(gt, 0, 1)+gt->scroll_top, gt->scroll_top, gt->scroll_bot+1);
+		y = int_clamp(parser_get_param(gt->parser, 0, 1)+gt->scroll_top, gt->scroll_top, gt->scroll_bot+1);
 	} else {
-		y = int_clamp(_get_param(gt, 0, 1), 1, gt->height);
+		y = int_clamp(parser_get_param(gt->parser, 0, 1), 1, gt->height);
 	}
-	x = int_clamp(_get_param(gt, 1, 1), 1, gt->width);
+	x = int_clamp(parser_get_param(gt->parser, 1, 1), 1, gt->width);
 
 	gt_move_cursor(gt, x-1, y-1);
 }
@@ -231,7 +223,7 @@ void ac_cursor_position(GTerm* gt)
 // Cursor Character Absolute [column] (default = [row,1]) (CHA)
 void ac_column_position(GTerm* gt)
 {
-	int	x = int_clamp(_get_param(gt, 0, 1), 1, gt->width);
+	int	x = int_clamp(parser_get_param(gt->parser, 0, 1), 1, gt->width);
 
 	gt_move_cursor(gt, x-1, gt->cursor_y);
 }
@@ -239,7 +231,7 @@ void ac_column_position(GTerm* gt)
 // Line Position Absolute [row] (default = [1,column]) (VPA)
 void ac_line_position(GTerm* gt)
 {
-	int	y = int_clamp(_get_param(gt, 0, 1), 1, gt->height);
+	int	y = int_clamp(parser_get_param(gt->parser, 0, 1), 1, gt->height);
 
 	gt_move_cursor(gt, gt->cursor_x, y-1);
 }
@@ -254,7 +246,7 @@ void ac_device_attrib(GTerm* gt)
 void ac_delete_char(GTerm* gt)
 {
 	int n, mx;
-	n = int_max(1, _get_param(gt,0,1) );
+	n = int_max(1, parser_get_param(gt->parser,0,1) );
 
 	mx = gt->width - gt->cursor_x;
 	if (n >= mx) {
@@ -270,9 +262,9 @@ void ac_delete_char(GTerm* gt)
 void ac_set_mode(GTerm* gt)  // h
 {
 
-	const int p = _get_param(gt,0,-1);
+	const int p = parser_get_param(gt->parser,0,-1);
 
-	if (gt->parser.intermediate_chars[0] == '?') {
+	if (parser_get_intermediate(gt->parser) == '?') {
 		// DEC Private Mode Set (DECSET)
 		// Lots of these are missing
 
@@ -308,11 +300,11 @@ void ac_set_mode(GTerm* gt)  // h
 // Reset Mode (RM)
 void ac_clear_mode(GTerm* gt)  // l
 {
-	if (gt->parser.intermediate_chars[0] == '?') {
+	if (parser_get_intermediate(gt->parser) == '?') {
 		// DEC Private Mode Reset (DECRST)
 		// Lots of these are missing
 
-		switch (_get_param(gt,0,-1)) {
+		switch (parser_get_param(gt->parser,0,-1)) {
 		case 1:	gt_clear_mode_flag(gt, MODE_CURSORAPP);		break;	// Normal Cursor Keys (DECCKM)
 //		case 2:	current_state = vt52_normal_state; break;	// Designate VT52 mode (DECANM).
 		case 3:	gt_fe_request_resize(gt, 80, gt->height);		break;	// 132 Column Mode (DECCOLM)
@@ -326,7 +318,7 @@ void ac_clear_mode(GTerm* gt)  // l
 	} else {
 		// Reset Mode (RM)
 
-		switch (_get_param(gt,0,-1)) {
+		switch (parser_get_param(gt->parser,0,-1)) {
 //		case 2:											// Keyboard Action Mode (AM)
 		case 4:		gt_clear_mode_flag(gt, MODE_INSERT);	break;	// Insert Mode (IRM)
 		case 12:	gt_set_mode_flag(gt, MODE_LOCALECHO);	break;	// Send/receive (SRM)
@@ -337,7 +329,7 @@ void ac_clear_mode(GTerm* gt)  // l
 
 // Set conformance level (DECSCL) and Soft terminal reset (DECSTR)
 void ac_set_conformance	(GTerm* gt) {
-	if (gt->parser.intermediate_chars[0] == '!') {
+	if (parser_get_intermediate(gt->parser) == '!') {
 		ac_reset(gt);
 	} else {
 		// TODO: not implemented yet.
@@ -346,8 +338,12 @@ void ac_set_conformance	(GTerm* gt) {
 
 void ac_request_param(GTerm* gt)
 {
+	// TODO: what is this function for???
+
+
+
 	char str[40];
-	sprintf(str, "\033[%d;1;1;120;120;1;0x", gt->parser.params[0]+2);
+	sprintf(str, "\033[%d;1;1;120;120;1;0x", parser_get_param(gt->parser, 0, 0)+2);
 
 	gt_fe_send_back(gt, str);
 }
@@ -357,8 +353,8 @@ void ac_set_margins(GTerm* gt)
 {
 	int t, b;
 
-	t = int_clamp(_get_param(gt,0,1), 1, gt->height-1);
-	b = int_clamp(_get_param(gt,1,gt->height), t+1, gt->height);
+	t = int_clamp(parser_get_param(gt->parser,0,1), 1, gt->height-1);
+	b = int_clamp(parser_get_param(gt->parser,1,gt->height), t+1, gt->height);
 
 	printf("scrolling region set to: %d,%d\n", t,b);
 
@@ -376,7 +372,7 @@ void ac_set_margins(GTerm* gt)
 void ac_delete_line(GTerm* gt)
 {
 	int n, mx;
-	n = int_max(_get_param(gt, 0, 1), 1);
+	n = int_max(parser_get_param(gt->parser, 0, 1), 1);
 	mx = gt->scroll_bot-gt->cursor_y+1;
 	if (n>=mx) {
 		gt_clear_area(gt, 0, gt->cursor_y, gt->width, gt->scroll_bot-gt->cursor_y);
@@ -389,7 +385,7 @@ void ac_delete_line(GTerm* gt)
 void ac_status_report(GTerm* gt)
 {
 	char str[20];
-	switch (_get_param(gt, 0, -1)) {
+	switch (parser_get_param(gt->parser, 0, -1)) {
 	case 5:
 		gt_fe_send_back(gt, "\033[0n");
 		break;
@@ -403,7 +399,7 @@ void ac_status_report(GTerm* gt)
 // Erase in Display (ED)
 void ac_erase_display(GTerm* gt)
 {
-	switch ( _get_param(gt, 0, 0) ) {
+	switch ( parser_get_param(gt->parser, 0, 0) ) {
 	case 0:	// Erase Below (default)
 		gt_clear_area(gt, gt->cursor_x, gt->cursor_y, gt->width-gt->cursor_x, 1);
 		if (gt->cursor_y < gt->height-1) {
@@ -429,7 +425,7 @@ void ac_erase_display(GTerm* gt)
 // Erase in Line (EL)
 void ac_erase_line(GTerm* gt)
 {
-	switch ( _get_param(gt, 0, 0) ) {
+	switch ( parser_get_param(gt->parser, 0, 0) ) {
 	case 0:	// Erase to Right (default)
 		gt_clear_area(gt, gt->cursor_x, gt->cursor_y, gt->width-gt->cursor_x, 1);
 		break;
@@ -446,7 +442,7 @@ void ac_erase_line(GTerm* gt)
 void ac_insert_line(GTerm* gt)
 {
 	int n, mx;
-	n = int_max(1, _get_param(gt, 0, 1) );
+	n = int_max(1, parser_get_param(gt->parser, 0, 1) );
 	mx = gt->scroll_bot-gt->cursor_y+1;
 	if (n >= mx) {
 		gt_clear_area(gt, 0, gt->cursor_y, gt->width, gt->scroll_bot-gt->cursor_y);
@@ -460,15 +456,18 @@ void ac_char_attrs(GTerm* gt)
 {
 	int n;
 
-	if (gt->parser.num_params == 0){
+	const int nparams = parser_get_nparams(gt->parser);
+
+	if (nparams == 0){
 		gt->attributes = 0;
 		gt->fg_color = SYMBOL_FG_DEFAULT;
 		gt->bg_color = SYMBOL_BG_DEFAULT;
 		return;
 	}
 
-	for (n = 0; n < gt->parser.num_params; n++) {
-		const int p = gt->parser.params[n];
+	const int* params = parser_get_params(gt->parser);
+	for (n = 0; n < nparams; n++) {
+		const int p = params[n];
 		if (p/10 == 4) {
 			if (p%10 == 9) {
 				gt->bg_color = SYMBOL_BG_DEFAULT;
@@ -512,7 +511,7 @@ void ac_char_attrs(GTerm* gt)
 // Tab Clear (TBC)
 void ac_clear_tab(GTerm* gt)
 {
-	switch ( _get_param(gt,0,0) ) {
+	switch ( parser_get_param(gt->parser,0,0) ) {
 	case 3:
 		memset(gt->tab_stops, 0, sizeof(gt->tab_stops));
 		break;
@@ -525,7 +524,7 @@ void ac_clear_tab(GTerm* gt)
 void ac_insert_char(GTerm* gt)
 {
 	int n, mx;
-	n = int_max(1, _get_param(gt,0,1) );
+	n = int_max(1, parser_get_param(gt->parser,0,1) );
 	mx = gt->width-gt->cursor_x;
 	if (n >= mx) {
 		gt_clear_area(gt, gt->cursor_x, gt->cursor_y, gt->width-gt->cursor_x, 1);
@@ -565,7 +564,7 @@ void ac_screen_align(GTerm* gt)
 void ac_erase_char(GTerm* gt)
 {
 	// number of characters to erase
-	const int n = int_clamp(_get_param(gt,0,1), 1, gt->width-gt->cursor_x);
+	const int n = int_clamp(parser_get_param(gt->parser,0,1), 1, gt->width-gt->cursor_x);
 	gt_clear_area(gt, gt->cursor_x, gt->cursor_y, n, 1);
 }
 
@@ -575,7 +574,7 @@ void ac_erase_char(GTerm* gt)
 // Ps new lines appear at the bottom of the display. Ps old lines disappear at the top
 // of the display. You cannot pan past the bottom margin of the current page.
 void ac_scroll_up (GTerm* gt) {
-	const int n = int_clamp(_get_param(gt,0,1), 1, gt->scroll_bot-gt->scroll_top);
+	const int n = int_clamp(parser_get_param(gt->parser,0,1), 1, gt->scroll_bot-gt->scroll_top);
 
 	printf("scroll up by %d\n", n);
 
@@ -585,7 +584,7 @@ void ac_scroll_up (GTerm* gt) {
 // Scroll up Ps lines (default = 1) (SD)
 // (Pan Up)
 void ac_scroll_down (GTerm* gt) {
-	const int n = int_clamp(_get_param(gt,0,1), 1, gt->scroll_bot-gt->scroll_top);
+	const int n = int_clamp(parser_get_param(gt->parser,0,1), 1, gt->scroll_bot-gt->scroll_top);
 
 	printf("scroll down by %d\n", n);
 

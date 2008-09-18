@@ -5,10 +5,8 @@
  *      Author: jakob
  */
 
-#ifndef OLDPARSER_HPP_
-#define OLDPARSER_HPP_
-
-typedef struct _GTerm GTerm;
+#ifndef PARSER_INTERNAL_H_
+#define PARSER_INTERNAL_H_
 
 void _parser_unknown_esc(GTerm* gt);
 void _parser_unknown_csi(GTerm* gt);
@@ -30,4 +28,4 @@ void _parser_vt52_cursory(GTerm* gt);
 void _parser_vt52_cursorx(GTerm* gt);
 void _parser_normal_input(GTerm* gt);
 
-#endif /* OLDPARSER_HPP_ */
+#endif /* PARSER_INTERNAL_H_ */
