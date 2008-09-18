@@ -19,14 +19,14 @@ void parser_init (GTerm* gt) {
 	gt->parser.current_state = state_normal;
 }
 
-void GTerm::process_input(int len, const int32_t* data)
+void gt_process_input(GTerm* gt, int len, const int32_t* data)
 {
-	parser.input_remaining = len;
-	parser.input_data = data;
+	gt->parser.input_remaining = len;
+	gt->parser.input_data = data;
 
-	while (parser.input_remaining > 0) {
-		const StateOption* state = parser.current_state;
-		while (state->cp != -1 && state->cp != *parser.input_data) {
+	while (gt->parser.input_remaining > 0) {
+		const StateOption* state = gt->parser.current_state;
+		while (state->cp != -1 && state->cp != *gt->parser.input_data) {
 			state++;
 		}
 
@@ -39,15 +39,15 @@ void GTerm::process_input(int len, const int32_t* data)
 				printf("0x%x\n", cp);
 			}*/
 
-			state->action(this);
+			state->action(gt);
 		}
 
-		parser.current_state = state->next_state;
-		parser.input_data++;
-		parser.input_remaining--;
+		gt->parser.current_state = state->next_state;
+		gt->parser.input_data++;
+		gt->parser.input_remaining--;
 	}
 
-	update_changes();
+	gt_update_changes(gt);
 }
 
 void _parser_unknown_esc(GTerm* gt) {

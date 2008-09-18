@@ -91,7 +91,7 @@ void viewport_set (GTerm* gt, int offset) {
 	if (off != gt->viewport.offset) {
 		gt->viewport.offset = off;
 		viewport_taint_all(gt);
-		gt->update_changes();
+		gt_update_changes(gt);
 	}
 
 	_report_scroll(gt);

@@ -144,12 +144,6 @@ public:
 	GTerm(const TE_Frontend* fe, void* fe_priv, int w, int h);
 	GTerm(const GTerm& old);
 	virtual ~GTerm();
-
-	void process_input(int len, const int32_t* data);
-	void update_changes(void);
-	void resize_terminal(int w, int h);
-	int handle_button(te_key_t key);
-	void handle_keypress(int32_t cp, te_modifier_t modifiers);
 };
 
 // utility functions
@@ -175,6 +169,11 @@ void gt_fe_request_resize (GTerm* gt, int width, int height);
 void gt_fe_updated (GTerm* gt);
 void gt_fe_move (GTerm* gt, int y, int height, int byoffset);
 
+void gt_process_input(GTerm* gt, int len, const int32_t* data);
+void gt_update_changes(GTerm* gt);
+void gt_resize_terminal(GTerm* gt, int w, int h);
+int gt_handle_button(GTerm* gt, te_key_t key);
+void gt_handle_keypress(GTerm* gt, int32_t cp, te_modifier_t modifiers);
 
 #endif
 

@@ -7,9 +7,9 @@
 #include "viewport.h"
 #include "misc.h"
 
-void GTerm::update_changes(void)
+void gt_update_changes(GTerm* gt)
 {
-    gt_fe_updated(this);
+    gt_fe_updated(gt);
 }
 
 void gt_scroll_region(GTerm* gt, uint start_y, uint end_y, int num)

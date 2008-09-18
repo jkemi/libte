@@ -118,13 +118,13 @@ static const keymap _keys_common[] = {
 
 extern void parser_init (GTerm* gt);
 
-int GTerm::handle_button(te_key_t key)
+int gt_handle_button(GTerm* gt, te_key_t key)
 {
 	const char* s = NULL;
 
 	switch (key) {
 	case TE_KEY_ENTER:
-		if (gt_is_mode_flag(this, MODE_NEWLINE)) {
+		if (gt_is_mode_flag(gt, MODE_NEWLINE)) {
 			s = "\r\n";	//	CRLF
 		} else {
 			s = "\r";	// ^M (CR)
@@ -136,7 +136,7 @@ int GTerm::handle_button(te_key_t key)
 
 	if (s == NULL) {
 		const keymap* const* tables;
-		if (gt_is_mode_flag(this, MODE_KEYAPP)) {
+		if (gt_is_mode_flag(gt, MODE_KEYAPP)) {
 			static const keymap* const t[] = {_keys_app, _keys_common, NULL};
 			tables = t;
 		} else {
@@ -154,7 +154,7 @@ int GTerm::handle_button(te_key_t key)
 	}
 
 	if (s != NULL) {
-		gt_fe_send_back(this, s);
+		gt_fe_send_back(gt, s);
 		return 1;
 	} else {
 		return 0;
@@ -162,13 +162,13 @@ int GTerm::handle_button(te_key_t key)
 
 }
 
-void GTerm::handle_keypress(int32_t cp, te_modifier_t modifiers) {
+void gt_handle_keypress(GTerm* gt, int32_t cp, te_modifier_t modifiers) {
 	if (modifiers & TE_MOD_META) {
 		int32_t buf[] = {'\033', cp, '\0'};
-		_fe->send_back(_fe_priv, buf);
+		gt->_fe->send_back(gt->_fe_priv, buf);
 	} else {
 		int32_t buf[] = {cp, '\0'};
-		_fe->send_back(_fe_priv, buf);
+		gt->_fe->send_back(gt->_fe_priv, buf);
 	}
 }
 
@@ -232,14 +232,14 @@ void gt_input(GTerm* gt, const int32_t* text, size_t len) {
 	}
 }
 
-void GTerm::resize_terminal(int w, int h)
+void gt_resize_terminal(GTerm* gt, int w, int h)
 {
 	bool* newtabs = new bool[w];
-	if (w > width) {
-		memset(newtabs+width, 0, sizeof(bool)*(w-width));
+	if (w > gt->width) {
+		memset(newtabs+gt->width, 0, sizeof(bool)*(w-gt->width));
 	}
-	memcpy(newtabs, tab_stops, sizeof(bool)*int_min(width,w));
-	tab_stops = newtabs;
+	memcpy(newtabs, gt->tab_stops, sizeof(bool)*int_min(gt->width,w));
+	gt->tab_stops = newtabs;
 
 /*	clear_area(int_min(width,w), 0, int_max(width,w)-1, h-1);
 	clear_area(0, int_min(height,h), w-1, int_min(height,h)-1);*/
@@ -250,21 +250,21 @@ void GTerm::resize_terminal(int w, int h)
 		scroll_top = 0;
 	}*/
 
-	scroll_top = 0;
-	scroll_bot = h-1;
+	gt->scroll_top = 0;
+	gt->scroll_bot = h-1;
 
-	width = w;
-	height = h;
+	gt->width = w;
+	gt->height = h;
 
-	int cx = int_min(width-1, cursor_x);
-	int cy = int_min(height-1, cursor_y);
-	gt_move_cursor(this, cx, cy);
+	int cx = int_min(gt->width-1, gt->cursor_x);
+	int cy = int_min(gt->height-1, gt->cursor_y);
+	gt_move_cursor(gt, cx, cy);
 
-	buffer_reshape(&buffer, h, w);
+	buffer_reshape(&gt->buffer, h, w);
 
-	viewport_reshape(this, w, h);
+	viewport_reshape(gt, w, h);
 
-	gt_fe_updated(this);
+	gt_fe_updated(gt);
 }
 
 GTerm::GTerm(const TE_Frontend* fe, void* fe_priv, int w, int h)
@@ -369,7 +369,7 @@ void te_destroy(TE_Backend* te) {
 }
 
 void te_resize(TE_Backend* te, int width, int height) {
-	te->gt->resize_terminal(width, height);
+	gt_resize_terminal(te->gt, width, height);
 }
 
 int te_get_width(TE_Backend* te) {
@@ -385,20 +385,20 @@ void te_request_redraw(TE_Backend* te, int x, int y, int w, int h, int force) {
 }
 
 void te_process_input(TE_Backend* te, const int32_t* data, size_t len) {
-	te->gt->process_input(len, data);
+	gt_process_input(te->gt, len, data);
 }
 
 int te_handle_button(TE_Backend* te, te_key_t key) {
-	return te->gt->handle_button(key);
+	return gt_handle_button(te->gt, key);
 }
 
 void te_handle_keypress(TE_Backend* te, int32_t cp, te_modifier_t modifiers) {
-	te->gt->handle_keypress(cp, modifiers);
+	gt_handle_keypress(te->gt, cp, modifiers);
 }
 
 // TODO: remove?
 void te_update(TE_Backend* te) {
-	te->gt->update_changes();
+	gt_update_changes(te->gt);
 }
 
 void te_position(TE_Backend* te, int offset) {
