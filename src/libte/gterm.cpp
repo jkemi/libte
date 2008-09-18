@@ -267,54 +267,57 @@ void gt_resize_terminal(GTerm* gt, int w, int h)
 	gt_fe_updated(gt);
 }
 
-GTerm::GTerm(const TE_Frontend* fe, void* fe_priv, int w, int h)
+GTerm* gterm_new(const TE_Frontend* fe, void* fe_priv, int w, int h)
 {
-	_fe = fe;
-	_fe_priv = fe_priv;
+	GTerm* gt = (GTerm*)malloc(sizeof(GTerm));
 
-	parser_init(this);
+	gt->_fe = fe;
+	gt->_fe_priv = fe_priv;
 
-	width = w;
-	height = h;
+	parser_init(gt);
+
+	gt->width = w;
+	gt->height = h;
 
 
-	history_init(&history, 1000);
-	buffer_init(&buffer, &history, h, w);
-	viewport_init(this, w, h);
+	history_init(&gt->history, 1000);
+	buffer_init(&gt->buffer, &gt->history, h, w);
+	viewport_init(gt, w, h);
 
 	// Create tab stops
-	tab_stops = new bool[w];
-	memset(tab_stops, 0, sizeof(bool)*w);
+	gt->tab_stops = new bool[w];
+	memset(gt->tab_stops, 0, sizeof(bool)*w);
 
-	cursor_x = 0;
-	cursor_y = 0;
+	gt->cursor_x = 0;
+	gt->cursor_y = 0;
 
-	mode_flags = 0;
+	gt->mode_flags = 0;
 
 	// Setup scrolling
-	scroll_top = 0;
-	scroll_bot = height-1;
+	gt->scroll_top = 0;
+	gt->scroll_bot = gt->height-1;
 
 	// Setup current attributes
-	attributes = 0;
-	fg_color = SYMBOL_FG_DEFAULT;
-	bg_color = SYMBOL_BG_DEFAULT;
+	gt->attributes = 0;
+	gt->fg_color = SYMBOL_FG_DEFAULT;
+	gt->bg_color = SYMBOL_BG_DEFAULT;
 
 	// Setup flags
-	gt_set_mode(this, MODE_AUTOWRAP);
+	gt_set_mode(gt, MODE_AUTOWRAP);
 
-	gt_clear_area(this, 0, 0, width, height-1);
+	gt_clear_area(gt, 0, 0, gt->width, gt->height-1);
 
-	stored.attributes = attributes;
-	stored.autowrap = true;
-	stored.cursor_x = 0;
-	stored.cursor_y = 0;
+	gt->stored.attributes = gt->attributes;
+	gt->stored.autowrap = true;
+	gt->stored.cursor_x = 0;
+	gt->stored.cursor_y = 0;
+
+	return gt;
 }
 
-GTerm::~GTerm()
-{
-	buffer_term(&buffer);
-	viewport_term(this);
+void gterm_delete(GTerm* gt) {
+	buffer_term(&gt->buffer);
+	viewport_term(gt);
 }
 
 void gt_fe_send_back(GTerm* gt, const char* data) {
@@ -358,7 +361,7 @@ struct _TE_Backend {
 TE_Backend* te_create(const TE_Frontend* front, void* priv, int width, int height) {
 	TE_Backend* te = (TE_Backend*)malloc(sizeof(TE_Backend));
 	if (te != NULL) {
-		te->gt = new GTerm(front, priv, width, height);
+		te->gt = gterm_new(front, priv, width, height);
 	}
 	return te;
 }

@@ -141,10 +141,10 @@ public:
 		const StateOption* current_state;
 	} parser;
 
-	GTerm(const TE_Frontend* fe, void* fe_priv, int w, int h);
-	GTerm(const GTerm& old);
-	virtual ~GTerm();
 };
+
+GTerm* gterm_new(const TE_Frontend* fe, void* fe_priv, int w, int h);
+void gterm_delete(GTerm* gt);
 
 // utility functions
 static inline bool gt_is_mode_set(GTerm* gt, te_mode_t mode) {return gt->mode_flags & mode;}
