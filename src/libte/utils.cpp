@@ -12,34 +12,34 @@ void GTerm::update_changes(void)
     fe_updated();
 }
 
-void GTerm::scroll_region(uint start_y, uint end_y, int num)
+void gt_scroll_region(GTerm* gt, uint start_y, uint end_y, int num)
 {
 	for (int i = 0; i < num; i++) {
-		buffer_scroll_up(&buffer, scroll_top, scroll_bot);
+		buffer_scroll_up(&gt->buffer, gt->scroll_top, gt->scroll_bot);
 	}
 	for (int i = num; i < 0; i++) {
-		buffer_scroll_down(&buffer, scroll_top, scroll_bot);
-		viewport_history_dec(this);
+		buffer_scroll_down(&gt->buffer, gt->scroll_top, gt->scroll_bot);
+		viewport_history_dec(gt);
 	}
 
 	if (num > 0) {
-		viewport_history_inc(this);
+		viewport_history_inc(gt);
 	}
 	if (num < 0) {
-		viewport_history_dec(this);
+		viewport_history_dec(gt);
 	}
 
 
 //	buffer_scroll(&buffer, start_y, end_y, num);
 
 	for (uint y = start_y; y <= end_y; y++) {
-		changed_line(y, 0, width);
+		gt_changed_line(gt, y, 0, gt->width);
 	}
 }
 
-void GTerm::clear_area(int xpos, int ypos, int width, int height)
+void gt_clear_area(GTerm* gt, int xpos, int ypos, int width, int height)
 {
-	const symbol_t style = symbol_make_style(fg_color, bg_color, attributes);
+	const symbol_t style = symbol_make_style(gt->fg_color, gt->bg_color, gt->attributes);
 	const symbol_t sym = ' ' | style;
 
 	if (width < 1) {
@@ -47,9 +47,9 @@ void GTerm::clear_area(int xpos, int ypos, int width, int height)
 	}
 
 	for (int y=ypos; y < ypos+height; y++) {
-		BufferRow* row = buffer_get_row(&buffer, y);
+		BufferRow* row = buffer_get_row(&gt->buffer, y);
 		bufrow_fill(row, xpos, sym, width);
-		changed_line(y, xpos, width);
+		gt_changed_line(gt, y, xpos, width);
 	}
 }
 
@@ -59,12 +59,12 @@ void GTerm::clear_area(int xpos, int ypos, int width, int height)
  * \param start_x	first dirty col
  * \param len		number to taint
  */
-void GTerm::changed_line(int y, int start_x, int len)
+void gt_changed_line(GTerm* gt, int y, int start_x, int len)
 {
-	viewport_taint(this, y, start_x, len);
+	viewport_taint(gt, y, start_x, len);
 }
 
-void GTerm::move_cursor(int x, int y)
+void gt_move_cursor(GTerm* gt, int x, int y)
 {
 /*	if (cursor_x >= width) {
 		cursor_x = width-1;
@@ -72,18 +72,18 @@ void GTerm::move_cursor(int x, int y)
 	if (cursor_y >= height) {
 		cursor_y = height-1;
 	}*/
-	x = int_clamp(x, 0, width-1);
-	y = int_clamp(y, 0, height-1);
+	x = int_clamp(x, 0, gt->width-1);
+	y = int_clamp(y, 0, gt->height-1);
 
-	if (x != cursor_x || y != cursor_y) {
+	if (x != gt->cursor_x || y != gt->cursor_y) {
 		// Old cursor position is dirty
-		changed_line(cursor_y, cursor_x, 1);
+		gt_changed_line(gt, gt->cursor_y, gt->cursor_x, 1);
 
-		cursor_x = x;
-		cursor_y = y;
+		gt->cursor_x = x;
+		gt->cursor_y = y;
 
 		// New cursor position is dirty
-		changed_line(cursor_y, cursor_x, 1);
+		gt_changed_line(gt, gt->cursor_y, gt->cursor_x, 1);
 	}
 }
 

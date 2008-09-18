@@ -23,7 +23,7 @@ static inline int _get_param(GTerm* gt, int index, int default_value) {
 
 void ac_cr(GTerm* gt)
 {
-	gt->move_cursor(0, gt->cursor_y);
+	gt_move_cursor(gt, 0, gt->cursor_y);
 }
 
 // Line-Feed (same as Vertical-Tab and Form-Feed)
@@ -55,20 +55,20 @@ void ac_tab(GTerm* gt)
 	}
 
 	if (x < gt->width) {
-		gt->move_cursor(x, gt->cursor_y);
+		gt_move_cursor(gt, x, gt->cursor_y);
 	} else {
 		// Tabs _never_ causes newline
-		gt->move_cursor(gt->width-1, gt->cursor_y);
+		gt_move_cursor(gt, gt->width-1, gt->cursor_y);
 	}
 }
 
 void ac_bs(GTerm* gt)
 {
 	if (gt->cursor_x > 0) {
-		gt->move_cursor(gt->cursor_x-1, gt->cursor_y);
+		gt_move_cursor(gt, gt->cursor_x-1, gt->cursor_y);
 	}
-	if (gt->is_mode_set(MODE_DESTRUCTBS)) {
-		gt->clear_area(gt->cursor_x, gt->cursor_y, 1, 1);
+	if (gt_is_mode_set(gt, MODE_DESTRUCTBS)) {
+		gt_clear_area(gt, gt->cursor_x, gt->cursor_y, 1, 1);
 	}
 }
 
@@ -103,7 +103,7 @@ void ac_restore_cursor(GTerm* gt)
 	} else {
 		gt->clear_mode_flag(MODE_AUTOWRAP);
 	}
-	gt->move_cursor(gt->stored.cursor_x, gt->stored.cursor_y);
+	gt_move_cursor(gt, gt->stored.cursor_x, gt->stored.cursor_y);
 }
 
 void ac_set_tab(GTerm* gt)
@@ -117,9 +117,9 @@ void ac_set_tab(GTerm* gt)
 void ac_index_down(GTerm* gt)
 {
 	if (gt->cursor_y == gt->scroll_bot) {
-		gt->scroll_region(gt->scroll_top, gt->scroll_bot, 1);
+		gt_scroll_region(gt, gt->scroll_top, gt->scroll_bot, 1);
 	} else {
-		gt->move_cursor(gt->cursor_x, gt->cursor_y+1);
+		gt_move_cursor(gt, gt->cursor_x, gt->cursor_y+1);
 	}
 }
 
@@ -135,9 +135,9 @@ void ac_next_line(GTerm* gt)
 void ac_index_up(GTerm* gt)
 {
 	if (gt->cursor_y == gt->scroll_top) {
-		gt->scroll_region(gt->scroll_top, gt->scroll_bot, -1);
+		gt_scroll_region(gt, gt->scroll_top, gt->scroll_bot, -1);
 	} else {
-		gt->move_cursor(gt->cursor_x, gt->cursor_y-1);
+		gt_move_cursor(gt, gt->cursor_x, gt->cursor_y-1);
 	}
 }
 
@@ -157,8 +157,8 @@ void ac_reset(GTerm* gt)
 
 	gt->attributes = 0;
 
-	gt->clear_area(0, 0, gt->width, gt->height);
-	gt->move_cursor(0, 0);
+	gt_clear_area(gt, 0, 0, gt->width, gt->height);
+	gt_move_cursor(gt, 0, 0);
 
 	history_clear(&gt->history);
 	viewport_set(gt, 0);
@@ -172,7 +172,7 @@ void ac_cursor_left(GTerm* gt)
 	n = int_max(1, _get_param(gt,0,1) );
 
 	x = int_max(0, gt->cursor_x-n);
-	gt->move_cursor(x, gt->cursor_y);
+	gt_move_cursor(gt, x, gt->cursor_y);
 }
 
 // Cursor Forward P s Times (default = 1) (CUF)
@@ -182,7 +182,7 @@ void ac_cursor_right(GTerm* gt)
 	n = int_max(1, _get_param(gt,0,1) );
 
 	x = int_min(gt->width-1, gt->cursor_x+n);
-	gt->move_cursor(x, gt->cursor_y);
+	gt_move_cursor(gt, x, gt->cursor_y);
 }
 
 // Cursor Up P s Times (default = 1) (CUU)
@@ -191,12 +191,12 @@ void ac_cursor_up(GTerm* gt)
 	int n, y;
 	n = int_max(1, _get_param(gt,0,1) );
 
-	if (gt->is_mode_set(MODE_ORIGIN)) {
+	if (gt_is_mode_set(gt, MODE_ORIGIN)) {
 		y = int_max(gt->scroll_top, gt->cursor_y-n);
 	} else {
 		y = int_max(0, gt->cursor_y-n);
 	}
-	gt->move_cursor(gt->cursor_x, y);
+	gt_move_cursor(gt, gt->cursor_x, y);
 }
 
 // Cursor Down P s Times (default = 1) (CUD)
@@ -205,12 +205,12 @@ void ac_cursor_down(GTerm* gt)
 	int n, y;
 	n = int_max(1, _get_param(gt,0,1) );
 
-	if (gt->is_mode_set(MODE_ORIGIN)) {
+	if (gt_is_mode_set(gt, MODE_ORIGIN)) {
 		y = int_min(gt->scroll_bot, gt->cursor_y+n);
 	} else {
 		y = int_min(gt->height-1, gt->cursor_y+n);
 	}
-	gt->move_cursor(gt->cursor_x, y);
+	gt_move_cursor(gt, gt->cursor_x, y);
 }
 
 // Cursor Position (CUP)
@@ -218,14 +218,14 @@ void ac_cursor_position(GTerm* gt)
 {
 	int y, x;
 
-	if (gt->is_mode_set(MODE_ORIGIN)) {
+	if (gt_is_mode_set(gt, MODE_ORIGIN)) {
 		y = int_clamp(_get_param(gt, 0, 1)+gt->scroll_top, gt->scroll_top, gt->scroll_bot+1);
 	} else {
 		y = int_clamp(_get_param(gt, 0, 1), 1, gt->height);
 	}
 	x = int_clamp(_get_param(gt, 1, 1), 1, gt->width);
 
-	gt->move_cursor(x-1, y-1);
+	gt_move_cursor(gt, x-1, y-1);
 }
 
 // Cursor Character Absolute [column] (default = [row,1]) (CHA)
@@ -233,7 +233,7 @@ void ac_column_position(GTerm* gt)
 {
 	int	x = int_clamp(_get_param(gt, 0, 1), 1, gt->width);
 
-	gt->move_cursor(x-1, gt->cursor_y);
+	gt_move_cursor(gt, x-1, gt->cursor_y);
 }
 
 // Line Position Absolute [row] (default = [1,column]) (VPA)
@@ -241,7 +241,7 @@ void ac_line_position(GTerm* gt)
 {
 	int	y = int_clamp(_get_param(gt, 0, 1), 1, gt->height);
 
-	gt->move_cursor(gt->cursor_x, y-1);
+	gt_move_cursor(gt, gt->cursor_x, y-1);
 }
 
 // 	Send Device Attributes (Primary DA)
@@ -258,11 +258,11 @@ void ac_delete_char(GTerm* gt)
 
 	mx = gt->width - gt->cursor_x;
 	if (n >= mx) {
-		gt->clear_area(gt->cursor_x, gt->cursor_y, gt->width-gt->cursor_x, 1);
+		gt_clear_area(gt, gt->cursor_x, gt->cursor_y, gt->width-gt->cursor_x, 1);
 	} else {
 		BufferRow* row = buffer_get_row(&gt->buffer, gt->cursor_y);
 		bufrow_remove(row,gt->cursor_x,n);
-		gt->changed_line(gt->cursor_y, gt->cursor_x, gt->width-gt->cursor_x);
+		gt_changed_line(gt, gt->cursor_y, gt->cursor_x, gt->width-gt->cursor_x);
 	}
 }
 
@@ -284,7 +284,7 @@ void ac_set_mode(GTerm* gt)  // h
 		case 7:	gt->set_mode_flag(MODE_AUTOWRAP);		break;	// Wraparound Mode (DECAWM)
 		case 25:										// Hide Cursor (DECTCEM)
 			gt->clear_mode_flag(MODE_CURSORINVISIBLE);
-			gt->move_cursor(gt->cursor_x, gt->cursor_y);
+			gt_move_cursor(gt, gt->cursor_x, gt->cursor_y);
 			break;
 		default:
 			printf ("unhandled private set mode (DECSET) mode: %d\n", p);
@@ -320,7 +320,7 @@ void ac_clear_mode(GTerm* gt)  // l
 		case 7:	gt->clear_mode_flag(MODE_AUTOWRAP);			break;	// Wraparound Mode (DECAWM)
 		case 25:											// Hide Cursor (DECTCEM)
 			gt->set_mode_flag(MODE_CURSORINVISIBLE);	break;
-			gt->move_cursor(gt->cursor_x, gt->cursor_y);
+			gt_move_cursor(gt, gt->cursor_x, gt->cursor_y);
 			break;
 		}
 	} else {
@@ -366,9 +366,9 @@ void ac_set_margins(GTerm* gt)
 	gt->scroll_bot = b-1;
 
 	if (gt->is_mode_flag(MODE_ORIGIN)) {
-		gt->move_cursor(gt->scroll_top, 0);
+		gt_move_cursor(gt, gt->scroll_top, 0);
 	} else {
-		gt->move_cursor(0, 0);
+		gt_move_cursor(gt, 0, 0);
 	}
 }
 
@@ -379,9 +379,9 @@ void ac_delete_line(GTerm* gt)
 	n = int_max(_get_param(gt, 0, 1), 1);
 	mx = gt->scroll_bot-gt->cursor_y+1;
 	if (n>=mx) {
-		gt->clear_area(0, gt->cursor_y, gt->width, gt->scroll_bot-gt->cursor_y);
+		gt_clear_area(gt, 0, gt->cursor_y, gt->width, gt->scroll_bot-gt->cursor_y);
 	} else {
-		gt->scroll_region(gt->cursor_y, gt->scroll_bot, n);
+		gt_scroll_region(gt, gt->cursor_y, gt->scroll_bot, n);
 	}
 }
 
@@ -405,19 +405,19 @@ void ac_erase_display(GTerm* gt)
 {
 	switch ( _get_param(gt, 0, 0) ) {
 	case 0:	// Erase Below (default)
-		gt->clear_area(gt->cursor_x, gt->cursor_y, gt->width-gt->cursor_x, 1);
+		gt_clear_area(gt, gt->cursor_x, gt->cursor_y, gt->width-gt->cursor_x, 1);
 		if (gt->cursor_y < gt->height-1) {
-			gt->clear_area(0, gt->cursor_y+1, gt->width, gt->height-gt->cursor_y-1);
+			gt_clear_area(gt, 0, gt->cursor_y+1, gt->width, gt->height-gt->cursor_y-1);
 		}
 		break;
 	case 1: // Erase Above
-		gt->clear_area(0, gt->cursor_y, gt->cursor_x+1, 1);
+		gt_clear_area(gt, 0, gt->cursor_y, gt->cursor_x+1, 1);
 		if (gt->cursor_y > 0) {
-			gt->clear_area(0, 0, gt->width, gt->cursor_y);
+			gt_clear_area(gt, 0, 0, gt->width, gt->cursor_y);
 		}
 		break;
 	case 2: // Erase All
-		gt->clear_area(0, 0, gt->width, gt->height);
+		gt_clear_area(gt, 0, 0, gt->width, gt->height);
 		break;
 	case 3:	// Erase Saved Lines (xterm)
 	default:
@@ -431,13 +431,13 @@ void ac_erase_line(GTerm* gt)
 {
 	switch ( _get_param(gt, 0, 0) ) {
 	case 0:	// Erase to Right (default)
-		gt->clear_area(gt->cursor_x, gt->cursor_y, gt->width-gt->cursor_x, 1);
+		gt_clear_area(gt, gt->cursor_x, gt->cursor_y, gt->width-gt->cursor_x, 1);
 		break;
 	case 1:	// Erase to Left
-		gt->clear_area(0, gt->cursor_y, gt->cursor_x+1, 1);
+		gt_clear_area(gt, 0, gt->cursor_y, gt->cursor_x+1, 1);
 		break;
 	case 2: // Erase All
-		gt->clear_area(0, gt->cursor_y, gt->width, 1);
+		gt_clear_area(gt, 0, gt->cursor_y, gt->width, 1);
 		break;
 	}
 }
@@ -449,9 +449,9 @@ void ac_insert_line(GTerm* gt)
 	n = int_max(1, _get_param(gt, 0, 1) );
 	mx = gt->scroll_bot-gt->cursor_y+1;
 	if (n >= mx) {
-		gt->clear_area(0, gt->cursor_y, gt->width, gt->scroll_bot-gt->cursor_y);
+		gt_clear_area(gt, 0, gt->cursor_y, gt->width, gt->scroll_bot-gt->cursor_y);
 	} else {
-		gt->scroll_region(gt->cursor_y, gt->scroll_bot, -n);
+		gt_scroll_region(gt, gt->cursor_y, gt->scroll_bot, -n);
 	}
 }
 
@@ -528,7 +528,7 @@ void ac_insert_char(GTerm* gt)
 	n = int_max(1, _get_param(gt,0,1) );
 	mx = gt->width-gt->cursor_x;
 	if (n >= mx) {
-		gt->clear_area(gt->cursor_x, gt->cursor_y, gt->width-gt->cursor_x, 1);
+		gt_clear_area(gt, gt->cursor_x, gt->cursor_y, gt->width-gt->cursor_x, 1);
 	} else {
 		BufferRow* row = buffer_get_row(&gt->buffer, gt->cursor_y);
 
@@ -538,7 +538,7 @@ void ac_insert_char(GTerm* gt)
 			buf[i] = ' ';
 		}
 		bufrow_insert(row, gt->cursor_x, buf, n);
-		gt->changed_line(gt->cursor_y, gt->cursor_x, gt->width-gt->cursor_x);
+		gt_changed_line(gt, gt->cursor_y, gt->cursor_x, gt->width-gt->cursor_x);
 	}
 }
 
@@ -556,7 +556,7 @@ void ac_screen_align(GTerm* gt)
 
 	for (int y=0; y<gt->height; y++) {
 		BufferRow* row = buffer_get_row(&gt->buffer, y);
-		gt->changed_line(y, 0, gt->width);
+		gt_changed_line(gt, y, 0, gt->width);
 		bufrow_replace(row, 0, syms, gt->width);
 	}
 }
@@ -566,7 +566,7 @@ void ac_erase_char(GTerm* gt)
 {
 	// number of characters to erase
 	const int n = int_clamp(_get_param(gt,0,1), 1, gt->width-gt->cursor_x);
-	gt->clear_area(gt->cursor_x, gt->cursor_y, n, 1);
+	gt_clear_area(gt, gt->cursor_x, gt->cursor_y, n, 1);
 }
 
 // Scroll up Ps lines (default = 1) (SU)
@@ -579,7 +579,7 @@ void ac_scroll_up (GTerm* gt) {
 
 	printf("scroll up by %d\n", n);
 
-	gt->scroll_region(gt->scroll_top, gt->scroll_bot, n);
+	gt_scroll_region(gt, gt->scroll_top, gt->scroll_bot, n);
 }
 
 // Scroll up Ps lines (default = 1) (SD)
@@ -589,5 +589,5 @@ void ac_scroll_down (GTerm* gt) {
 
 	printf("scroll down by %d\n", n);
 
-	gt->scroll_region(gt->scroll_top, gt->scroll_bot, -n);
+	gt_scroll_region(gt, gt->scroll_top, gt->scroll_bot, -n);
 }

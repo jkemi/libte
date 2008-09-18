@@ -177,7 +177,7 @@ void GTerm::input(const int32_t* text, size_t len) {
 	symbol_t syms[width];
 	symbol_t style = symbol_make_style(fg_color, bg_color, attributes);
 
-	if (is_mode_set(MODE_AUTOWRAP)) {
+	if (gt_is_mode_set(this, MODE_AUTOWRAP)) {
 		while (len > 0) {
 			BufferRow* row = buffer_get_row(&buffer, cursor_y);
 
@@ -187,15 +187,15 @@ void GTerm::input(const int32_t* text, size_t len) {
 				syms[i] = sym;
 			}
 
-			if (is_mode_set(MODE_INSERT)) {
+			if (gt_is_mode_set(this, MODE_INSERT)) {
 				bufrow_insert(row, cursor_x, syms, n);
-				changed_line(cursor_y, cursor_x, width-cursor_x);
+				gt_changed_line(this, cursor_y, cursor_x, width-cursor_x);
 			} else {
 				bufrow_replace(row, cursor_x, syms, n);
-				changed_line(cursor_y, cursor_x, n);
+				gt_changed_line(this, cursor_y, cursor_x, n);
 			}
 
-			move_cursor(cursor_x+n, cursor_y);
+			gt_move_cursor(this, cursor_x+n, cursor_y);
 
 			len -= n;
 			text += n;
@@ -213,15 +213,15 @@ void GTerm::input(const int32_t* text, size_t len) {
 			const symbol_t sym = style | text[i];
 			syms[i] = sym;
 		}
-		if (is_mode_set(MODE_INSERT)) {
+		if (gt_is_mode_set(this, MODE_INSERT)) {
 			bufrow_insert(row, cursor_x, syms, n);
-			changed_line(cursor_y, cursor_x, width-cursor_x);
+			gt_changed_line(this, cursor_y, cursor_x, width-cursor_x);
 		} else {
 			bufrow_replace(row, cursor_x, syms, n);
-			changed_line(cursor_y, cursor_x, n);
+			gt_changed_line(this, cursor_y, cursor_x, n);
 		}
 
-		move_cursor(cursor_x+n, cursor_y);
+		gt_move_cursor(this, cursor_x+n, cursor_y);
 
 		// There were more data than we have remaining space on
 		// the line, update last cell
@@ -258,7 +258,7 @@ void GTerm::resize_terminal(int w, int h)
 
 	int cx = int_min(width-1, cursor_x);
 	int cy = int_min(height-1, cursor_y);
-	move_cursor(cx, cy);
+	gt_move_cursor(this, cx, cy);
 
 	buffer_reshape(&buffer, h, w);
 
@@ -303,7 +303,7 @@ GTerm::GTerm(const TE_Frontend* fe, void* fe_priv, int w, int h)
 	// Setup flags
 	set_mode(MODE_AUTOWRAP);
 
-	clear_area(0, 0, width, height-1);
+	gt_clear_area(this, 0, 0, width, height-1);
 
 	stored.attributes = attributes;
 	stored.autowrap = true;
@@ -332,7 +332,7 @@ void GTerm::fe_send_back(const char* data) {
 
 void GTerm::fe_request_resize(int width, int height) {
 	_fe->request_resize(_fe_priv, width, height);
-	clear_area(0, 0, width, height);
+	gt_clear_area(this, 0, 0, width, height);
 }
 
 void GTerm::fe_updated(void) {

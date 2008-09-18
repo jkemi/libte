@@ -155,7 +155,7 @@ void viewport_request_redraw(GTerm* gt, int x, int y, int w, int h, bool force) 
 		dirty_cleanse(&gt->viewport.dirty, rowno, dirtstart, dirtend);
     }
 
-	if (!gt->is_mode_set(MODE_CURSORINVISIBLE)) {
+	if (!gt_is_mode_set(gt, MODE_CURSORINVISIBLE)) {
 
 		int xpos = gt->cursor_x;
 		int ypos = gt->cursor_y+offset;
