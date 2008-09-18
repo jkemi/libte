@@ -17,33 +17,32 @@
 #include <limits.h>
 
 #include "misc.h"
+#include "macros.h"
 
-class Dirty {
-private:
+typedef struct {
 	int		_nrows;
 	int		_ncols;
-public:
 	int* 	start;		// first dirty column
 	int*	end;		// last dirty column+1
+} Dirty;
 
-private:
-	void _init(uint nrows, uint ncols);
-public:
-	Dirty(uint nrows, uint ncols);
-	Dirty(const Dirty& old);
-	virtual ~Dirty();
+CDECLS_BEGIN
 
-	void reshape(uint nrows, uint ncols);
-	void setRowDirt(int row) {start[row] = 0; end[row] = _ncols;}
+void dirty_init(Dirty* d, uint nrows, uint ncols);
+void dirty_free(Dirty* d);
 
-	/**
-	 * Set portion of row as dirty.
-	 * \param start	first dirty col
-	 * \param end last dirty col+1
-	 */
-	void setDirty(int row, int start, int end);
-	void cleanseRow(int row) {start[row] = INT_MAX; end[row] = 0;}
-	void cleanse(int row, int start, int end);
-};
+void dirty_reshape(Dirty* d, uint nrows, uint ncols);
+static inline void dirty_taint_row(Dirty* d, int row) {d->start[row] = 0; d->end[row] = d->_ncols;}
+static inline void dirty_cleanse_row(Dirty* d, int row) {d->start[row] = INT_MAX; d->end[row] = 0;}
+
+/**
+ * Set portion of row as dirty.
+ * \param start	first dirty col
+ * \param end last dirty col+1
+ */
+void dirty_taint(Dirty* d, int row, int start, int end);
+void dirty_cleanse(Dirty* d, int row, int start, int end);
+
+CDECLS_END
 
 #endif /* DIRTY_H_ */

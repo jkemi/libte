@@ -14,7 +14,8 @@
 
 #include "libte.h"
 
-class Dirty;
+
+#include "Dirty.h"
 
 // mode flags
 typedef enum {
@@ -104,7 +105,7 @@ public:
 
 	struct {
 		uint	offset;
-		Dirty*	dirty;
+		Dirty	dirty;
 		bool	updating;
 		bool	scroll_lock;
 	} viewport;

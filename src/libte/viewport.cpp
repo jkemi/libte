@@ -16,7 +16,7 @@ static void _report_scroll(GTerm* gt) {
 
 
 void viewport_init (GTerm* gt, uint w, uint h) {
-	gt->viewport.dirty = new Dirty(h, w);
+	dirty_init(&gt->viewport.dirty, h, w);
 	gt->viewport.updating = false;
 	gt->viewport.offset = 0;
 	gt->viewport.scroll_lock = false;
@@ -25,23 +25,23 @@ void viewport_init (GTerm* gt, uint w, uint h) {
 }
 
 void viewport_term (GTerm* gt) {
-	delete gt->viewport.dirty;
+	dirty_free(&gt->viewport.dirty);
 }
 
 void viewport_reshape(GTerm* gt, uint w, uint h) {
-	gt->viewport.dirty->reshape(h, w);
+	dirty_reshape(&gt->viewport.dirty, h, w);
 }
 
 void viewport_taint (GTerm* gt, uint y, uint x, uint len) {
 	y += gt->viewport.offset;
 	if (y >= 0 && y < gt->height) {
-		gt->viewport.dirty->setDirty(y, x, x+len);
+		dirty_taint(&gt->viewport.dirty, y, x, x+len);
 	}
 }
 
 void viewport_taint_all	(GTerm* gt) {
 	for (uint y = 0; y < gt->height; y++) {
-		gt->viewport.dirty->setRowDirt(y);
+		dirty_taint_row(&gt->viewport.dirty, y);
 	}
 }
 
@@ -54,7 +54,7 @@ void viewport_history_inc(GTerm* gt) {
 		if (gt->viewport.scroll_lock) {
 			gt->viewport.offset++;
 			for (int y = (int)gt->height-(int)gt->viewport.offset; y < gt->height; y++) {
-				gt->viewport.dirty->setRowDirt(y);
+				dirty_taint_row(&gt->viewport.dirty, y);
 			}
 		} else {
 			// TODO: do we need to taint all here?
@@ -113,8 +113,6 @@ void viewport_request_redraw(GTerm* gt, int x, int y, int w, int h, bool force) 
 	x = int_clamp(x, 0, gt->width-1);
 	w = int_clamp(w, 0, gt->width-x);
 
-	Dirty* dirty = gt->viewport.dirty;
-
 	symbol_t buf[gt->width];
 
 	int offset = gt->viewport.offset;
@@ -141,8 +139,8 @@ void viewport_request_redraw(GTerm* gt, int x, int y, int w, int h, bool force) 
 			dirtstart = x;
 			dirtend = x+w;
 		} else {
-			dirtstart = int_max(x, dirty->start[rowno]);
-			dirtend = int_min(x+w, dirty->end[rowno]);
+			dirtstart = int_max(x, gt->viewport.dirty.start[rowno]);
+			dirtend = int_min(x+w, gt->viewport.dirty.end[rowno]);
 		}
 
 		const int a = int_max(0, ndata-dirtstart) - int_max(0, ndata-dirtend);
@@ -154,7 +152,7 @@ void viewport_request_redraw(GTerm* gt, int x, int y, int w, int h, bool force) 
 			gt->_fe->draw_clear(gt->_fe_priv, dirtstart+a, rowno, SYMBOL_BG_DEFAULT, b);
 		}
 
-		dirty->cleanse(rowno, dirtstart, dirtend);
+		dirty_cleanse(&gt->viewport.dirty, rowno, dirtstart, dirtend);
     }
 
 	if (!gt->is_mode_set(MODE_CURSORINVISIBLE)) {
