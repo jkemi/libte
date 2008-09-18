@@ -7,8 +7,8 @@
 
 #include <stdlib.h>
 #include "misc.h"
-#include "BufferRow.h"
-#include "Buffer.h"
+#include "bufferrow.h"
+#include "buffer.h"
 
 #include "actions.h"
 

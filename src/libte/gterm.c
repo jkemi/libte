@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 #include "misc.h"
-#include "Buffer.h"
+#include "buffer.h"
 
 #include "actions.h"
 

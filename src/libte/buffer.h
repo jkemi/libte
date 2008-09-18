@@ -12,7 +12,7 @@
 
 #include "history.h"
 #include "symbol.h"
-#include "BufferRow.h"
+#include "bufferrow.h"
 #include "macros.h"
 
 typedef struct {

@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 #include "gterm.h"
-#include "Buffer.h"
+#include "buffer.h"
 #include "viewport.h"
 #include "misc.h"
 

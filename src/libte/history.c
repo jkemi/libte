@@ -10,7 +10,7 @@
 #include <assert.h>
 #include <string.h>
 
-#include "BufferRow.h"
+#include "bufferrow.h"
 
 #include "history.h"
 

@@ -11,7 +11,7 @@
 
 #include "misc.h"
 
-#include "BufferRow.h"
+#include "bufferrow.h"
 
 static void _bufrow_init(BufferRow* br, uint initsize) {
 	if (initsize < 32) {

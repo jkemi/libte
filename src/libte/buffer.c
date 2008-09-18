@@ -9,7 +9,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "Buffer.h"
+#include "buffer.h"
 
 void buffer_init(Buffer* buf, History* hist, uint nrows, uint ncols) {
 	buf->hist = hist;

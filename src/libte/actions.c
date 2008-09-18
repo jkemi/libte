@@ -6,7 +6,7 @@
 
 #include "gterm.h"
 
-#include "Buffer.h"
+#include "buffer.h"
 #include "misc.h"
 #include "history.h"
 #include "viewport.h"

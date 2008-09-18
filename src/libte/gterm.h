@@ -8,7 +8,7 @@
 #include <stdint.h>
 
 #include "symbol.h"
-#include "Buffer.h"
+#include "buffer.h"
 
 #include "libte.h"
 

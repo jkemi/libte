@@ -8,7 +8,7 @@
 #ifndef HISTORY_H_
 #define HISTORY_H_
 
-#include "BufferRow.h"
+#include "bufferrow.h"
 #include "macros.h"
 
 typedef struct {
