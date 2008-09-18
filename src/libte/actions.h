@@ -5,8 +5,8 @@
  *      Author: jakob
  */
 
-#ifndef ACTIONS_HPP_
-#define ACTIONS_HPP_
+#ifndef ACTIONS_H_
+#define ACTIONS_H_
 
 #include "macros.h"
 
@@ -55,4 +55,4 @@ DLLLOCAL void ac_scroll_down		(GTerm* gt);	// Scroll up Ps lines (default = 1) (
 DLLLOCAL void ac_vt52_cursor		(GTerm* gt);
 DLLLOCAL void ac_vt52_ident			(GTerm* gt);
 
-#endif /* ACTIONS_HPP_ */
+#endif /* ACTIONS_H_ */

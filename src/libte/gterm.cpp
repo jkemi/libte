@@ -5,7 +5,7 @@
 #include "misc.h"
 #include "Buffer.h"
 
-#include "actions.hpp"
+#include "actions.h"
 
 #include "viewport.h"
 #include "gterm.hpp"

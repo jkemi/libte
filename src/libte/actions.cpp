@@ -11,7 +11,7 @@
 #include "history.h"
 #include "viewport.h"
 
-#include "actions.hpp"
+#include "actions.h"
 
 static inline int _get_param(GTerm* gt, int index, int default_value) {
 	if (gt->parser.num_params > index) {

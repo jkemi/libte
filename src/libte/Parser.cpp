@@ -9,7 +9,7 @@
 #include "BufferRow.h"
 #include "Buffer.h"
 
-#include "actions.hpp"
+#include "actions.h"
 
 #include "gterm.hpp"
 #include "states.h"
