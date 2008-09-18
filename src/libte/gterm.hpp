@@ -86,8 +86,7 @@ typedef enum {
 } te_mode_t;
 
 
-class GTerm {
-public:
+struct _GTerm {
 
 	// Contains the currently set mode flags
 	int mode_flags;
@@ -142,6 +141,8 @@ public:
 	} parser;
 
 };
+
+typedef struct _GTerm GTerm;
 
 GTerm* gterm_new(const TE_Frontend* fe, void* fe_priv, int w, int h);
 void gterm_delete(GTerm* gt);

@@ -10,7 +10,7 @@
 
 #include "macros.h"
 
-class GTerm;
+typedef struct _GTerm GTerm;
 
 CDECLS_BEGIN
 
