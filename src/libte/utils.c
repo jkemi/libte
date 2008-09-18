@@ -33,7 +33,7 @@ void gt_scroll_region(GTerm* gt, uint start_y, uint end_y, int num)
 //	buffer_scroll(&buffer, start_y, end_y, num);
 
 	for (uint y = start_y; y <= end_y; y++) {
-		gt_changed_line(gt, y, 0, gt->width);
+		viewport_taint(gt, y, 0, gt->width);
 	}
 }
 
@@ -49,19 +49,8 @@ void gt_clear_area(GTerm* gt, int xpos, int ypos, int width, int height)
 	for (int y=ypos; y < ypos+height; y++) {
 		BufferRow* row = buffer_get_row(&gt->buffer, y);
 		bufrow_fill(row, xpos, sym, width);
-		gt_changed_line(gt, y, xpos, width);
+		viewport_taint(gt, y, xpos, width);
 	}
-}
-
-/**
- * Mark portions of line y dirty.
- * \param y	line to taint
- * \param start_x	first dirty col
- * \param len		number to taint
- */
-void gt_changed_line(GTerm* gt, int y, int start_x, int len)
-{
-	viewport_taint(gt, y, start_x, len);
 }
 
 void gt_move_cursor(GTerm* gt, int x, int y)
@@ -77,13 +66,13 @@ void gt_move_cursor(GTerm* gt, int x, int y)
 
 	if (x != gt->cursor_x || y != gt->cursor_y) {
 		// Old cursor position is dirty
-		gt_changed_line(gt, gt->cursor_y, gt->cursor_x, 1);
+		viewport_taint(gt, gt->cursor_y, gt->cursor_x, 1);
 
 		gt->cursor_x = x;
 		gt->cursor_y = y;
 
 		// New cursor position is dirty
-		gt_changed_line(gt, gt->cursor_y, gt->cursor_x, 1);
+		viewport_taint(gt, gt->cursor_y, gt->cursor_x, 1);
 	}
 }
 

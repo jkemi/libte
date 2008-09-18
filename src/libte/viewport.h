@@ -17,6 +17,12 @@ void viewport_term	(GTerm* gt);
 
 void viewport_reshape	(GTerm* gt, uint w, uint h);
 
+/**
+ * Mark portions of line y dirty.
+ * \param y	line to taint
+ * \param start_x	first dirty col
+ * \param len		number to taint
+ */
 void viewport_taint		(GTerm* gt, uint y, uint start_x, uint end_x);
 void viewport_taint_all	(GTerm* gt);
 void viewport_move		(GTerm* gt, uint y, uint n, int offset);

@@ -255,7 +255,7 @@ void ac_delete_char(GTerm* gt)
 	} else {
 		BufferRow* row = buffer_get_row(&gt->buffer, gt->cursor_y);
 		bufrow_remove(row,gt->cursor_x,n);
-		gt_changed_line(gt, gt->cursor_y, gt->cursor_x, gt->width-gt->cursor_x);
+		viewport_taint(gt, gt->cursor_y, gt->cursor_x, gt->width-gt->cursor_x);
 	}
 }
 
@@ -538,7 +538,7 @@ void ac_insert_char(GTerm* gt)
 			buf[i] = ' ';
 		}
 		bufrow_insert(row, gt->cursor_x, buf, n);
-		gt_changed_line(gt, gt->cursor_y, gt->cursor_x, gt->width-gt->cursor_x);
+		viewport_taint(gt, gt->cursor_y, gt->cursor_x, gt->width-gt->cursor_x);
 	}
 }
 
@@ -556,7 +556,7 @@ void ac_screen_align(GTerm* gt)
 
 	for (int y=0; y<gt->height; y++) {
 		BufferRow* row = buffer_get_row(&gt->buffer, y);
-		gt_changed_line(gt, y, 0, gt->width);
+		viewport_taint(gt, y, 0, gt->width);
 		bufrow_replace(row, 0, syms, gt->width);
 	}
 }

@@ -190,10 +190,10 @@ void gt_input(GTerm* gt, const int32_t* text, size_t len) {
 
 			if (gt_is_mode_set(gt, MODE_INSERT)) {
 				bufrow_insert(row, gt->cursor_x, syms, n);
-				gt_changed_line(gt, gt->cursor_y, gt->cursor_x, gt->width-gt->cursor_x);
+				viewport_taint(gt, gt->cursor_y, gt->cursor_x, gt->width-gt->cursor_x);
 			} else {
 				bufrow_replace(row, gt->cursor_x, syms, n);
-				gt_changed_line(gt, gt->cursor_y, gt->cursor_x, n);
+				viewport_taint(gt, gt->cursor_y, gt->cursor_x, n);
 			}
 
 			gt_move_cursor(gt, gt->cursor_x+n, gt->cursor_y);
@@ -216,10 +216,10 @@ void gt_input(GTerm* gt, const int32_t* text, size_t len) {
 		}
 		if (gt_is_mode_set(gt, MODE_INSERT)) {
 			bufrow_insert(row, gt->cursor_x, syms, n);
-			gt_changed_line(gt, gt->cursor_y, gt->cursor_x, gt->width-gt->cursor_x);
+			viewport_taint(gt, gt->cursor_y, gt->cursor_x, gt->width-gt->cursor_x);
 		} else {
 			bufrow_replace(row, gt->cursor_x, syms, n);
-			gt_changed_line(gt, gt->cursor_y, gt->cursor_x, n);
+			viewport_taint(gt, gt->cursor_y, gt->cursor_x, n);
 		}
 
 		gt_move_cursor(gt, gt->cursor_x+n, gt->cursor_y);

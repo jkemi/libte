@@ -131,7 +131,6 @@ void gterm_delete(GTerm* gt);
 static inline bool gt_is_mode_set(GTerm* gt, te_mode_t mode) {return gt->mode_flags & mode;}
 void gt_scroll_region(GTerm* gt, uint start_y, uint end_y, int num);	// does clear
 void gt_clear_area(GTerm* gt, int start_x, int start_y, int end_x, int end_y);
-void gt_changed_line(GTerm* gt, int y, int start_x, int end_x);
 void gt_move_cursor(GTerm* gt, int x, int y);
 
 // terminal actions
