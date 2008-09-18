@@ -391,6 +391,7 @@ void te_request_redraw(TE_Backend* te, int x, int y, int w, int h, int force) {
 
 void te_process_input(TE_Backend* te, const int32_t* data, size_t len) {
 	parser_input(te->gt->parser, len, data, te->gt);
+	gt_fe_updated(te->gt);
 }
 
 int te_handle_button(TE_Backend* te, te_key_t key) {
@@ -399,11 +400,6 @@ int te_handle_button(TE_Backend* te, te_key_t key) {
 
 void te_handle_keypress(TE_Backend* te, int32_t cp, te_modifier_t modifiers) {
 	gt_handle_keypress(te->gt, cp, modifiers);
-}
-
-// TODO: remove?
-void te_update(TE_Backend* te) {
-	gt_update_changes(te->gt);
 }
 
 void te_position(TE_Backend* te, int offset) {

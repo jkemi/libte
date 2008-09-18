@@ -146,11 +146,6 @@ DLLEXPORT int te_handle_button(TE_Backend* te, te_key_t key);
  */
 DLLEXPORT void te_handle_keypress(TE_Backend* te, int32_t cp, te_modifier_t modifiers);
 
-/**
- * TODO: remove this?
- */
-DLLEXPORT void te_update(TE_Backend* te);
-
 DLLEXPORT void te_position(TE_Backend* te, int offset);
 
 DLLEXPORT void te_lock_scroll(TE_Backend* te, int scroll_lock);

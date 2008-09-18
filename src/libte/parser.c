@@ -92,8 +92,6 @@ void parser_input(Parser* parser, int len, const int32_t* data, GTerm* gt)
 		parser->input_data++;
 		parser->input_remaining--;
 	}
-
-	gt_update_changes(gt);
 }
 
 void _parser_unknown_esc(GTerm* gt) {

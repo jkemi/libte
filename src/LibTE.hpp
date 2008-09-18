@@ -61,13 +61,6 @@ public:
 		te_handle_keypress(_te, cp, modifiers);
 	}
 
-	/**
-	 * TODO: remove this?
-	 */
-	void teUpdate() {
-		te_update(_te);
-	}
-
 	void tePosition(int offset) {
 		te_position(_te, offset);
 	}

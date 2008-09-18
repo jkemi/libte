@@ -150,7 +150,6 @@ void gt_fe_updated (GTerm* gt);
 void gt_fe_move (GTerm* gt, int y, int height, int byoffset);
 
 void gt_process_input(GTerm* gt, int len, const int32_t* data);
-void gt_update_changes(GTerm* gt);
 void gt_resize_terminal(GTerm* gt, int w, int h);
 int gt_handle_button(GTerm* gt, te_key_t key);
 void gt_handle_keypress(GTerm* gt, int32_t cp, te_modifier_t modifiers);
