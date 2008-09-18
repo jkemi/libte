@@ -11,7 +11,7 @@
 
 #include "actions.h"
 
-#include "gterm.hpp"
+#include "gterm.h"
 #include "states.h"
 
 

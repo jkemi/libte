@@ -4,7 +4,7 @@
 // Methods called from state machine
 //
 
-#include "gterm.hpp"
+#include "gterm.h"
 
 #include "Buffer.h"
 #include "misc.h"

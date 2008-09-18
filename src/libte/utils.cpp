@@ -2,7 +2,7 @@
 
 #include <stdlib.h>
 
-#include "gterm.hpp"
+#include "gterm.h"
 #include "Buffer.h"
 #include "viewport.h"
 #include "misc.h"

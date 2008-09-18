@@ -8,7 +8,7 @@
 #include "actions.h"
 
 #include "viewport.h"
-#include "gterm.hpp"
+#include "gterm.h"
 
 
 // key sequence struct, used when translating VT100 key sequences

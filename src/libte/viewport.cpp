@@ -5,7 +5,7 @@
  *      Author: jakob
  */
 
-#include "gterm.hpp"
+#include "gterm.h"
 #include "Dirty.h"
 #include "viewport.h"
 
