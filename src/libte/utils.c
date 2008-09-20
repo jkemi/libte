@@ -7,34 +7,34 @@
 #include "viewport.h"
 #include "misc.h"
 
-void gt_scroll_region(TE* gt, uint start_y, uint end_y, int num)
+void gt_scroll_region(TE* te, uint start_y, uint end_y, int num)
 {
 	for (int i = 0; i < num; i++) {
-		buffer_scroll_up(&gt->buffer, gt->scroll_top, gt->scroll_bot);
+		buffer_scroll_up(&te->buffer, te->scroll_top, te->scroll_bot);
 	}
 	for (int i = num; i < 0; i++) {
-		buffer_scroll_down(&gt->buffer, gt->scroll_top, gt->scroll_bot);
-		viewport_history_dec(gt);
+		buffer_scroll_down(&te->buffer, te->scroll_top, te->scroll_bot);
+		viewport_history_dec(te);
 	}
 
 	if (num > 0) {
-		viewport_history_inc(gt);
+		viewport_history_inc(te);
 	}
 	if (num < 0) {
-		viewport_history_dec(gt);
+		viewport_history_dec(te);
 	}
 
 
 //	buffer_scroll(&buffer, start_y, end_y, num);
 
 	for (uint y = start_y; y <= end_y; y++) {
-		viewport_taint(gt, y, 0, gt->width);
+		viewport_taint(te, y, 0, te->width);
 	}
 }
 
-void gt_clear_area(TE* gt, int xpos, int ypos, int width, int height)
+void gt_clear_area(TE* te, int xpos, int ypos, int width, int height)
 {
-	const symbol_t style = symbol_make_style(gt->fg_color, gt->bg_color, gt->attributes);
+	const symbol_t style = symbol_make_style(te->fg_color, te->bg_color, te->attributes);
 	const symbol_t sym = ' ' | style;
 
 	if (width < 1) {
@@ -42,13 +42,13 @@ void gt_clear_area(TE* gt, int xpos, int ypos, int width, int height)
 	}
 
 	for (int y=ypos; y < ypos+height; y++) {
-		BufferRow* row = buffer_get_row(&gt->buffer, y);
+		BufferRow* row = buffer_get_row(&te->buffer, y);
 		bufrow_fill(row, xpos, sym, width);
-		viewport_taint(gt, y, xpos, width);
+		viewport_taint(te, y, xpos, width);
 	}
 }
 
-void gt_move_cursor(TE* gt, int x, int y)
+void gt_move_cursor(TE* te, int x, int y)
 {
 /*	if (cursor_x >= width) {
 		cursor_x = width-1;
@@ -56,18 +56,18 @@ void gt_move_cursor(TE* gt, int x, int y)
 	if (cursor_y >= height) {
 		cursor_y = height-1;
 	}*/
-	x = int_clamp(x, 0, gt->width-1);
-	y = int_clamp(y, 0, gt->height-1);
+	x = int_clamp(x, 0, te->width-1);
+	y = int_clamp(y, 0, te->height-1);
 
-	if (x != gt->cursor_x || y != gt->cursor_y) {
+	if (x != te->cursor_x || y != te->cursor_y) {
 		// Old cursor position is dirty
-		viewport_taint(gt, gt->cursor_y, gt->cursor_x, 1);
+		viewport_taint(te, te->cursor_y, te->cursor_x, 1);
 
-		gt->cursor_x = x;
-		gt->cursor_y = y;
+		te->cursor_x = x;
+		te->cursor_y = y;
 
 		// New cursor position is dirty
-		viewport_taint(gt, gt->cursor_y, gt->cursor_x, 1);
+		viewport_taint(te, te->cursor_y, te->cursor_x, 1);
 	}
 }
 

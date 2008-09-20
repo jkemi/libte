@@ -19,115 +19,115 @@ struct Viewport_ {
 	bool	scroll_lock;
 };
 
-static void _report_scroll(TE* gt) {
-	gt_fe_position(gt, gt->viewport->offset, history_size(&gt->history));
+static void _report_scroll(TE* te) {
+	gt_fe_position(te, te->viewport->offset, history_size(&te->history));
 }
 
 
-void viewport_init (TE* gt, uint w, uint h) {
-	gt->viewport = xnew(Viewport, 1);
+void viewport_init (TE* te, uint w, uint h) {
+	te->viewport = xnew(Viewport, 1);
 
-	dirty_init(&gt->viewport->dirty, h, w);
-	gt->viewport->updating = false;
-	gt->viewport->offset = 0;
-	gt->viewport->scroll_lock = false;
+	dirty_init(&te->viewport->dirty, h, w);
+	te->viewport->updating = false;
+	te->viewport->offset = 0;
+	te->viewport->scroll_lock = false;
 
-	_report_scroll(gt);
+	_report_scroll(te);
 }
 
-void viewport_term (TE* gt) {
-	dirty_free(&gt->viewport->dirty);
-	free(gt->viewport);
+void viewport_term (TE* te) {
+	dirty_free(&te->viewport->dirty);
+	free(te->viewport);
 }
 
-void viewport_reshape(TE* gt, uint w, uint h) {
-	dirty_reshape(&gt->viewport->dirty, h, w);
+void viewport_reshape(TE* te, uint w, uint h) {
+	dirty_reshape(&te->viewport->dirty, h, w);
 }
 
-void viewport_taint (TE* gt, uint y, uint x, uint len) {
-	y += gt->viewport->offset;
-	if (y >= 0 && y < gt->height) {
-		dirty_taint(&gt->viewport->dirty, y, x, x+len);
+void viewport_taint (TE* te, uint y, uint x, uint len) {
+	y += te->viewport->offset;
+	if (y >= 0 && y < te->height) {
+		dirty_taint(&te->viewport->dirty, y, x, x+len);
 	}
 }
 
-void viewport_taint_all	(TE* gt) {
-	for (uint y = 0; y < gt->height; y++) {
-		dirty_taint_row(&gt->viewport->dirty, y);
+void viewport_taint_all	(TE* te) {
+	for (uint y = 0; y < te->height; y++) {
+		dirty_taint_row(&te->viewport->dirty, y);
 	}
 }
 
-void viewport_move (TE* gt, uint y, uint n, int offset) {
+void viewport_move (TE* te, uint y, uint n, int offset) {
 	// TODO: implement?
 }
 
-void viewport_history_inc(TE* gt) {
-	if (gt->viewport->offset > 0) {
-		if (gt->viewport->scroll_lock) {
-			gt->viewport->offset++;
-			for (int y = (int)gt->height-(int)gt->viewport->offset; y < gt->height; y++) {
-				dirty_taint_row(&gt->viewport->dirty, y);
+void viewport_history_inc(TE* te) {
+	if (te->viewport->offset > 0) {
+		if (te->viewport->scroll_lock) {
+			te->viewport->offset++;
+			for (int y = (int)te->height-(int)te->viewport->offset; y < te->height; y++) {
+				dirty_taint_row(&te->viewport->dirty, y);
 			}
 		} else {
 			// TODO: do we need to taint all here?
-			gt->viewport->offset = 0;
-			viewport_taint_all(gt);
+			te->viewport->offset = 0;
+			viewport_taint_all(te);
 		}
 	}
 
-	_report_scroll(gt);
+	_report_scroll(te);
 }
 
-void viewport_history_dec(TE* gt) {
-	uint hsz = history_size(&gt->history);
-	if (gt->viewport->offset > 0) {
-		if (gt->viewport->scroll_lock) {
-			if (gt->viewport->offset > hsz) {
-				gt->viewport->offset = hsz;
-				viewport_taint_all(gt);
+void viewport_history_dec(TE* te) {
+	uint hsz = history_size(&te->history);
+	if (te->viewport->offset > 0) {
+		if (te->viewport->scroll_lock) {
+			if (te->viewport->offset > hsz) {
+				te->viewport->offset = hsz;
+				viewport_taint_all(te);
 			}
 		} else {
 			// TODO: do we need to taint all here?
-			gt->viewport->offset = 0;
-			viewport_taint_all(gt);
+			te->viewport->offset = 0;
+			viewport_taint_all(te);
 		}
 
 	}
-	_report_scroll(gt);
+	_report_scroll(te);
 }
 
-void viewport_set (TE* gt, int offset) {
-	uint hsz = history_size(&gt->history);
+void viewport_set (TE* te, int offset) {
+	uint hsz = history_size(&te->history);
 	const uint off = int_clamp(offset, 0, hsz);
 
-	if (off != gt->viewport->offset) {
-		gt->viewport->offset = off;
-		viewport_taint_all(gt);
-		gt_fe_updated(gt);
+	if (off != te->viewport->offset) {
+		te->viewport->offset = off;
+		viewport_taint_all(te);
+		gt_fe_updated(te);
 	}
 
-	_report_scroll(gt);
+	_report_scroll(te);
 }
 
-void viewport_lock_scroll (TE* gt, bool lock) {
-	gt->viewport->scroll_lock = lock;
+void viewport_lock_scroll (TE* te, bool lock) {
+	te->viewport->scroll_lock = lock;
 }
 
-void viewport_request_redraw(TE* gt, int x, int y, int w, int h, bool force) {
-	if (gt->viewport->updating) {
+void viewport_request_redraw(TE* te, int x, int y, int w, int h, bool force) {
+	if (te->viewport->updating) {
 		printf("bad update!\n");
 		return;
 	}
-	gt->viewport->updating = true;
+	te->viewport->updating = true;
 
-	y = int_clamp(y, 0, gt->height-1);
-	h = int_clamp(h, 0, gt->height-y);
-	x = int_clamp(x, 0, gt->width-1);
-	w = int_clamp(w, 0, gt->width-x);
+	y = int_clamp(y, 0, te->height-1);
+	h = int_clamp(h, 0, te->height-y);
+	x = int_clamp(x, 0, te->width-1);
+	w = int_clamp(w, 0, te->width-x);
 
-	symbol_t buf[gt->width];
+	symbol_t buf[te->width];
 
-	int offset = gt->viewport->offset;
+	int offset = te->viewport->offset;
 
     // then update characters
     for (int rowno = y; rowno < y+h; rowno++) {
@@ -138,9 +138,9 @@ void viewport_request_redraw(TE* gt, int x, int y, int w, int h, bool force) {
     	const int age = offset - rowno;
     	if (age > 0) {
     		data = buf;
-    		ndata = history_peek(&gt->history, age-1, buf, x+w);
+    		ndata = history_peek(&te->history, age-1, buf, x+w);
     	} else {
-        	BufferRow* row = buffer_get_row(&gt->buffer, rowno-offset);
+        	BufferRow* row = buffer_get_row(&te->buffer, rowno-offset);
     		data = row->data;
     		ndata = row->used;
     	}
@@ -151,31 +151,31 @@ void viewport_request_redraw(TE* gt, int x, int y, int w, int h, bool force) {
 			dirtstart = x;
 			dirtend = x+w;
 		} else {
-			dirtstart = int_max(x, gt->viewport->dirty.start[rowno]);
-			dirtend = int_min(x+w, gt->viewport->dirty.end[rowno]);
+			dirtstart = int_max(x, te->viewport->dirty.start[rowno]);
+			dirtend = int_min(x+w, te->viewport->dirty.end[rowno]);
 		}
 
 		const int a = int_max(0, ndata-dirtstart) - int_max(0, ndata-dirtend);
 		if (a > 0) {
-			gt_fe_draw_text(gt, dirtstart, rowno, data+dirtstart, a);
+			gt_fe_draw_text(te, dirtstart, rowno, data+dirtstart, a);
 		}
 		const int b = int_max(0, dirtend-dirtstart-a);
 		if (b > 0) {
-			gt_fe_draw_clear(gt, dirtstart+a, rowno, SYMBOL_BG_DEFAULT, b);
+			gt_fe_draw_clear(te, dirtstart+a, rowno, SYMBOL_BG_DEFAULT, b);
 		}
 
-		dirty_cleanse(&gt->viewport->dirty, rowno, dirtstart, dirtend);
+		dirty_cleanse(&te->viewport->dirty, rowno, dirtstart, dirtend);
     }
 
-	if (!gt_is_mode_set(gt, MODE_CURSORINVISIBLE)) {
+	if (!gt_is_mode_set(te, MODE_CURSORINVISIBLE)) {
 
-		int xpos = gt->cursor_x;
-		int ypos = gt->cursor_y+offset;
+		int xpos = te->cursor_x;
+		int ypos = te->cursor_y+offset;
 
 		// draw cursor if force or inside rectangle
 		if ( force || (xpos >= x && xpos < x+w && ypos >= y && ypos < y+h) ) {
 			// TODO: check row->used, row->capacity here!
-			const BufferRow* row = buffer_get_row(&gt->buffer, gt->cursor_y);
+			const BufferRow* row = buffer_get_row(&te->buffer, te->cursor_y);
 			const symbol_t sym = row->data[xpos];
 
 			const symbol_color_t fg = symbol_get_fg(sym);
@@ -183,10 +183,10 @@ void viewport_request_redraw(TE* gt, int x, int y, int w, int h, bool force) {
 			const symbol_attributes_t attrs = symbol_get_attributes(sym);
 			const unsigned int cp = symbol_get_codepoint(sym);
 
-			gt_fe_draw_cursor(gt, fg, bg, attrs, xpos, ypos, cp);
+			gt_fe_draw_cursor(te, fg, bg, attrs, xpos, ypos, cp);
 		}
 	}
 
-	gt->viewport->updating = false;
+	te->viewport->updating = false;
 }
 

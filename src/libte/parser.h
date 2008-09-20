@@ -22,6 +22,6 @@ int32_t	parser_get_intermediate(Parser* parser);
 int		parser_get_nparams(Parser* parser);
 const int*	parser_get_params(Parser* parser);
 
-void	parser_input(Parser* parser, int len, const int32_t* data, TE* gt);
+void	parser_input(Parser* parser, int len, const int32_t* data, TE* te);
 
 #endif /* PARSER_H_ */

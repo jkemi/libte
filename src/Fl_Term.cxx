@@ -225,7 +225,7 @@ bool Fl_Term::_handle_keyevent(void) {
 		// Also need to do something about ALT and META at this point...
 		}
 		txt[0] = key_c & 0x7F;
-		gt->SendBack(txt);
+		te->SendBack(txt);
 		return 1;
 	}
 	return 1; // return 1 for FL_KEYBOARD even if we don't know what they key is for!

@@ -11,7 +11,7 @@
 
 #include "typedef.h"
 
-typedef void (*StateFunc)(TE* gt);
+typedef void (*StateFunc)(TE* te);
 
 typedef struct StateOption_ {
 	int							cp;			// codepoint value to look for; -1==end/default

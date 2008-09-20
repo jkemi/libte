@@ -122,13 +122,13 @@ static const keymap _keys_common[] = {
 	{TE_KEY_UNDEFINED,	NULL}
 };
 
-int gt_handle_button(TE* gt, te_key_t key)
+int gt_handle_button(TE* te, te_key_t key)
 {
 	const char* s = NULL;
 
 	switch (key) {
 	case TE_KEY_ENTER:
-		if (gt_is_mode_flag(gt, MODE_NEWLINE)) {
+		if (gt_is_mode_flag(te, MODE_NEWLINE)) {
 			s = "\r\n";	//	CRLF
 		} else {
 			s = "\r";	// ^M (CR)
@@ -140,7 +140,7 @@ int gt_handle_button(TE* gt, te_key_t key)
 
 	if (s == NULL) {
 		const keymap* const* tables;
-		if (gt_is_mode_flag(gt, MODE_KEYAPP)) {
+		if (gt_is_mode_flag(te, MODE_KEYAPP)) {
 			static const keymap* const t[] = {_keys_app, _keys_common, NULL};
 			tables = t;
 		} else {
@@ -158,7 +158,7 @@ int gt_handle_button(TE* gt, te_key_t key)
 	}
 
 	if (s != NULL) {
-		gt_fe_send_back_char(gt, s);
+		gt_fe_send_back_char(te, s);
 		return 1;
 	} else {
 		return 0;
@@ -166,84 +166,84 @@ int gt_handle_button(TE* gt, te_key_t key)
 
 }
 
-void gt_handle_keypress(TE* gt, int32_t cp, te_modifier_t modifiers) {
+void gt_handle_keypress(TE* te, int32_t cp, te_modifier_t modifiers) {
 	if (modifiers & TE_MOD_META) {
 		int32_t buf[] = {'\033', cp, '\0'};
-		gt_fe_send_back(gt, buf);
+		gt_fe_send_back(te, buf);
 	} else {
 		int32_t buf[] = {cp, '\0'};
-		gt_fe_send_back(gt, buf);
+		gt_fe_send_back(te, buf);
 	}
 }
 
-void gt_input(TE* gt, const int32_t* text, size_t len) {
+void gt_input(TE* te, const int32_t* text, size_t len) {
 	// TODO: remove temporary stack buffer from here..
-	symbol_t syms[gt->width];
-	symbol_t style = symbol_make_style(gt->fg_color, gt->bg_color, gt->attributes);
+	symbol_t syms[te->width];
+	symbol_t style = symbol_make_style(te->fg_color, te->bg_color, te->attributes);
 
-	if (gt_is_mode_set(gt, MODE_AUTOWRAP)) {
+	if (gt_is_mode_set(te, MODE_AUTOWRAP)) {
 		while (len > 0) {
-			BufferRow* row = buffer_get_row(&gt->buffer, gt->cursor_y);
+			BufferRow* row = buffer_get_row(&te->buffer, te->cursor_y);
 
-			size_t n = uint_min(len, gt->width-gt->cursor_x);
+			size_t n = uint_min(len, te->width-te->cursor_x);
 			for (size_t i = 0; i < n; i++) {
 				const symbol_t sym = style | text[i];
 				syms[i] = sym;
 			}
 
-			if (gt_is_mode_set(gt, MODE_INSERT)) {
-				bufrow_insert(row, gt->cursor_x, syms, n);
-				viewport_taint(gt, gt->cursor_y, gt->cursor_x, gt->width-gt->cursor_x);
+			if (gt_is_mode_set(te, MODE_INSERT)) {
+				bufrow_insert(row, te->cursor_x, syms, n);
+				viewport_taint(te, te->cursor_y, te->cursor_x, te->width-te->cursor_x);
 			} else {
-				bufrow_replace(row, gt->cursor_x, syms, n);
-				viewport_taint(gt, gt->cursor_y, gt->cursor_x, n);
+				bufrow_replace(row, te->cursor_x, syms, n);
+				viewport_taint(te, te->cursor_y, te->cursor_x, n);
 			}
 
-			gt_move_cursor(gt, gt->cursor_x+n, gt->cursor_y);
+			gt_move_cursor(te, te->cursor_x+n, te->cursor_y);
 
 			len -= n;
 			text += n;
 
 			if (len > 0) {
-				ac_next_line(gt);
+				ac_next_line(te);
 			}
 		}
 	} else {
-		BufferRow* row = buffer_get_row(&gt->buffer, gt->cursor_y);
+		BufferRow* row = buffer_get_row(&te->buffer, te->cursor_y);
 
-		size_t n = uint_min(len, gt->width-gt->cursor_x-1);
+		size_t n = uint_min(len, te->width-te->cursor_x-1);
 
 		for (size_t i = 0; i < n; i++) {
 			const symbol_t sym = style | text[i];
 			syms[i] = sym;
 		}
-		if (gt_is_mode_set(gt, MODE_INSERT)) {
-			bufrow_insert(row, gt->cursor_x, syms, n);
-			viewport_taint(gt, gt->cursor_y, gt->cursor_x, gt->width-gt->cursor_x);
+		if (gt_is_mode_set(te, MODE_INSERT)) {
+			bufrow_insert(row, te->cursor_x, syms, n);
+			viewport_taint(te, te->cursor_y, te->cursor_x, te->width-te->cursor_x);
 		} else {
-			bufrow_replace(row, gt->cursor_x, syms, n);
-			viewport_taint(gt, gt->cursor_y, gt->cursor_x, n);
+			bufrow_replace(row, te->cursor_x, syms, n);
+			viewport_taint(te, te->cursor_y, te->cursor_x, n);
 		}
 
-		gt_move_cursor(gt, gt->cursor_x+n, gt->cursor_y);
+		gt_move_cursor(te, te->cursor_x+n, te->cursor_y);
 
 		// There were more data than we have remaining space on
 		// the line, update last cell
 		if (len > n) {
 			syms[0] = style | text[len-1];
-			bufrow_replace(row, gt->width-1, syms, 1);
+			bufrow_replace(row, te->width-1, syms, 1);
 		}
 	}
 }
 
-void gt_resize_terminal(TE* gt, int w, int h)
+void gt_resize_terminal(TE* te, int w, int h)
 {
 	bool* newtabs = xnew(bool, w);
-	if (w > gt->width) {
-		memset(newtabs+gt->width, 0, sizeof(bool)*(w-gt->width));
+	if (w > te->width) {
+		memset(newtabs+te->width, 0, sizeof(bool)*(w-te->width));
 	}
-	memcpy(newtabs, gt->tab_stops, sizeof(bool)*int_min(gt->width,w));
-	gt->tab_stops = newtabs;
+	memcpy(newtabs, te->tab_stops, sizeof(bool)*int_min(te->width,w));
+	te->tab_stops = newtabs;
 
 /*	clear_area(int_min(width,w), 0, int_max(width,w)-1, h-1);
 	clear_area(0, int_min(height,h), w-1, int_min(height,h)-1);*/
@@ -254,78 +254,78 @@ void gt_resize_terminal(TE* gt, int w, int h)
 		scroll_top = 0;
 	}*/
 
-	gt->scroll_top = 0;
-	gt->scroll_bot = h-1;
+	te->scroll_top = 0;
+	te->scroll_bot = h-1;
 
-	gt->width = w;
-	gt->height = h;
+	te->width = w;
+	te->height = h;
 
-	int cx = int_min(gt->width-1, gt->cursor_x);
-	int cy = int_min(gt->height-1, gt->cursor_y);
-	gt_move_cursor(gt, cx, cy);
+	int cx = int_min(te->width-1, te->cursor_x);
+	int cy = int_min(te->height-1, te->cursor_y);
+	gt_move_cursor(te, cx, cy);
 
-	buffer_reshape(&gt->buffer, h, w);
+	buffer_reshape(&te->buffer, h, w);
 
-	viewport_reshape(gt, w, h);
+	viewport_reshape(te, w, h);
 
-	gt_fe_updated(gt);
+	gt_fe_updated(te);
 }
 
-TE* gt_new(const TE_Frontend* fe, void* fe_priv, int w, int h)
+TE* te_new(const TE_Frontend* fe, void* fe_priv, int w, int h)
 {
-	TE* gt = (TE*)malloc(sizeof(TE));
+	TE* te = (TE*)malloc(sizeof(TE));
 
-	gt->fe = fe;
-	gt->fe_priv = fe_priv;
+	te->fe = fe;
+	te->fe_priv = fe_priv;
 
-	gt->parser = parser_new();
+	te->parser = parser_new();
 
-	gt->width = w;
-	gt->height = h;
+	te->width = w;
+	te->height = h;
 
 
-	history_init(&gt->history, 1000);
-	buffer_init(&gt->buffer, &gt->history, h, w);
-	viewport_init(gt, w, h);
+	history_init(&te->history, 1000);
+	buffer_init(&te->buffer, &te->history, h, w);
+	viewport_init(te, w, h);
 
 	// Create tab stops
-	gt->tab_stops = xnew(bool, w);
-	memset(gt->tab_stops, 0, sizeof(bool)*w);
+	te->tab_stops = xnew(bool, w);
+	memset(te->tab_stops, 0, sizeof(bool)*w);
 
-	gt->cursor_x = 0;
-	gt->cursor_y = 0;
+	te->cursor_x = 0;
+	te->cursor_y = 0;
 
-	gt->mode_flags = 0;
+	te->mode_flags = 0;
 
 	// Setup scrolling
-	gt->scroll_top = 0;
-	gt->scroll_bot = gt->height-1;
+	te->scroll_top = 0;
+	te->scroll_bot = te->height-1;
 
 	// Setup current attributes
-	gt->attributes = 0;
-	gt->fg_color = SYMBOL_FG_DEFAULT;
-	gt->bg_color = SYMBOL_BG_DEFAULT;
+	te->attributes = 0;
+	te->fg_color = SYMBOL_FG_DEFAULT;
+	te->bg_color = SYMBOL_BG_DEFAULT;
 
 	// Setup flags
-	gt_set_mode(gt, MODE_AUTOWRAP);
+	gt_set_mode(te, MODE_AUTOWRAP);
 
-	gt_clear_area(gt, 0, 0, gt->width, gt->height-1);
+	gt_clear_area(te, 0, 0, te->width, te->height-1);
 
-	gt->stored.attributes = gt->attributes;
-	gt->stored.autowrap = true;
-	gt->stored.cursor_x = 0;
-	gt->stored.cursor_y = 0;
+	te->stored.attributes = te->attributes;
+	te->stored.autowrap = true;
+	te->stored.cursor_x = 0;
+	te->stored.cursor_y = 0;
 
-	return gt;
+	return te;
 }
 
-void gt_delete(TE* gt) {
-	buffer_term(&gt->buffer);
-	viewport_term(gt);
-	parser_delete(gt->parser);
+void gt_delete(TE* te) {
+	buffer_term(&te->buffer);
+	viewport_term(te);
+	parser_delete(te->parser);
 }
 
-void gt_fe_send_back_char(TE* gt, const char* data) {
+void gt_fe_send_back_char(TE* te, const char* data) {
 	// TODO: speedup ?!
 	size_t len = strlen(data);
 	int32_t buf[len+1];
@@ -334,7 +334,7 @@ void gt_fe_send_back_char(TE* gt, const char* data) {
 		buf[i] = data[i];
 	}
 
-	gt_fe_send_back(gt, buf);
+	gt_fe_send_back(te, buf);
 }
 
 //
@@ -346,7 +346,7 @@ void gt_fe_send_back_char(TE* gt, const char* data) {
 //
 
 TE_Backend* te_create(const TE_Frontend* front, void* priv, int width, int height) {
-	TE_Backend* te = gt_new(front, priv, width, height);
+	TE* te = te_new(front, priv, width, height);
 	return te;
 }
 
