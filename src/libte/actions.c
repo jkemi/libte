@@ -21,13 +21,13 @@
 
 #include "actions.h"
 
-void ac_cr(GTerm* gt)
+void ac_cr(TE* gt)
 {
 	gt_move_cursor(gt, 0, gt->cursor_y);
 }
 
 // Line-Feed (same as Vertical-Tab and Form-Feed)
-void ac_lf(GTerm* gt)
+void ac_lf(TE* gt)
 {
 	ac_index_down(gt);
 
@@ -37,7 +37,7 @@ void ac_lf(GTerm* gt)
 }
 
 // Horizontal Tabulation Set (HTS)
-void ac_tab(GTerm* gt)
+void ac_tab(TE* gt)
 {
 	int x = -1;
 
@@ -62,7 +62,7 @@ void ac_tab(GTerm* gt)
 	}
 }
 
-void ac_bs(GTerm* gt)
+void ac_bs(TE* gt)
 {
 	if (gt->cursor_x > 0) {
 		gt_move_cursor(gt, gt->cursor_x-1, gt->cursor_y);
@@ -72,21 +72,21 @@ void ac_bs(GTerm* gt)
 	}
 }
 
-void ac_bell(GTerm* gt)
+void ac_bell(TE* gt)
 {
 	gt_fe_bell(gt);
 }
 
-void ac_keypad_normal(GTerm* gt) {
+void ac_keypad_normal(TE* gt) {
 	gt_clear_mode_flag(gt, MODE_KEYAPP);
 }
 
-void ac_keypad_application(GTerm* gt) {
+void ac_keypad_application(TE* gt) {
 	gt_set_mode_flag(gt, MODE_KEYAPP);
 }
 
 // Save Cursor (DECSC)
-void ac_save_cursor(GTerm* gt)
+void ac_save_cursor(TE* gt)
 {
 	gt->stored.attributes = gt->attributes;
 	gt->stored.cursor_x = gt->cursor_x;
@@ -95,7 +95,7 @@ void ac_save_cursor(GTerm* gt)
 }
 
 // Restore Cursor (DECRC)
-void ac_restore_cursor(GTerm* gt)
+void ac_restore_cursor(TE* gt)
 {
 	gt->attributes = gt->stored.attributes;
 	if (gt->stored.autowrap) {
@@ -106,7 +106,7 @@ void ac_restore_cursor(GTerm* gt)
 	gt_move_cursor(gt, gt->stored.cursor_x, gt->stored.cursor_y);
 }
 
-void ac_set_tab(GTerm* gt)
+void ac_set_tab(TE* gt)
 {
 	gt->tab_stops[gt->cursor_x] = true;
 }
@@ -114,7 +114,7 @@ void ac_set_tab(GTerm* gt)
 // Index (IND)
 // IND moves the cursor down one line in the same column.
 // If the cursor is at the bottom margin, then the screen performs a scroll-up.
-void ac_index_down(GTerm* gt)
+void ac_index_down(TE* gt)
 {
 	if (gt->cursor_y == gt->scroll_bot) {
 		gt_scroll_region(gt, gt->scroll_top, gt->scroll_bot, 1);
@@ -126,13 +126,13 @@ void ac_index_down(GTerm* gt)
 // Next line (NEL)
 // Moves cursor to first position on next line. If cursor is at bottom margin,
 // then screen performs a scroll-up.
-void ac_next_line(GTerm* gt)
+void ac_next_line(TE* gt)
 {
 	ac_index_down(gt);
 	ac_cr(gt);
 }
 
-void ac_index_up(GTerm* gt)
+void ac_index_up(TE* gt)
 {
 	if (gt->cursor_y == gt->scroll_top) {
 		gt_scroll_region(gt, gt->scroll_top, gt->scroll_bot, -1);
@@ -145,7 +145,7 @@ void ac_index_up(GTerm* gt)
 //
 //   Full Reset (RIS) is here implemented in the same way as DECSTR
 //   due to the emulated nature.
-void ac_reset(GTerm* gt)
+void ac_reset(TE* gt)
 {
 	gt->bg_color = SYMBOL_BG_DEFAULT;
 	gt->fg_color = SYMBOL_FG_DEFAULT;
@@ -166,7 +166,7 @@ void ac_reset(GTerm* gt)
 }
 
 // Cursor Backward P s Times (default = 1) (CUB)
-void ac_cursor_left(GTerm* gt)
+void ac_cursor_left(TE* gt)
 {
 	int n, x;
 	n = int_max(1, parser_get_param(gt->parser,0,1) );
@@ -176,7 +176,7 @@ void ac_cursor_left(GTerm* gt)
 }
 
 // Cursor Forward P s Times (default = 1) (CUF)
-void ac_cursor_right(GTerm* gt)
+void ac_cursor_right(TE* gt)
 {
 	int n, x;
 	n = int_max(1, parser_get_param(gt->parser,0,1) );
@@ -186,7 +186,7 @@ void ac_cursor_right(GTerm* gt)
 }
 
 // Cursor Up P s Times (default = 1) (CUU)
-void ac_cursor_up(GTerm* gt)
+void ac_cursor_up(TE* gt)
 {
 	int n, y;
 	n = int_max(1, parser_get_param(gt->parser,0,1) );
@@ -200,7 +200,7 @@ void ac_cursor_up(GTerm* gt)
 }
 
 // Cursor Down P s Times (default = 1) (CUD)
-void ac_cursor_down(GTerm* gt)
+void ac_cursor_down(TE* gt)
 {
 	int n, y;
 	n = int_max(1, parser_get_param(gt->parser,0,1) );
@@ -214,7 +214,7 @@ void ac_cursor_down(GTerm* gt)
 }
 
 // Cursor Position (CUP)
-void ac_cursor_position(GTerm* gt)
+void ac_cursor_position(TE* gt)
 {
 	int y, x;
 
@@ -229,7 +229,7 @@ void ac_cursor_position(GTerm* gt)
 }
 
 // Cursor Character Absolute [column] (default = [row,1]) (CHA)
-void ac_column_position(GTerm* gt)
+void ac_column_position(TE* gt)
 {
 	int	x = int_clamp(parser_get_param(gt->parser, 0, 1), 1, gt->width);
 
@@ -237,7 +237,7 @@ void ac_column_position(GTerm* gt)
 }
 
 // Line Position Absolute [row] (default = [1,column]) (VPA)
-void ac_line_position(GTerm* gt)
+void ac_line_position(TE* gt)
 {
 	int	y = int_clamp(parser_get_param(gt->parser, 0, 1), 1, gt->height);
 
@@ -245,13 +245,13 @@ void ac_line_position(GTerm* gt)
 }
 
 // 	Send Device Attributes (Primary DA)
-void ac_device_attrib(GTerm* gt)
+void ac_device_attrib(TE* gt)
 {
 	gt_fe_send_back_char(gt, "\033[?1;2c");
 }
 
 // Delete P s Character(s) (default = 1) (DCH)
-void ac_delete_char(GTerm* gt)
+void ac_delete_char(TE* gt)
 {
 	int n, mx;
 	n = int_max(1, parser_get_param(gt->parser,0,1) );
@@ -267,7 +267,7 @@ void ac_delete_char(GTerm* gt)
 }
 
 // Set Mode (SM)
-void ac_set_mode(GTerm* gt)  // h
+void ac_set_mode(TE* gt)  // h
 {
 
 	const int p = parser_get_param(gt->parser,0,-1);
@@ -309,7 +309,7 @@ void ac_set_mode(GTerm* gt)  // h
 }
 
 // Reset Mode (RM)
-void ac_clear_mode(GTerm* gt)  // l
+void ac_clear_mode(TE* gt)  // l
 {
 	if (parser_get_intermediate(gt->parser) == '?') {
 		// DEC Private Mode Reset (DECRST)
@@ -342,7 +342,7 @@ void ac_clear_mode(GTerm* gt)  // l
 }
 
 // Set conformance level (DECSCL) and Soft terminal reset (DECSTR)
-void ac_set_conformance	(GTerm* gt) {
+void ac_set_conformance	(TE* gt) {
 	if (parser_get_intermediate(gt->parser) == '!') {
 		ac_reset(gt);
 	} else {
@@ -350,7 +350,7 @@ void ac_set_conformance	(GTerm* gt) {
 	}
 }
 
-void ac_request_param(GTerm* gt)
+void ac_request_param(TE* gt)
 {
 	// TODO: what is this function for???
 
@@ -363,7 +363,7 @@ void ac_request_param(GTerm* gt)
 }
 
 // Set Scrolling Region [top;bottom] (default = full size of window) (DECSTBM)
-void ac_set_margins(GTerm* gt)
+void ac_set_margins(TE* gt)
 {
 	int t, b;
 
@@ -383,7 +383,7 @@ void ac_set_margins(GTerm* gt)
 }
 
 // Delete P s Line(s) (default = 1) (DL)
-void ac_delete_line(GTerm* gt)
+void ac_delete_line(TE* gt)
 {
 	int n, mx;
 	n = int_max(parser_get_param(gt->parser, 0, 1), 1);
@@ -396,7 +396,7 @@ void ac_delete_line(GTerm* gt)
 }
 
 // Device Status Report (DSR)
-void ac_status_report(GTerm* gt)
+void ac_status_report(TE* gt)
 {
 	char str[20];
 	switch (parser_get_param(gt->parser, 0, -1)) {
@@ -411,7 +411,7 @@ void ac_status_report(GTerm* gt)
 }
 
 // Erase in Display (ED)
-void ac_erase_display(GTerm* gt)
+void ac_erase_display(TE* gt)
 {
 	switch ( parser_get_param(gt->parser, 0, 0) ) {
 	case 0:	// Erase Below (default)
@@ -437,7 +437,7 @@ void ac_erase_display(GTerm* gt)
 }
 
 // Erase in Line (EL)
-void ac_erase_line(GTerm* gt)
+void ac_erase_line(TE* gt)
 {
 	switch ( parser_get_param(gt->parser, 0, 0) ) {
 	case 0:	// Erase to Right (default)
@@ -453,7 +453,7 @@ void ac_erase_line(GTerm* gt)
 }
 
 // Insert P s Line(s) (default = 1) (IL)
-void ac_insert_line(GTerm* gt)
+void ac_insert_line(TE* gt)
 {
 	int n, mx;
 	n = int_max(1, parser_get_param(gt->parser, 0, 1) );
@@ -466,7 +466,7 @@ void ac_insert_line(GTerm* gt)
 }
 
 // Character Attributes (SGR)
-void ac_char_attrs(GTerm* gt)
+void ac_char_attrs(TE* gt)
 {
 	int n;
 
@@ -523,7 +523,7 @@ void ac_char_attrs(GTerm* gt)
 }
 
 // Tab Clear (TBC)
-void ac_clear_tab(GTerm* gt)
+void ac_clear_tab(TE* gt)
 {
 	switch ( parser_get_param(gt->parser,0,0) ) {
 	case 3:
@@ -535,7 +535,7 @@ void ac_clear_tab(GTerm* gt)
 }
 
 // Insert P s (Blank) Character(s) (default = 1) (ICH)
-void ac_insert_char(GTerm* gt)
+void ac_insert_char(TE* gt)
 {
 	int n, mx;
 	n = int_max(1, parser_get_param(gt->parser,0,1) );
@@ -556,7 +556,7 @@ void ac_insert_char(GTerm* gt)
 }
 
 // DEC Screen Alignment Test (DECALN)
-void ac_screen_align(GTerm* gt)
+void ac_screen_align(TE* gt)
 {
 	const symbol_t style = symbol_make_style(7,0,0);
 	const symbol_t sym = 'E' | style;
@@ -575,7 +575,7 @@ void ac_screen_align(GTerm* gt)
 }
 
 // Erase P s Character(s) (default = 1) (ECH)
-void ac_erase_char(GTerm* gt)
+void ac_erase_char(TE* gt)
 {
 	// number of characters to erase
 	const int n = int_clamp(parser_get_param(gt->parser,0,1), 1, gt->width-gt->cursor_x);
@@ -587,7 +587,7 @@ void ac_erase_char(GTerm* gt)
 // Ps is the number of lines to move the user window down in page memory.
 // Ps new lines appear at the bottom of the display. Ps old lines disappear at the top
 // of the display. You cannot pan past the bottom margin of the current page.
-void ac_scroll_up (GTerm* gt) {
+void ac_scroll_up (TE* gt) {
 	const int n = int_clamp(parser_get_param(gt->parser,0,1), 1, gt->scroll_bot-gt->scroll_top);
 
 	printf("scroll up by %d\n", n);
@@ -597,7 +597,7 @@ void ac_scroll_up (GTerm* gt) {
 
 // Scroll up Ps lines (default = 1) (SD)
 // (Pan Up)
-void ac_scroll_down (GTerm* gt) {
+void ac_scroll_down (TE* gt) {
 	const int n = int_clamp(parser_get_param(gt->parser,0,1), 1, gt->scroll_bot-gt->scroll_top);
 
 	printf("scroll down by %d\n", n);

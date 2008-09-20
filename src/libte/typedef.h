@@ -5,10 +5,10 @@
  * libTE is copyright (c) 2008 by Jakob Kemi.
  */
 
-#ifndef GT_TYPEDEF_H_
-#define GT_TYPEDEF_H_
+#ifndef TYPEDEF_H_
+#define TYPEDEF_H_
 
 
-typedef struct GTerm_ GTerm;
+typedef struct TE_Backend_ TE;
 
 #endif /* GT_TYPEDEF_H_ */

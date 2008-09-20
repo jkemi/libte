@@ -21,13 +21,13 @@
 extern "C" {
 #endif
 
-typedef struct _TE_Backend	TE_Backend;
-typedef struct _TE_Frontend	TE_Frontend;
+typedef struct TE_Backend_	TE_Backend;
+typedef struct TE_Frontend_	TE_Frontend;
 
 /**
  * This struct defines the callbacks made from terminal backend to frontend
  */
-struct _TE_Frontend {
+struct TE_Frontend_ {
 	// Drawing methods
 	void (*draw_text)	(void* priv, int x, int y, const symbol_t* symbols, int len);
 	void (*draw_clear)	(void* priv, int x, int y, const symbol_color_t bg_color, int len);

@@ -7,7 +7,7 @@
 #include "viewport.h"
 #include "misc.h"
 
-void gt_scroll_region(GTerm* gt, uint start_y, uint end_y, int num)
+void gt_scroll_region(TE* gt, uint start_y, uint end_y, int num)
 {
 	for (int i = 0; i < num; i++) {
 		buffer_scroll_up(&gt->buffer, gt->scroll_top, gt->scroll_bot);
@@ -32,7 +32,7 @@ void gt_scroll_region(GTerm* gt, uint start_y, uint end_y, int num)
 	}
 }
 
-void gt_clear_area(GTerm* gt, int xpos, int ypos, int width, int height)
+void gt_clear_area(TE* gt, int xpos, int ypos, int width, int height)
 {
 	const symbol_t style = symbol_make_style(gt->fg_color, gt->bg_color, gt->attributes);
 	const symbol_t sym = ' ' | style;
@@ -48,7 +48,7 @@ void gt_clear_area(GTerm* gt, int xpos, int ypos, int width, int height)
 	}
 }
 
-void gt_move_cursor(GTerm* gt, int x, int y)
+void gt_move_cursor(TE* gt, int x, int y)
 {
 /*	if (cursor_x >= width) {
 		cursor_x = width-1;

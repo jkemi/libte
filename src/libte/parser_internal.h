@@ -10,24 +10,24 @@
 
 #include "typedef.h"
 
-void _parser_unknown_esc(GTerm* gt);
-void _parser_unknown_csi(GTerm* gt);
+void _parser_unknown_esc(TE* gt);
+void _parser_unknown_csi(TE* gt);
 
-void _parser_osc_start(GTerm* gt);
-void _parser_osc_put(GTerm* gt);
-void _parser_osc_end(GTerm* gt);
+void _parser_osc_start(TE* gt);
+void _parser_osc_put(TE* gt);
+void _parser_osc_end(TE* gt);
 
-void _parser_dcs_start(GTerm* gt);
-void _parser_dcs_put(GTerm* gt);
-void _parser_dcs_end(GTerm* gt);
+void _parser_dcs_start(TE* gt);
+void _parser_dcs_put(TE* gt);
+void _parser_dcs_end(TE* gt);
 
-void _parser_set_intermediate(GTerm* gt);
+void _parser_set_intermediate(TE* gt);
 
-void _parser_clear_param(GTerm* gt);
-void _parser_param_digit(GTerm* gt);
-void _parser_next_param(GTerm* gt);
-void _parser_vt52_cursory(GTerm* gt);
-void _parser_vt52_cursorx(GTerm* gt);
-void _parser_normal_input(GTerm* gt);
+void _parser_clear_param(TE* gt);
+void _parser_param_digit(TE* gt);
+void _parser_next_param(TE* gt);
+void _parser_vt52_cursory(TE* gt);
+void _parser_vt52_cursorx(TE* gt);
+void _parser_normal_input(TE* gt);
 
 #endif /* PARSER_INTERNAL_H_ */

@@ -122,7 +122,7 @@ static const keymap _keys_common[] = {
 	{TE_KEY_UNDEFINED,	NULL}
 };
 
-int gt_handle_button(GTerm* gt, te_key_t key)
+int gt_handle_button(TE* gt, te_key_t key)
 {
 	const char* s = NULL;
 
@@ -166,7 +166,7 @@ int gt_handle_button(GTerm* gt, te_key_t key)
 
 }
 
-void gt_handle_keypress(GTerm* gt, int32_t cp, te_modifier_t modifiers) {
+void gt_handle_keypress(TE* gt, int32_t cp, te_modifier_t modifiers) {
 	if (modifiers & TE_MOD_META) {
 		int32_t buf[] = {'\033', cp, '\0'};
 		gt_fe_send_back(gt, buf);
@@ -176,7 +176,7 @@ void gt_handle_keypress(GTerm* gt, int32_t cp, te_modifier_t modifiers) {
 	}
 }
 
-void gt_input(GTerm* gt, const int32_t* text, size_t len) {
+void gt_input(TE* gt, const int32_t* text, size_t len) {
 	// TODO: remove temporary stack buffer from here..
 	symbol_t syms[gt->width];
 	symbol_t style = symbol_make_style(gt->fg_color, gt->bg_color, gt->attributes);
@@ -236,7 +236,7 @@ void gt_input(GTerm* gt, const int32_t* text, size_t len) {
 	}
 }
 
-void gt_resize_terminal(GTerm* gt, int w, int h)
+void gt_resize_terminal(TE* gt, int w, int h)
 {
 	bool* newtabs = xnew(bool, w);
 	if (w > gt->width) {
@@ -271,9 +271,9 @@ void gt_resize_terminal(GTerm* gt, int w, int h)
 	gt_fe_updated(gt);
 }
 
-GTerm* gt_new(const TE_Frontend* fe, void* fe_priv, int w, int h)
+TE* gt_new(const TE_Frontend* fe, void* fe_priv, int w, int h)
 {
-	GTerm* gt = (GTerm*)malloc(sizeof(GTerm));
+	TE* gt = (TE*)malloc(sizeof(TE));
 
 	gt->fe = fe;
 	gt->fe_priv = fe_priv;
@@ -319,13 +319,13 @@ GTerm* gt_new(const TE_Frontend* fe, void* fe_priv, int w, int h)
 	return gt;
 }
 
-void gt_delete(GTerm* gt) {
+void gt_delete(TE* gt) {
 	buffer_term(&gt->buffer);
 	viewport_term(gt);
 	parser_delete(gt->parser);
 }
 
-void gt_fe_send_back_char(GTerm* gt, const char* data) {
+void gt_fe_send_back_char(TE* gt, const char* data) {
 	// TODO: speedup ?!
 	size_t len = strlen(data);
 	int32_t buf[len+1];
@@ -341,60 +341,52 @@ void gt_fe_send_back_char(GTerm* gt, const char* data) {
 // Internal structure
 //
 
-struct _TE_Backend {
-	GTerm*	gt;
-};
-
 //
 // Public API below
 //
 
 TE_Backend* te_create(const TE_Frontend* front, void* priv, int width, int height) {
-	TE_Backend* te = (TE_Backend*)malloc(sizeof(TE_Backend));
-	if (te != NULL) {
-		te->gt = gt_new(front, priv, width, height);
-	}
+	TE_Backend* te = gt_new(front, priv, width, height);
 	return te;
 }
 
 void te_destroy(TE_Backend* te) {
-	gt_delete(te->gt);
-	free(te);
+	gt_delete(te);
 }
 
 void te_resize(TE_Backend* te, int width, int height) {
-	gt_resize_terminal(te->gt, width, height);
+	gt_resize_terminal(te, width, height);
 }
 
 int te_get_width(TE_Backend* te) {
-	return te->gt->width;
+	return te->width;
 }
 
 int te_get_height(TE_Backend* te) {
-	return te->gt->height;
+	return te->height;
 }
 
 void te_request_redraw(TE_Backend* te, int x, int y, int w, int h, int force) {
-	viewport_request_redraw(te->gt, x, y, w, h, force);
+	viewport_request_redraw(te, x, y, w, h, force);
 }
 
 void te_process_input(TE_Backend* te, const int32_t* data, size_t len) {
-	parser_input(te->gt->parser, len, data, te->gt);
-	gt_fe_updated(te->gt);
+	parser_input(te->parser, len, data, te);
+	gt_fe_updated(te);
 }
 
 int te_handle_button(TE_Backend* te, te_key_t key) {
-	return gt_handle_button(te->gt, key);
+	return gt_handle_button(te, key);
 }
 
 void te_handle_keypress(TE_Backend* te, int32_t cp, te_modifier_t modifiers) {
-	gt_handle_keypress(te->gt, cp, modifiers);
+	gt_handle_keypress(te, cp, modifiers);
 }
 
 void te_position(TE_Backend* te, int offset) {
-	viewport_set(te->gt, offset);
+	viewport_set(te, offset);
 }
 
 void te_lock_scroll(TE_Backend* te, int scroll_lock) {
-	viewport_lock_scroll(te->gt, scroll_lock != 0);
+	viewport_lock_scroll(te, scroll_lock != 0);
 }

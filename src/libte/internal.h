@@ -90,7 +90,7 @@ typedef enum {
 } te_mode_t;
 
 
-struct GTerm_ {
+struct TE_Backend_ {
 
 	// Contains the currently set mode flags
 	int mode_flags;
@@ -129,65 +129,65 @@ struct GTerm_ {
 	struct Viewport_* viewport;
 };
 
-GTerm* gt_new(const TE_Frontend* fe, void* fe_priv, int w, int h);
-void gt_delete(GTerm* gt);
+TE* gt_new(const TE_Frontend* fe, void* fe_priv, int w, int h);
+void gt_delete(TE* gt);
 
 // utility functions
-static inline bool gt_is_mode_set(GTerm* gt, te_mode_t mode) {return gt->mode_flags & mode;}
-void gt_scroll_region(GTerm* gt, uint start_y, uint end_y, int num);	// does clear
-void gt_clear_area(GTerm* gt, int start_x, int start_y, int end_x, int end_y);
-void gt_move_cursor(GTerm* gt, int x, int y);
+static inline bool gt_is_mode_set(TE* gt, te_mode_t mode) {return gt->mode_flags & mode;}
+void gt_scroll_region(TE* gt, uint start_y, uint end_y, int num);	// does clear
+void gt_clear_area(TE* gt, int start_x, int start_y, int end_x, int end_y);
+void gt_move_cursor(TE* gt, int x, int y);
 
 // terminal actions
-static inline int gt_get_mode(GTerm* gt) { return gt->mode_flags; }
-static inline void gt_set_mode(GTerm* gt, int mode) { gt->mode_flags = mode; }
-static inline bool gt_is_mode_flag(GTerm* gt, te_mode_t flag) { return (gt->mode_flags & flag) != 0; }
-static inline void gt_set_mode_flag(GTerm* gt, te_mode_t flag) {gt->mode_flags |= flag;}
-static inline void gt_clear_mode_flag(GTerm* gt, te_mode_t flag) {gt->mode_flags &= ~flag;}
-static inline void gt_clear_mode_flags(GTerm* gt, int flags) {gt->mode_flags &= ~flags;}
+static inline int gt_get_mode(TE* gt) { return gt->mode_flags; }
+static inline void gt_set_mode(TE* gt, int mode) { gt->mode_flags = mode; }
+static inline bool gt_is_mode_flag(TE* gt, te_mode_t flag) { return (gt->mode_flags & flag) != 0; }
+static inline void gt_set_mode_flag(TE* gt, te_mode_t flag) {gt->mode_flags |= flag;}
+static inline void gt_clear_mode_flag(TE* gt, te_mode_t flag) {gt->mode_flags &= ~flag;}
+static inline void gt_clear_mode_flags(TE* gt, int flags) {gt->mode_flags &= ~flags;}
 
 // Ordinary printable character are sent here from parser
-void gt_input(GTerm* gt, const int32_t* text, size_t len);
+void gt_input(TE* gt, const int32_t* text, size_t len);
 
-void gt_fe_send_back_char (GTerm* gt, const char* data);
+void gt_fe_send_back_char (TE* gt, const char* data);
 
-static inline void gt_fe_send_back		(GTerm* gt, const int32_t* data)
+static inline void gt_fe_send_back		(TE* gt, const int32_t* data)
 	{ gt->fe->send_back(gt->fe_priv, data); }
 
-static inline void gt_fe_bell			(GTerm* gt)
+static inline void gt_fe_bell			(TE* gt)
 	{ gt->fe->bell(gt->fe_priv); }
 
-static inline void gt_fe_request_resize	(GTerm* gt, int width, int height)
+static inline void gt_fe_request_resize	(TE* gt, int width, int height)
 	{ gt->fe->request_resize(gt->fe_priv, width, height); }
 
-static inline void gt_fe_updated		(GTerm* gt)
+static inline void gt_fe_updated		(TE* gt)
 	{ gt->fe->updated(gt->fe_priv); }
 
-static inline void gt_fe_move			(GTerm* gt, int y, int height, int byoffset)
+static inline void gt_fe_move			(TE* gt, int y, int height, int byoffset)
 	{	gt->fe->draw_move(gt->fe_priv, y, height, byoffset); }
 
-static inline void gt_fe_position		(GTerm* gt, int offset, int size)
+static inline void gt_fe_position		(TE* gt, int offset, int size)
 	{ gt->fe->position(gt->fe_priv, offset, size); }
 
-static inline void gt_fe_draw_text		(GTerm* gt, int x, int y, const symbol_t* symbols, int len)
+static inline void gt_fe_draw_text		(TE* gt, int x, int y, const symbol_t* symbols, int len)
 	{ gt->fe->draw_text(gt->fe_priv, x, y, symbols, len); }
 
-static inline void gt_fe_draw_clear		(GTerm* gt, int x, int y, const symbol_color_t bg_color, int len)
+static inline void gt_fe_draw_clear		(TE* gt, int x, int y, const symbol_color_t bg_color, int len)
 	{ gt->fe->draw_clear(gt->fe_priv, x, y, bg_color, len); }
 
-static inline void gt_fe_draw_cursor	(GTerm* gt, symbol_color_t fg_color, symbol_color_t bg_color, symbol_attributes_t attrs, int x, int y, int32_t cp)
+static inline void gt_fe_draw_cursor	(TE* gt, symbol_color_t fg_color, symbol_color_t bg_color, symbol_attributes_t attrs, int x, int y, int32_t cp)
 	{ gt->fe->draw_cursor(gt->fe_priv, fg_color, bg_color, attrs, x, y, cp); }
 
-static inline void gt_fe_draw_move		(GTerm* gt, int y, int height, int byoffset)
+static inline void gt_fe_draw_move		(TE* gt, int y, int height, int byoffset)
 	{gt->fe->draw_move(gt->fe_priv, y, height, byoffset); }
 
 
 
 
-void	gt_process_input(GTerm* gt, int len, const int32_t* data);
-void	gt_resize_terminal(GTerm* gt, int w, int h);
-int		gt_handle_button(GTerm* gt, te_key_t key);
-void	gt_handle_keypress(GTerm* gt, int32_t cp, te_modifier_t modifiers);
+void	gt_process_input(TE* gt, int len, const int32_t* data);
+void	gt_resize_terminal(TE* gt, int w, int h);
+int		gt_handle_button(TE* gt, te_key_t key);
+void	gt_handle_keypress(TE* gt, int32_t cp, te_modifier_t modifiers);
 
 #endif
 

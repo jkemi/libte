@@ -65,7 +65,7 @@ const int* parser_get_params(Parser* parser) {
 	return parser->params;
 }
 
-void parser_input(Parser* parser, int len, const int32_t* data, GTerm* gt)
+void parser_input(Parser* parser, int len, const int32_t* data, TE* gt)
 {
 	parser->input_remaining = len;
 	parser->input_data = data;
@@ -94,7 +94,7 @@ void parser_input(Parser* parser, int len, const int32_t* data, GTerm* gt)
 	}
 }
 
-void _parser_unknown_esc(GTerm* gt) {
+void _parser_unknown_esc(TE* gt) {
 	int32_t cp = *gt->parser->input_data;
 	printf("unknown esc dispatch: ");
 	if (cp >= 32 && cp <= 126) {
@@ -104,7 +104,7 @@ void _parser_unknown_esc(GTerm* gt) {
 	}
 }
 
-void _parser_unknown_csi(GTerm* gt) {
+void _parser_unknown_csi(TE* gt) {
 	int32_t cp = *gt->parser->input_data;
 	printf("unknown csi dispatch: ");
 	if (cp >= 32 && cp <= 126) {
@@ -114,35 +114,35 @@ void _parser_unknown_csi(GTerm* gt) {
 	}
 }
 
-void _parser_osc_start(GTerm* gt) {
+void _parser_osc_start(TE* gt) {
 
 }
 
-void _parser_osc_put(GTerm* gt) {
+void _parser_osc_put(TE* gt) {
 
 }
 
-void _parser_osc_end(GTerm* gt) {
+void _parser_osc_end(TE* gt) {
 
 }
 
-void _parser_dcs_start(GTerm* gt) {
+void _parser_dcs_start(TE* gt) {
 
 }
 
-void _parser_dcs_put(GTerm* gt) {
+void _parser_dcs_put(TE* gt) {
 
 }
 
-void _parser_dcs_end(GTerm* gt) {
+void _parser_dcs_end(TE* gt) {
 
 }
 
-void _parser_set_intermediate(GTerm* gt) {
+void _parser_set_intermediate(TE* gt) {
 	gt->parser->intermediate_chars[0] = *gt->parser->input_data;
 }
 
-void _parser_clear_param(GTerm* gt)
+void _parser_clear_param(TE* gt)
 {
 	gt->parser->num_params = 0;
 	memset(gt->parser->params, 0, sizeof(gt->parser->params));
@@ -152,7 +152,7 @@ void _parser_clear_param(GTerm* gt)
 }
 
 // for performance, this grabs all digits
-void _parser_param_digit(GTerm* gt)
+void _parser_param_digit(TE* gt)
 {
 	if (gt->parser->num_params == 0) {
 		gt->parser->num_params = 1;
@@ -161,7 +161,7 @@ void _parser_param_digit(GTerm* gt)
 	gt->parser->params[gt->parser->num_params-1] = gt->parser->params[gt->parser->num_params-1]*10 + (*gt->parser->input_data)-'0';
 }
 
-void _parser_next_param(GTerm* gt)
+void _parser_next_param(TE* gt)
 {
 	gt->parser->num_params++;
 	gt->parser->params[gt->parser->num_params-1] = 0;
@@ -169,7 +169,7 @@ void _parser_next_param(GTerm* gt)
 
 // For efficiency, this grabs all printing characters from buffer, up to
 // the end of the line or end of buffer
-void _parser_normal_input(GTerm* gt)
+void _parser_normal_input(TE* gt)
 {
 	if (*gt->parser->input_data < 32) {
 		return;

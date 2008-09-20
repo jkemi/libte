@@ -19,12 +19,12 @@ struct Viewport_ {
 	bool	scroll_lock;
 };
 
-static void _report_scroll(GTerm* gt) {
+static void _report_scroll(TE* gt) {
 	gt_fe_position(gt, gt->viewport->offset, history_size(&gt->history));
 }
 
 
-void viewport_init (GTerm* gt, uint w, uint h) {
+void viewport_init (TE* gt, uint w, uint h) {
 	gt->viewport = xnew(Viewport, 1);
 
 	dirty_init(&gt->viewport->dirty, h, w);
@@ -35,33 +35,33 @@ void viewport_init (GTerm* gt, uint w, uint h) {
 	_report_scroll(gt);
 }
 
-void viewport_term (GTerm* gt) {
+void viewport_term (TE* gt) {
 	dirty_free(&gt->viewport->dirty);
 	free(gt->viewport);
 }
 
-void viewport_reshape(GTerm* gt, uint w, uint h) {
+void viewport_reshape(TE* gt, uint w, uint h) {
 	dirty_reshape(&gt->viewport->dirty, h, w);
 }
 
-void viewport_taint (GTerm* gt, uint y, uint x, uint len) {
+void viewport_taint (TE* gt, uint y, uint x, uint len) {
 	y += gt->viewport->offset;
 	if (y >= 0 && y < gt->height) {
 		dirty_taint(&gt->viewport->dirty, y, x, x+len);
 	}
 }
 
-void viewport_taint_all	(GTerm* gt) {
+void viewport_taint_all	(TE* gt) {
 	for (uint y = 0; y < gt->height; y++) {
 		dirty_taint_row(&gt->viewport->dirty, y);
 	}
 }
 
-void viewport_move (GTerm* gt, uint y, uint n, int offset) {
+void viewport_move (TE* gt, uint y, uint n, int offset) {
 	// TODO: implement?
 }
 
-void viewport_history_inc(GTerm* gt) {
+void viewport_history_inc(TE* gt) {
 	if (gt->viewport->offset > 0) {
 		if (gt->viewport->scroll_lock) {
 			gt->viewport->offset++;
@@ -78,7 +78,7 @@ void viewport_history_inc(GTerm* gt) {
 	_report_scroll(gt);
 }
 
-void viewport_history_dec(GTerm* gt) {
+void viewport_history_dec(TE* gt) {
 	uint hsz = history_size(&gt->history);
 	if (gt->viewport->offset > 0) {
 		if (gt->viewport->scroll_lock) {
@@ -96,7 +96,7 @@ void viewport_history_dec(GTerm* gt) {
 	_report_scroll(gt);
 }
 
-void viewport_set (GTerm* gt, int offset) {
+void viewport_set (TE* gt, int offset) {
 	uint hsz = history_size(&gt->history);
 	const uint off = int_clamp(offset, 0, hsz);
 
@@ -109,11 +109,11 @@ void viewport_set (GTerm* gt, int offset) {
 	_report_scroll(gt);
 }
 
-void viewport_lock_scroll (GTerm* gt, bool lock) {
+void viewport_lock_scroll (TE* gt, bool lock) {
 	gt->viewport->scroll_lock = lock;
 }
 
-void viewport_request_redraw(GTerm* gt, int x, int y, int w, int h, bool force) {
+void viewport_request_redraw(TE* gt, int x, int y, int w, int h, bool force) {
 	if (gt->viewport->updating) {
 		printf("bad update!\n");
 		return;
