@@ -1,14 +1,15 @@
 /*
- * states.h
+ * This file is part of libTE, please consult the files README and
+ * COPYING for further information.
  *
- *  Created on: Aug 21, 2008
- *      Author: jakob
+ * libTE is copyright (c) 2008 by Jakob Kemi.
+ * Some parts are copyright (c) 1999 by Timothy Miller.
  */
 
 #ifndef PARSER_STATES_H_
 #define PARSER_STATES_H_
 
-#include "gt_typedef.h"
+#include "typedef.h"
 
 typedef void (*StateFunc)(GTerm* gt);
 

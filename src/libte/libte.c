@@ -1,4 +1,9 @@
-// Copyright Timothy Miller, 1999
+/*
+ * This file is part of libTE, please consult the files README and
+ * COPYING for further information.
+ *
+ * libTE is copyright (c) 2008 by Jakob Kemi.
+ */
 
 #include <stdlib.h>
 
@@ -9,7 +14,7 @@
 
 #include "viewport.h"
 #include "parser.h"
-#include "gterm.h"
+#include "internal.h"
 
 
 // key sequence struct, used when translating VT100 key sequences
@@ -164,10 +169,10 @@ int gt_handle_button(GTerm* gt, te_key_t key)
 void gt_handle_keypress(GTerm* gt, int32_t cp, te_modifier_t modifiers) {
 	if (modifiers & TE_MOD_META) {
 		int32_t buf[] = {'\033', cp, '\0'};
-		gt_fe_send_back_char(gt, buf);
+		gt_fe_send_back(gt, buf);
 	} else {
 		int32_t buf[] = {cp, '\0'};
-		gt_fe_send_back_char(gt, buf);
+		gt_fe_send_back(gt, buf);
 	}
 }
 
@@ -266,7 +271,7 @@ void gt_resize_terminal(GTerm* gt, int w, int h)
 	gt_fe_updated(gt);
 }
 
-GTerm* gterm_new(const TE_Frontend* fe, void* fe_priv, int w, int h)
+GTerm* gt_new(const TE_Frontend* fe, void* fe_priv, int w, int h)
 {
 	GTerm* gt = (GTerm*)malloc(sizeof(GTerm));
 
@@ -314,7 +319,7 @@ GTerm* gterm_new(const TE_Frontend* fe, void* fe_priv, int w, int h)
 	return gt;
 }
 
-void gterm_delete(GTerm* gt) {
+void gt_delete(GTerm* gt) {
 	buffer_term(&gt->buffer);
 	viewport_term(gt);
 	parser_delete(gt->parser);
@@ -347,13 +352,13 @@ struct _TE_Backend {
 TE_Backend* te_create(const TE_Frontend* front, void* priv, int width, int height) {
 	TE_Backend* te = (TE_Backend*)malloc(sizeof(TE_Backend));
 	if (te != NULL) {
-		te->gt = gterm_new(front, priv, width, height);
+		te->gt = gt_new(front, priv, width, height);
 	}
 	return te;
 }
 
 void te_destroy(TE_Backend* te) {
-	gterm_delete(te->gt);
+	gt_delete(te->gt);
 	free(te);
 }
 

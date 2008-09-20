@@ -1,8 +1,8 @@
 /*
- * History.h
+ * This file is part of libTE, please consult the files README and
+ * COPYING for further information.
  *
- *  Created on: Aug 20, 2008
- *      Author: jakob
+ * libTE is copyright (c) 2008 by Jakob Kemi.
  */
 
 #ifndef HISTORY_H_

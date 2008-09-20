@@ -1,14 +1,14 @@
 /*
- * parser.h
+ * This file is part of libTE, please consult the files README and
+ * COPYING for further information.
  *
- *  Created on: Sep 19, 2008
- *      Author: jakob
+ * libTE is copyright (c) 2008 by Jakob Kemi.
  */
 
 #ifndef PARSER_H_
 #define PARSER_H_
 
-#include "gt_typedef.h"
+#include "typedef.h"
 
 typedef struct Parser_ Parser;
 

@@ -1,8 +1,8 @@
 /*
- * Dirty.h
+ * This file is part of libTE, please consult the files README and
+ * COPYING for further information.
  *
- *  Created on: Jul 4, 2008
- *      Author: jakob
+ * libTE is copyright (c) 2008 by Jakob Kemi.
  */
 
 //

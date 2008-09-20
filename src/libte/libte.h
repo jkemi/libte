@@ -1,3 +1,11 @@
+/*
+ * This file is part of libTE, please consult the files README and
+ * COPYING for further information.
+ *
+ * libTE is copyright (c) 2008 by Jakob Kemi.
+ */
+
+
 #ifndef LIBTE_H_
 #define LIBTE_H_
 

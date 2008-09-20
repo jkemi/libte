@@ -1,8 +1,8 @@
 /*
- * OldParser.cpp
+ * This file is part of libTE, please consult the files README and
+ * COPYING for further information.
  *
- *  Created on: Aug 17, 2008
- *      Author: jakob
+ * libTE is copyright (c) 2008 by Jakob Kemi.
  */
 
 #include <stdlib.h>
@@ -12,7 +12,7 @@
 
 #include "actions.h"
 
-#include "gterm.h"
+#include "internal.h"
 
 #include "parser_states.h"
 #include "parser_internal.h"

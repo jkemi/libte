@@ -1,14 +1,14 @@
 /*
- * OldParser.hpp
+ * This file is part of libTE, please consult the files README and
+ * COPYING for further information.
  *
- *  Created on: Aug 17, 2008
- *      Author: jakob
+ * libTE is copyright (c) 2008 by Jakob Kemi.
  */
 
 #ifndef PARSER_INTERNAL_H_
 #define PARSER_INTERNAL_H_
 
-#include "gt_typedef.h"
+#include "typedef.h"
 
 void _parser_unknown_esc(GTerm* gt);
 void _parser_unknown_csi(GTerm* gt);

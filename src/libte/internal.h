@@ -1,4 +1,9 @@
-// Copyright Timothy Miller, 1999
+/*
+ * This file is part of libTE, please consult the files README and
+ * COPYING for further information.
+ *
+ * libTE is copyright (c) 2008 by Jakob Kemi.
+ */
 
 #ifndef INCLUDED_GTERM_H
 #define INCLUDED_GTERM_H
@@ -14,7 +19,7 @@
 
 #include "macros.h"
 
-#include "gt_typedef.h"
+#include "typedef.h"
 
 // mode flags
 typedef enum {
@@ -124,8 +129,8 @@ struct GTerm_ {
 	struct Viewport_* viewport;
 };
 
-GTerm* gterm_new(const TE_Frontend* fe, void* fe_priv, int w, int h);
-void gterm_delete(GTerm* gt);
+GTerm* gt_new(const TE_Frontend* fe, void* fe_priv, int w, int h);
+void gt_delete(GTerm* gt);
 
 // utility functions
 static inline bool gt_is_mode_set(GTerm* gt, te_mode_t mode) {return gt->mode_flags & mode;}

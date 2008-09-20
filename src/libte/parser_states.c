@@ -1,4 +1,11 @@
-// Copyright Timothy Miller, 1999
+/*
+ * This file is part of libTE, please consult the files README and
+ * COPYING for further information.
+ *
+ * libTE is copyright (c) 2008 by Jakob Kemi.
+ * Some parts are copyright (c) 1999 by Timothy Miller.
+ */
+
 
 #include <stddef.h>
 #include "actions.h"

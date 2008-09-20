@@ -1,8 +1,8 @@
 /*
- * actions.hpp
+ * This file is part of libTE, please consult the files README and
+ * COPYING for further information.
  *
- *  Created on: Aug 17, 2008
- *      Author: jakob
+ * libTE is copyright (c) 2008 by Jakob Kemi.
  */
 
 #ifndef ACTIONS_H_
@@ -10,7 +10,7 @@
 
 #include "macros.h"
 
-#include "gt_typedef.h"
+#include "typedef.h"
 
 DLLLOCAL void ac_cr					(GTerm* gt);	// Carriage-return
 DLLLOCAL void ac_lf					(GTerm* gt);	// Line-Feed, same as Vertical-Tab and Form-Feed
