@@ -151,24 +151,43 @@ void gt_input(GTerm* gt, const int32_t* text, size_t len);
 
 void gt_fe_send_back_char (GTerm* gt, const char* data);
 
-static inline void gt_fe_send_back(GTerm* gt, const int32_t* data) { gt->fe->send_back(gt->fe_priv, data); }
-static inline void gt_fe_bell(GTerm* gt) { gt->fe->bell(gt->fe_priv); }
-static inline void gt_fe_request_resize(GTerm* gt, int width, int height) { gt->fe->request_resize(gt->fe_priv, width, height); }
-static inline void gt_fe_updated(GTerm* gt) { gt->fe->updated(gt->fe_priv); }
-static inline void gt_fe_move(GTerm* gt, int y, int height, int byoffset) {	gt->fe->draw_move(gt->fe_priv, y, height, byoffset); }
-static inline void gt_fe_position(GTerm* gt, int offset, int size) { gt->fe->position(gt->fe_priv, offset, size); }
-static inline void gt_fe_draw_text (GTerm* gt, int x, int y, const symbol_t* symbols, int len) { gt->fe->draw_text(gt->fe_priv, x, y, symbols, len); }
-static inline void gt_fe_draw_clear (GTerm* gt, int x, int y, const symbol_color_t bg_color, int len) { gt->fe->draw_clear(gt->fe_priv, x, y, bg_color, len); }
-static inline void gt_fe_draw_cursor (GTerm* gt, symbol_color_t fg_color, symbol_color_t bg_color, symbol_attributes_t attrs, int x, int y, int32_t cp) { gt->fe->draw_cursor(gt->fe_priv, fg_color, bg_color, attrs, x, y, cp); }
-static inline void gt_fe_draw_move (GTerm* gt, int y, int height, int byoffset) { gt->fe->draw_move(gt->fe_priv, y, height, byoffset); }
+static inline void gt_fe_send_back		(GTerm* gt, const int32_t* data)
+	{ gt->fe->send_back(gt->fe_priv, data); }
+
+static inline void gt_fe_bell			(GTerm* gt)
+	{ gt->fe->bell(gt->fe_priv); }
+
+static inline void gt_fe_request_resize	(GTerm* gt, int width, int height)
+	{ gt->fe->request_resize(gt->fe_priv, width, height); }
+
+static inline void gt_fe_updated		(GTerm* gt)
+	{ gt->fe->updated(gt->fe_priv); }
+
+static inline void gt_fe_move			(GTerm* gt, int y, int height, int byoffset)
+	{	gt->fe->draw_move(gt->fe_priv, y, height, byoffset); }
+
+static inline void gt_fe_position		(GTerm* gt, int offset, int size)
+	{ gt->fe->position(gt->fe_priv, offset, size); }
+
+static inline void gt_fe_draw_text		(GTerm* gt, int x, int y, const symbol_t* symbols, int len)
+	{ gt->fe->draw_text(gt->fe_priv, x, y, symbols, len); }
+
+static inline void gt_fe_draw_clear		(GTerm* gt, int x, int y, const symbol_color_t bg_color, int len)
+	{ gt->fe->draw_clear(gt->fe_priv, x, y, bg_color, len); }
+
+static inline void gt_fe_draw_cursor	(GTerm* gt, symbol_color_t fg_color, symbol_color_t bg_color, symbol_attributes_t attrs, int x, int y, int32_t cp)
+	{ gt->fe->draw_cursor(gt->fe_priv, fg_color, bg_color, attrs, x, y, cp); }
+
+static inline void gt_fe_draw_move		(GTerm* gt, int y, int height, int byoffset)
+	{gt->fe->draw_move(gt->fe_priv, y, height, byoffset); }
 
 
 
 
-void gt_process_input(GTerm* gt, int len, const int32_t* data);
-void gt_resize_terminal(GTerm* gt, int w, int h);
-int gt_handle_button(GTerm* gt, te_key_t key);
-void gt_handle_keypress(GTerm* gt, int32_t cp, te_modifier_t modifiers);
+void	gt_process_input(GTerm* gt, int len, const int32_t* data);
+void	gt_resize_terminal(GTerm* gt, int w, int h);
+int		gt_handle_button(GTerm* gt, te_key_t key);
+void	gt_handle_keypress(GTerm* gt, int32_t cp, te_modifier_t modifiers);
 
 #endif
 
