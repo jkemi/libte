@@ -21,6 +21,8 @@
 extern "C" {
 #endif
 
+#define TE_SOURCE_VERSION	"0.9.0"
+
 typedef struct TE_Backend_	TE_Backend;
 typedef struct TE_Frontend_	TE_Frontend;
 
@@ -113,6 +115,8 @@ typedef enum _te_modifier {
 	TE_MOD_CTRL		= (1<<1),
 	TE_MOD_META		= (1<<2),
 } te_modifier_t;
+
+DLLEXPORT const char* te_binary_version(void);
 
 DLLEXPORT TE_Backend* te_create(const TE_Frontend* front, void* priv, int width, int height);
 DLLEXPORT void te_destroy(TE_Backend* te);

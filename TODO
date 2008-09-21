@@ -5,10 +5,10 @@ libte:
  * alternate screen buffer
  * limit row-buffer dynamic growth to screen width
  * c-ify remaining files (done)
- * versioning
+ * versioning (done)
  * create actual library
  * copyright texts
- * dynamic scroll history
+ * dynamic scroll history size
 
 flterm:
 
