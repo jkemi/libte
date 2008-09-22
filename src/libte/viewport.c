@@ -20,7 +20,7 @@ struct Viewport_ {
 };
 
 static void _report_scroll(TE* te) {
-	gt_fe_position(te, te->viewport->offset, history_size(&te->history));
+	fe_position(te, te->viewport->offset, history_size(&te->history));
 }
 
 
@@ -103,7 +103,7 @@ void viewport_set (TE* te, int offset) {
 	if (off != te->viewport->offset) {
 		te->viewport->offset = off;
 		viewport_taint_all(te);
-		gt_fe_updated(te);
+		fe_updated(te);
 	}
 
 	_report_scroll(te);
@@ -157,17 +157,17 @@ void viewport_request_redraw(TE* te, int x, int y, int w, int h, bool force) {
 
 		const int a = int_max(0, ndata-dirtstart) - int_max(0, ndata-dirtend);
 		if (a > 0) {
-			gt_fe_draw_text(te, dirtstart, rowno, data+dirtstart, a);
+			fe_draw_text(te, dirtstart, rowno, data+dirtstart, a);
 		}
 		const int b = int_max(0, dirtend-dirtstart-a);
 		if (b > 0) {
-			gt_fe_draw_clear(te, dirtstart+a, rowno, SYMBOL_BG_DEFAULT, b);
+			fe_draw_clear(te, dirtstart+a, rowno, SYMBOL_BG_DEFAULT, b);
 		}
 
 		dirty_cleanse(&te->viewport->dirty, rowno, dirtstart, dirtend);
     }
 
-	if (!gt_is_mode_set(te, MODE_CURSORINVISIBLE)) {
+	if (!be_is_mode_set(te, MODE_CURSORINVISIBLE)) {
 
 		int xpos = te->cursor_x;
 		int ypos = te->cursor_y+offset;
@@ -183,7 +183,7 @@ void viewport_request_redraw(TE* te, int x, int y, int w, int h, bool force) {
 			const symbol_attributes_t attrs = symbol_get_attributes(sym);
 			const unsigned int cp = symbol_get_codepoint(sym);
 
-			gt_fe_draw_cursor(te, fg, bg, attrs, xpos, ypos, cp);
+			fe_draw_cursor(te, fg, bg, attrs, xpos, ypos, cp);
 		}
 	}
 

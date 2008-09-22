@@ -23,7 +23,7 @@
 
 void ac_cr(TE* te)
 {
-	gt_move_cursor(te, 0, te->cursor_y);
+	be_move_cursor(te, 0, te->cursor_y);
 }
 
 // Line-Feed (same as Vertical-Tab and Form-Feed)
@@ -31,7 +31,7 @@ void ac_lf(TE* te)
 {
 	ac_index_down(te);
 
-	if (gt_is_mode_flag(te, MODE_NEWLINE)) {
+	if (be_is_mode_flag(te, MODE_NEWLINE)) {
 		ac_cr(te);
 	}
 }
@@ -55,34 +55,34 @@ void ac_tab(TE* te)
 	}
 
 	if (x < te->width) {
-		gt_move_cursor(te, x, te->cursor_y);
+		be_move_cursor(te, x, te->cursor_y);
 	} else {
 		// Tabs _never_ causes newline
-		gt_move_cursor(te, te->width-1, te->cursor_y);
+		be_move_cursor(te, te->width-1, te->cursor_y);
 	}
 }
 
 void ac_bs(TE* te)
 {
 	if (te->cursor_x > 0) {
-		gt_move_cursor(te, te->cursor_x-1, te->cursor_y);
+		be_move_cursor(te, te->cursor_x-1, te->cursor_y);
 	}
-	if (gt_is_mode_set(te, MODE_DESTRUCTBS)) {
-		gt_clear_area(te, te->cursor_x, te->cursor_y, 1, 1);
+	if (be_is_mode_set(te, MODE_DESTRUCTBS)) {
+		be_clear_area(te, te->cursor_x, te->cursor_y, 1, 1);
 	}
 }
 
 void ac_bell(TE* te)
 {
-	gt_fe_bell(te);
+	fe_bell(te);
 }
 
 void ac_keypad_normal(TE* te) {
-	gt_clear_mode_flag(te, MODE_KEYAPP);
+	be_clear_mode_flag(te, MODE_KEYAPP);
 }
 
 void ac_keypad_application(TE* te) {
-	gt_set_mode_flag(te, MODE_KEYAPP);
+	be_set_mode_flag(te, MODE_KEYAPP);
 }
 
 // Save Cursor (DECSC)
@@ -91,7 +91,7 @@ void ac_save_cursor(TE* te)
 	te->stored.attributes = te->attributes;
 	te->stored.cursor_x = te->cursor_x;
 	te->stored.cursor_y = te->cursor_y;
-	te->stored.autowrap = gt_is_mode_flag(te, MODE_AUTOWRAP);
+	te->stored.autowrap = be_is_mode_flag(te, MODE_AUTOWRAP);
 }
 
 // Restore Cursor (DECRC)
@@ -99,11 +99,11 @@ void ac_restore_cursor(TE* te)
 {
 	te->attributes = te->stored.attributes;
 	if (te->stored.autowrap) {
-		gt_set_mode_flag(te, MODE_AUTOWRAP);
+		be_set_mode_flag(te, MODE_AUTOWRAP);
 	} else {
-		gt_clear_mode_flag(te, MODE_AUTOWRAP);
+		be_clear_mode_flag(te, MODE_AUTOWRAP);
 	}
-	gt_move_cursor(te, te->stored.cursor_x, te->stored.cursor_y);
+	be_move_cursor(te, te->stored.cursor_x, te->stored.cursor_y);
 }
 
 void ac_set_tab(TE* te)
@@ -117,9 +117,9 @@ void ac_set_tab(TE* te)
 void ac_index_down(TE* te)
 {
 	if (te->cursor_y == te->scroll_bot) {
-		gt_scroll_region(te, te->scroll_top, te->scroll_bot, 1);
+		be_scroll_region(te, te->scroll_top, te->scroll_bot, 1);
 	} else {
-		gt_move_cursor(te, te->cursor_x, te->cursor_y+1);
+		be_move_cursor(te, te->cursor_x, te->cursor_y+1);
 	}
 }
 
@@ -135,9 +135,9 @@ void ac_next_line(TE* te)
 void ac_index_up(TE* te)
 {
 	if (te->cursor_y == te->scroll_top) {
-		gt_scroll_region(te, te->scroll_top, te->scroll_bot, -1);
+		be_scroll_region(te, te->scroll_top, te->scroll_bot, -1);
 	} else {
-		gt_move_cursor(te, te->cursor_x, te->cursor_y-1);
+		be_move_cursor(te, te->cursor_x, te->cursor_y-1);
 	}
 }
 
@@ -153,12 +153,12 @@ void ac_reset(TE* te)
 	te->scroll_bot = te->height-1;
 	memset(te->tab_stops, 0, sizeof(bool)*te->width);
 
-	gt_set_mode(te, MODE_AUTOWRAP);
+	be_set_mode(te, MODE_AUTOWRAP);
 
 	te->attributes = 0;
 
-	gt_clear_area(te, 0, 0, te->width, te->height);
-	gt_move_cursor(te, 0, 0);
+	be_clear_area(te, 0, 0, te->width, te->height);
+	be_move_cursor(te, 0, 0);
 
 	history_clear(&te->history);
 	viewport_set(te, 0);
@@ -172,7 +172,7 @@ void ac_cursor_left(TE* te)
 	n = int_max(1, parser_get_param(te->parser,0,1) );
 
 	x = int_max(0, te->cursor_x-n);
-	gt_move_cursor(te, x, te->cursor_y);
+	be_move_cursor(te, x, te->cursor_y);
 }
 
 // Cursor Forward P s Times (default = 1) (CUF)
@@ -182,7 +182,7 @@ void ac_cursor_right(TE* te)
 	n = int_max(1, parser_get_param(te->parser,0,1) );
 
 	x = int_min(te->width-1, te->cursor_x+n);
-	gt_move_cursor(te, x, te->cursor_y);
+	be_move_cursor(te, x, te->cursor_y);
 }
 
 // Cursor Up P s Times (default = 1) (CUU)
@@ -191,12 +191,12 @@ void ac_cursor_up(TE* te)
 	int n, y;
 	n = int_max(1, parser_get_param(te->parser,0,1) );
 
-	if (gt_is_mode_set(te, MODE_ORIGIN)) {
+	if (be_is_mode_set(te, MODE_ORIGIN)) {
 		y = int_max(te->scroll_top, te->cursor_y-n);
 	} else {
 		y = int_max(0, te->cursor_y-n);
 	}
-	gt_move_cursor(te, te->cursor_x, y);
+	be_move_cursor(te, te->cursor_x, y);
 }
 
 // Cursor Down P s Times (default = 1) (CUD)
@@ -205,12 +205,12 @@ void ac_cursor_down(TE* te)
 	int n, y;
 	n = int_max(1, parser_get_param(te->parser,0,1) );
 
-	if (gt_is_mode_set(te, MODE_ORIGIN)) {
+	if (be_is_mode_set(te, MODE_ORIGIN)) {
 		y = int_min(te->scroll_bot, te->cursor_y+n);
 	} else {
 		y = int_min(te->height-1, te->cursor_y+n);
 	}
-	gt_move_cursor(te, te->cursor_x, y);
+	be_move_cursor(te, te->cursor_x, y);
 }
 
 // Cursor Position (CUP)
@@ -218,14 +218,14 @@ void ac_cursor_position(TE* te)
 {
 	int y, x;
 
-	if (gt_is_mode_set(te, MODE_ORIGIN)) {
+	if (be_is_mode_set(te, MODE_ORIGIN)) {
 		y = int_clamp(parser_get_param(te->parser, 0, 1)+te->scroll_top, te->scroll_top, te->scroll_bot+1);
 	} else {
 		y = int_clamp(parser_get_param(te->parser, 0, 1), 1, te->height);
 	}
 	x = int_clamp(parser_get_param(te->parser, 1, 1), 1, te->width);
 
-	gt_move_cursor(te, x-1, y-1);
+	be_move_cursor(te, x-1, y-1);
 }
 
 // Cursor Character Absolute [column] (default = [row,1]) (CHA)
@@ -233,7 +233,7 @@ void ac_column_position(TE* te)
 {
 	int	x = int_clamp(parser_get_param(te->parser, 0, 1), 1, te->width);
 
-	gt_move_cursor(te, x-1, te->cursor_y);
+	be_move_cursor(te, x-1, te->cursor_y);
 }
 
 // Line Position Absolute [row] (default = [1,column]) (VPA)
@@ -241,13 +241,13 @@ void ac_line_position(TE* te)
 {
 	int	y = int_clamp(parser_get_param(te->parser, 0, 1), 1, te->height);
 
-	gt_move_cursor(te, te->cursor_x, y-1);
+	be_move_cursor(te, te->cursor_x, y-1);
 }
 
 // 	Send Device Attributes (Primary DA)
 void ac_device_attrib(TE* te)
 {
-	gt_fe_send_back_char(te, "\033[?1;2c");
+	fe_send_back_char(te, "\033[?1;2c");
 }
 
 // Delete P s Character(s) (default = 1) (DCH)
@@ -258,7 +258,7 @@ void ac_delete_char(TE* te)
 
 	mx = te->width - te->cursor_x;
 	if (n >= mx) {
-		gt_clear_area(te, te->cursor_x, te->cursor_y, te->width-te->cursor_x, 1);
+		be_clear_area(te, te->cursor_x, te->cursor_y, te->width-te->cursor_x, 1);
 	} else {
 		BufferRow* row = buffer_get_row(&te->buffer, te->cursor_y);
 		bufrow_remove(row,te->cursor_x,n);
@@ -277,17 +277,17 @@ void ac_set_mode(TE* te)  // h
 		// Lots of these are missing
 
 		switch (p) {
-		case 1:	gt_set_mode_flag(te, MODE_CURSORAPP);	break;	// Normal Cursor Keys (DECCKM)
+		case 1:	be_set_mode_flag(te, MODE_CURSORAPP);	break;	// Normal Cursor Keys (DECCKM)
 //		case 2:													// Designate VT52 mode (DECANM).
 		case 3:													// 132 Column Mode (DECCOLM)
-			gt_fe_request_resize(te, 132, te->height);
-			gt_clear_area(te, 0, 0, te->width, te->height);
+			fe_request_resize(te, 132, te->height);
+			be_clear_area(te, 0, 0, te->width, te->height);
 			break;
-		case 6: gt_set_mode_flag(te, MODE_ORIGIN);		break;	// Origin mode (DECOM)
-		case 7:	gt_set_mode_flag(te, MODE_AUTOWRAP);	break;	// Wraparound Mode (DECAWM)
+		case 6: be_set_mode_flag(te, MODE_ORIGIN);		break;	// Origin mode (DECOM)
+		case 7:	be_set_mode_flag(te, MODE_AUTOWRAP);	break;	// Wraparound Mode (DECAWM)
 		case 25:												// Hide Cursor (DECTCEM)
-			gt_clear_mode_flag(te, MODE_CURSORINVISIBLE);
-			gt_move_cursor(te, te->cursor_x, te->cursor_y);
+			be_clear_mode_flag(te, MODE_CURSORINVISIBLE);
+			be_move_cursor(te, te->cursor_x, te->cursor_y);
 			break;
 		default:
 			printf ("unhandled private set mode (DECSET) mode: %d\n", p);
@@ -298,9 +298,9 @@ void ac_set_mode(TE* te)  // h
 
 		switch (p) {
 //		case 2:											// Keyboard Action Mode (AM)
-		case 4:		gt_set_mode_flag(te, MODE_INSERT);	  	break;	// Insert Mode (IRM)
-		case 12:	gt_clear_mode_flag(te, MODE_LOCALECHO);	break;	// Send/receive (SRM)
-		case 20:	gt_set_mode_flag(te, MODE_NEWLINE);		break;	// Automatic Newline (LNM)
+		case 4:		be_set_mode_flag(te, MODE_INSERT);	  	break;	// Insert Mode (IRM)
+		case 12:	be_clear_mode_flag(te, MODE_LOCALECHO);	break;	// Send/receive (SRM)
+		case 20:	be_set_mode_flag(te, MODE_NEWLINE);		break;	// Automatic Newline (LNM)
 		default:
 			printf ("unhandled set mode (SM) mode: %d\n", p);
 			break;
@@ -316,17 +316,17 @@ void ac_clear_mode(TE* te)  // l
 		// Lots of these are missing
 
 		switch (parser_get_param(te->parser,0,-1)) {
-		case 1:	gt_clear_mode_flag(te, MODE_CURSORAPP);		break;	// Normal Cursor Keys (DECCKM)
+		case 1:	be_clear_mode_flag(te, MODE_CURSORAPP);		break;	// Normal Cursor Keys (DECCKM)
 //		case 2:	current_state = vt52_normal_state; break;			// Designate VT52 mode (DECANM).
 		case 3:
-			gt_fe_request_resize(te, 80, te->height);				// 132 Column Mode (DECCOLM)
-			gt_clear_area(te, 0, 0, te->width, te->height);
+			fe_request_resize(te, 80, te->height);				// 132 Column Mode (DECCOLM)
+			be_clear_area(te, 0, 0, te->width, te->height);
 			break;
-		case 6: gt_clear_mode_flag(te, MODE_ORIGIN);			break;	// Origin mode (DECOM)
-		case 7:	gt_clear_mode_flag(te, MODE_AUTOWRAP);			break;	// Wraparound Mode (DECAWM)
+		case 6: be_clear_mode_flag(te, MODE_ORIGIN);			break;	// Origin mode (DECOM)
+		case 7:	be_clear_mode_flag(te, MODE_AUTOWRAP);			break;	// Wraparound Mode (DECAWM)
 		case 25:														// Hide Cursor (DECTCEM)
-			gt_set_mode_flag(te, MODE_CURSORINVISIBLE);	break;
-			gt_move_cursor(te, te->cursor_x, te->cursor_y);
+			be_set_mode_flag(te, MODE_CURSORINVISIBLE);	break;
+			be_move_cursor(te, te->cursor_x, te->cursor_y);
 			break;
 		}
 	} else {
@@ -334,9 +334,9 @@ void ac_clear_mode(TE* te)  // l
 
 		switch (parser_get_param(te->parser,0,-1)) {
 //		case 2:														// Keyboard Action Mode (AM)
-		case 4:		gt_clear_mode_flag(te, MODE_INSERT);	break;	// Insert Mode (IRM)
-		case 12:	gt_set_mode_flag(te, MODE_LOCALECHO);	break;	// Send/receive (SRM)
-		case 20:	gt_clear_mode_flag(te, MODE_NEWLINE);	break;	// Automatic Newline (LNM)
+		case 4:		be_clear_mode_flag(te, MODE_INSERT);	break;	// Insert Mode (IRM)
+		case 12:	be_set_mode_flag(te, MODE_LOCALECHO);	break;	// Send/receive (SRM)
+		case 20:	be_clear_mode_flag(te, MODE_NEWLINE);	break;	// Automatic Newline (LNM)
 		}
 	}
 }
@@ -359,7 +359,7 @@ void ac_request_param(TE* te)
 	char str[40];
 	sprintf(str, "\033[%d;1;1;120;120;1;0x", parser_get_param(te->parser, 0, 0)+2);
 
-	gt_fe_send_back_char(te, str);
+	fe_send_back_char(te, str);
 }
 
 // Set Scrolling Region [top;bottom] (default = full size of window) (DECSTBM)
@@ -375,10 +375,10 @@ void ac_set_margins(TE* te)
 	te->scroll_top = t-1;
 	te->scroll_bot = b-1;
 
-	if (gt_is_mode_flag(te, MODE_ORIGIN)) {
-		gt_move_cursor(te, te->scroll_top, 0);
+	if (be_is_mode_flag(te, MODE_ORIGIN)) {
+		be_move_cursor(te, te->scroll_top, 0);
 	} else {
-		gt_move_cursor(te, 0, 0);
+		be_move_cursor(te, 0, 0);
 	}
 }
 
@@ -389,9 +389,9 @@ void ac_delete_line(TE* te)
 	n = int_max(parser_get_param(te->parser, 0, 1), 1);
 	mx = te->scroll_bot-te->cursor_y+1;
 	if (n>=mx) {
-		gt_clear_area(te, 0, te->cursor_y, te->width, te->scroll_bot-te->cursor_y);
+		be_clear_area(te, 0, te->cursor_y, te->width, te->scroll_bot-te->cursor_y);
 	} else {
-		gt_scroll_region(te, te->cursor_y, te->scroll_bot, n);
+		be_scroll_region(te, te->cursor_y, te->scroll_bot, n);
 	}
 }
 
@@ -401,11 +401,11 @@ void ac_status_report(TE* te)
 	char str[20];
 	switch (parser_get_param(te->parser, 0, -1)) {
 	case 5:
-		gt_fe_send_back_char(te, "\033[0n");
+		fe_send_back_char(te, "\033[0n");
 		break;
 	case 6:
 		sprintf(str, "\033[%d;%dR", te->cursor_y+1, te->cursor_x+1);
-		gt_fe_send_back_char(te, str);
+		fe_send_back_char(te, str);
 		break;
 	}
 }
@@ -415,19 +415,19 @@ void ac_erase_display(TE* te)
 {
 	switch ( parser_get_param(te->parser, 0, 0) ) {
 	case 0:	// Erase Below (default)
-		gt_clear_area(te, te->cursor_x, te->cursor_y, te->width-te->cursor_x, 1);
+		be_clear_area(te, te->cursor_x, te->cursor_y, te->width-te->cursor_x, 1);
 		if (te->cursor_y < te->height-1) {
-			gt_clear_area(te, 0, te->cursor_y+1, te->width, te->height-te->cursor_y-1);
+			be_clear_area(te, 0, te->cursor_y+1, te->width, te->height-te->cursor_y-1);
 		}
 		break;
 	case 1: // Erase Above
-		gt_clear_area(te, 0, te->cursor_y, te->cursor_x+1, 1);
+		be_clear_area(te, 0, te->cursor_y, te->cursor_x+1, 1);
 		if (te->cursor_y > 0) {
-			gt_clear_area(te, 0, 0, te->width, te->cursor_y);
+			be_clear_area(te, 0, 0, te->width, te->cursor_y);
 		}
 		break;
 	case 2: // Erase All
-		gt_clear_area(te, 0, 0, te->width, te->height);
+		be_clear_area(te, 0, 0, te->width, te->height);
 		break;
 	case 3:	// Erase Saved Lines (xterm)
 	default:
@@ -441,13 +441,13 @@ void ac_erase_line(TE* te)
 {
 	switch ( parser_get_param(te->parser, 0, 0) ) {
 	case 0:	// Erase to Right (default)
-		gt_clear_area(te, te->cursor_x, te->cursor_y, te->width-te->cursor_x, 1);
+		be_clear_area(te, te->cursor_x, te->cursor_y, te->width-te->cursor_x, 1);
 		break;
 	case 1:	// Erase to Left
-		gt_clear_area(te, 0, te->cursor_y, te->cursor_x+1, 1);
+		be_clear_area(te, 0, te->cursor_y, te->cursor_x+1, 1);
 		break;
 	case 2: // Erase All
-		gt_clear_area(te, 0, te->cursor_y, te->width, 1);
+		be_clear_area(te, 0, te->cursor_y, te->width, 1);
 		break;
 	}
 }
@@ -459,9 +459,9 @@ void ac_insert_line(TE* te)
 	n = int_max(1, parser_get_param(te->parser, 0, 1) );
 	mx = te->scroll_bot-te->cursor_y+1;
 	if (n >= mx) {
-		gt_clear_area(te, 0, te->cursor_y, te->width, te->scroll_bot-te->cursor_y);
+		be_clear_area(te, 0, te->cursor_y, te->width, te->scroll_bot-te->cursor_y);
 	} else {
-		gt_scroll_region(te, te->cursor_y, te->scroll_bot, -n);
+		be_scroll_region(te, te->cursor_y, te->scroll_bot, -n);
 	}
 }
 
@@ -541,7 +541,7 @@ void ac_insert_char(TE* te)
 	n = int_max(1, parser_get_param(te->parser,0,1) );
 	mx = te->width-te->cursor_x;
 	if (n >= mx) {
-		gt_clear_area(te, te->cursor_x, te->cursor_y, te->width-te->cursor_x, 1);
+		be_clear_area(te, te->cursor_x, te->cursor_y, te->width-te->cursor_x, 1);
 	} else {
 		BufferRow* row = buffer_get_row(&te->buffer, te->cursor_y);
 
@@ -579,7 +579,7 @@ void ac_erase_char(TE* te)
 {
 	// number of characters to erase
 	const int n = int_clamp(parser_get_param(te->parser,0,1), 1, te->width-te->cursor_x);
-	gt_clear_area(te, te->cursor_x, te->cursor_y, n, 1);
+	be_clear_area(te, te->cursor_x, te->cursor_y, n, 1);
 }
 
 // Scroll up Ps lines (default = 1) (SU)
@@ -592,7 +592,7 @@ void ac_scroll_up (TE* te) {
 
 	printf("scroll up by %d\n", n);
 
-	gt_scroll_region(te, te->scroll_top, te->scroll_bot, n);
+	be_scroll_region(te, te->scroll_top, te->scroll_bot, n);
 }
 
 // Scroll up Ps lines (default = 1) (SD)
@@ -602,5 +602,5 @@ void ac_scroll_down (TE* te) {
 
 	printf("scroll down by %d\n", n);
 
-	gt_scroll_region(te, te->scroll_top, te->scroll_bot, -n);
+	be_scroll_region(te, te->scroll_top, te->scroll_bot, -n);
 }

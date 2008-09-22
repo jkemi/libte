@@ -185,7 +185,7 @@ void _parser_normal_input(TE* te)
 		}
 	}
 
-	gt_input(te, te->parser->input_data, n);
+	be_input(te, te->parser->input_data, n);
 
 	// Only advance the number of extra characters consumed by this operation
 	// One character is always consumed by process_input(), hence n-1 here

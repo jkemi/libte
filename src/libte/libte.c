@@ -123,12 +123,12 @@ static const keymap _keys_common[] = {
 };
 
 
-void gt_input(TE* te, const int32_t* text, size_t len) {
+void be_input(TE* te, const int32_t* text, size_t len) {
 	// TODO: remove temporary stack buffer from here..
 	symbol_t syms[te->width];
 	symbol_t style = symbol_make_style(te->fg_color, te->bg_color, te->attributes);
 
-	if (gt_is_mode_set(te, MODE_AUTOWRAP)) {
+	if (be_is_mode_set(te, MODE_AUTOWRAP)) {
 		while (len > 0) {
 			BufferRow* row = buffer_get_row(&te->buffer, te->cursor_y);
 
@@ -138,7 +138,7 @@ void gt_input(TE* te, const int32_t* text, size_t len) {
 				syms[i] = sym;
 			}
 
-			if (gt_is_mode_set(te, MODE_INSERT)) {
+			if (be_is_mode_set(te, MODE_INSERT)) {
 				bufrow_insert(row, te->cursor_x, syms, n);
 				viewport_taint(te, te->cursor_y, te->cursor_x, te->width-te->cursor_x);
 			} else {
@@ -146,7 +146,7 @@ void gt_input(TE* te, const int32_t* text, size_t len) {
 				viewport_taint(te, te->cursor_y, te->cursor_x, n);
 			}
 
-			gt_move_cursor(te, te->cursor_x+n, te->cursor_y);
+			be_move_cursor(te, te->cursor_x+n, te->cursor_y);
 
 			len -= n;
 			text += n;
@@ -164,7 +164,7 @@ void gt_input(TE* te, const int32_t* text, size_t len) {
 			const symbol_t sym = style | text[i];
 			syms[i] = sym;
 		}
-		if (gt_is_mode_set(te, MODE_INSERT)) {
+		if (be_is_mode_set(te, MODE_INSERT)) {
 			bufrow_insert(row, te->cursor_x, syms, n);
 			viewport_taint(te, te->cursor_y, te->cursor_x, te->width-te->cursor_x);
 		} else {
@@ -172,7 +172,7 @@ void gt_input(TE* te, const int32_t* text, size_t len) {
 			viewport_taint(te, te->cursor_y, te->cursor_x, n);
 		}
 
-		gt_move_cursor(te, te->cursor_x+n, te->cursor_y);
+		be_move_cursor(te, te->cursor_x+n, te->cursor_y);
 
 		// There were more data than we have remaining space on
 		// the line, update last cell
@@ -183,7 +183,7 @@ void gt_input(TE* te, const int32_t* text, size_t len) {
 	}
 }
 
-void gt_scroll_region(TE* te, uint start_y, uint end_y, int num)
+void be_scroll_region(TE* te, uint start_y, uint end_y, int num)
 {
 	for (int i = 0; i < num; i++) {
 		buffer_scroll_up(&te->buffer, te->scroll_top, te->scroll_bot);
@@ -208,7 +208,7 @@ void gt_scroll_region(TE* te, uint start_y, uint end_y, int num)
 	}
 }
 
-void gt_clear_area(TE* te, int xpos, int ypos, int width, int height)
+void be_clear_area(TE* te, int xpos, int ypos, int width, int height)
 {
 	const symbol_t style = symbol_make_style(te->fg_color, te->bg_color, te->attributes);
 	const symbol_t sym = ' ' | style;
@@ -224,7 +224,7 @@ void gt_clear_area(TE* te, int xpos, int ypos, int width, int height)
 	}
 }
 
-void gt_move_cursor(TE* te, int x, int y)
+void be_move_cursor(TE* te, int x, int y)
 {
 /*	if (cursor_x >= width) {
 		cursor_x = width-1;
@@ -283,9 +283,9 @@ TE* te_new(const TE_Frontend* fe, void* fe_priv, int w, int h)
 	te->bg_color = SYMBOL_BG_DEFAULT;
 
 	// Setup flags
-	gt_set_mode(te, MODE_AUTOWRAP);
+	be_set_mode(te, MODE_AUTOWRAP);
 
-	gt_clear_area(te, 0, 0, te->width, te->height-1);
+	be_clear_area(te, 0, 0, te->width, te->height-1);
 
 	te->stored.attributes = te->attributes;
 	te->stored.autowrap = true;
@@ -295,7 +295,7 @@ TE* te_new(const TE_Frontend* fe, void* fe_priv, int w, int h)
 	return te;
 }
 
-void gt_fe_send_back_char(TE* te, const char* data) {
+void fe_send_back_char(TE* te, const char* data) {
 	// TODO: speedup ?!
 	size_t len = strlen(data);
 	int32_t buf[len+1];
@@ -304,7 +304,7 @@ void gt_fe_send_back_char(TE* te, const char* data) {
 		buf[i] = data[i];
 	}
 
-	gt_fe_send_back(te, buf);
+	fe_send_back(te, buf);
 }
 
 //
@@ -351,13 +351,13 @@ void te_resize(TE_Backend* te, int width, int height) {
 
 	int cx = int_min(te->width-1, te->cursor_x);
 	int cy = int_min(te->height-1, te->cursor_y);
-	gt_move_cursor(te, cx, cy);
+	be_move_cursor(te, cx, cy);
 
 	buffer_reshape(&te->buffer, height, width);
 
 	viewport_reshape(te, width, height);
 
-	gt_fe_updated(te);
+	fe_updated(te);
 }
 
 int te_get_width(TE_Backend* te) {
@@ -374,7 +374,7 @@ void te_request_redraw(TE_Backend* te, int x, int y, int w, int h, int force) {
 
 void te_process_input(TE_Backend* te, const int32_t* data, size_t len) {
 	parser_input(te->parser, len, data, te);
-	gt_fe_updated(te);
+	fe_updated(te);
 }
 
 int te_handle_button(TE_Backend* te, te_key_t key) {
@@ -382,7 +382,7 @@ int te_handle_button(TE_Backend* te, te_key_t key) {
 
 	switch (key) {
 	case TE_KEY_ENTER:
-		if (gt_is_mode_flag(te, MODE_NEWLINE)) {
+		if (be_is_mode_flag(te, MODE_NEWLINE)) {
 			s = "\r\n";	//	CRLF
 		} else {
 			s = "\r";	// ^M (CR)
@@ -394,7 +394,7 @@ int te_handle_button(TE_Backend* te, te_key_t key) {
 
 	if (s == NULL) {
 		const keymap* const* tables;
-		if (gt_is_mode_flag(te, MODE_KEYAPP)) {
+		if (be_is_mode_flag(te, MODE_KEYAPP)) {
 			static const keymap* const t[] = {_keys_app, _keys_common, NULL};
 			tables = t;
 		} else {
@@ -412,7 +412,7 @@ int te_handle_button(TE_Backend* te, te_key_t key) {
 	}
 
 	if (s != NULL) {
-		gt_fe_send_back_char(te, s);
+		fe_send_back_char(te, s);
 		return 1;
 	} else {
 		return 0;
@@ -422,10 +422,10 @@ int te_handle_button(TE_Backend* te, te_key_t key) {
 void te_handle_keypress(TE_Backend* te, int32_t cp, te_modifier_t modifiers) {
 	if (modifiers & TE_MOD_META) {
 		int32_t buf[] = {'\033', cp, '\0'};
-		gt_fe_send_back(te, buf);
+		fe_send_back(te, buf);
 	} else {
 		int32_t buf[] = {cp, '\0'};
-		gt_fe_send_back(te, buf);
+		fe_send_back(te, buf);
 	}
 }
 
