@@ -194,10 +194,9 @@ static int _pts_slave(PTY* pty) {
 PTY* pty_spawn(const char *exe, const char* const* envdata) {
 	int pid, sfd;
 
-/*
 	const int uid = getuid();
 	const int gid = getgid();
-*/
+
 
 	PTY* pty = (PTY*)malloc(sizeof(PTY));
 
@@ -217,7 +216,14 @@ PTY* pty_spawn(const char *exe, const char* const* envdata) {
 		setgid(gid);
 
 		// now spawn the shell in the terminal
-		execl(exe, exe, NULL);
+
+		char** env = _env_augment(envdata);
+		if (env == NULL) {
+			fprintf(stderr, "big problems...\n");
+			exit(1);
+		}
+		execle(exe, exe, NULL, env);
+		_env_free(env);
 		exit(0);
 	}
 	// else master process
