@@ -122,59 +122,6 @@ static const keymap _keys_common[] = {
 	{TE_KEY_UNDEFINED,	NULL}
 };
 
-int gt_handle_button(TE* te, te_key_t key)
-{
-	const char* s = NULL;
-
-	switch (key) {
-	case TE_KEY_ENTER:
-		if (gt_is_mode_flag(te, MODE_NEWLINE)) {
-			s = "\r\n";	//	CRLF
-		} else {
-			s = "\r";	// ^M (CR)
-		}
-		break;
-	default:
-		break;
-	}
-
-	if (s == NULL) {
-		const keymap* const* tables;
-		if (gt_is_mode_flag(te, MODE_KEYAPP)) {
-			static const keymap* const t[] = {_keys_app, _keys_common, NULL};
-			tables = t;
-		} else {
-			static const keymap* const t[] = {_keys_normal, _keys_common, NULL};
-			tables = t;
-		}
-
-		for (const keymap* const* t = tables; s == NULL && t != NULL; t++) {
-			for (const keymap* m = *t; s == NULL && m->keysym != TE_KEY_UNDEFINED; m++) {
-				if (key == m->keysym) {
-					s = m->str;
-				}
-			}
-		}
-	}
-
-	if (s != NULL) {
-		gt_fe_send_back_char(te, s);
-		return 1;
-	} else {
-		return 0;
-	}
-
-}
-
-void gt_handle_keypress(TE* te, int32_t cp, te_modifier_t modifiers) {
-	if (modifiers & TE_MOD_META) {
-		int32_t buf[] = {'\033', cp, '\0'};
-		gt_fe_send_back(te, buf);
-	} else {
-		int32_t buf[] = {cp, '\0'};
-		gt_fe_send_back(te, buf);
-	}
-}
 
 void gt_input(TE* te, const int32_t* text, size_t len) {
 	// TODO: remove temporary stack buffer from here..
@@ -234,41 +181,6 @@ void gt_input(TE* te, const int32_t* text, size_t len) {
 			bufrow_replace(row, te->width-1, syms, 1);
 		}
 	}
-}
-
-void gt_resize_terminal(TE* te, int w, int h)
-{
-	bool* newtabs = xnew(bool, w);
-	if (w > te->width) {
-		memset(newtabs+te->width, 0, sizeof(bool)*(w-te->width));
-	}
-	memcpy(newtabs, te->tab_stops, sizeof(bool)*int_min(te->width,w));
-	te->tab_stops = newtabs;
-
-/*	clear_area(int_min(width,w), 0, int_max(width,w)-1, h-1);
-	clear_area(0, int_min(height,h), w-1, int_min(height,h)-1);*/
-
-	// reset scroll margins
-/*	scroll_bot = height-1;
-	if (scroll_top >= height) {
-		scroll_top = 0;
-	}*/
-
-	te->scroll_top = 0;
-	te->scroll_bot = h-1;
-
-	te->width = w;
-	te->height = h;
-
-	int cx = int_min(te->width-1, te->cursor_x);
-	int cy = int_min(te->height-1, te->cursor_y);
-	gt_move_cursor(te, cx, cy);
-
-	buffer_reshape(&te->buffer, h, w);
-
-	viewport_reshape(te, w, h);
-
-	gt_fe_updated(te);
 }
 
 void gt_scroll_region(TE* te, uint start_y, uint end_y, int num)
@@ -383,12 +295,6 @@ TE* te_new(const TE_Frontend* fe, void* fe_priv, int w, int h)
 	return te;
 }
 
-void gt_delete(TE* te) {
-	buffer_term(&te->buffer);
-	viewport_term(te);
-	parser_delete(te->parser);
-}
-
 void gt_fe_send_back_char(TE* te, const char* data) {
 	// TODO: speedup ?!
 	size_t len = strlen(data);
@@ -400,10 +306,6 @@ void gt_fe_send_back_char(TE* te, const char* data) {
 
 	gt_fe_send_back(te, buf);
 }
-
-//
-// Internal structure
-//
 
 //
 // Public API below
@@ -419,11 +321,43 @@ TE_Backend* te_create(const TE_Frontend* front, void* priv, int width, int heigh
 }
 
 void te_destroy(TE_Backend* te) {
-	gt_delete(te);
+	buffer_term(&te->buffer);
+	viewport_term(te);
+	parser_delete(te->parser);
 }
 
 void te_resize(TE_Backend* te, int width, int height) {
-	gt_resize_terminal(te, width, height);
+	bool* newtabs = xnew(bool, width);
+	if (width > te->width) {
+		memset(newtabs+te->width, 0, sizeof(bool)*(width-te->width));
+	}
+	memcpy(newtabs, te->tab_stops, sizeof(bool)*int_min(te->width,width));
+	te->tab_stops = newtabs;
+
+/*	clear_area(int_min(width,w), 0, int_max(width,w)-1, h-1);
+	clear_area(0, int_min(height,h), w-1, int_min(height,h)-1);*/
+
+	// reset scroll margins
+/*	scroll_bot = height-1;
+	if (scroll_top >= height) {
+		scroll_top = 0;
+	}*/
+
+	te->scroll_top = 0;
+	te->scroll_bot = height-1;
+
+	te->width = width;
+	te->height = height;
+
+	int cx = int_min(te->width-1, te->cursor_x);
+	int cy = int_min(te->height-1, te->cursor_y);
+	gt_move_cursor(te, cx, cy);
+
+	buffer_reshape(&te->buffer, height, width);
+
+	viewport_reshape(te, width, height);
+
+	gt_fe_updated(te);
 }
 
 int te_get_width(TE_Backend* te) {
@@ -444,11 +378,55 @@ void te_process_input(TE_Backend* te, const int32_t* data, size_t len) {
 }
 
 int te_handle_button(TE_Backend* te, te_key_t key) {
-	return gt_handle_button(te, key);
+	const char* s = NULL;
+
+	switch (key) {
+	case TE_KEY_ENTER:
+		if (gt_is_mode_flag(te, MODE_NEWLINE)) {
+			s = "\r\n";	//	CRLF
+		} else {
+			s = "\r";	// ^M (CR)
+		}
+		break;
+	default:
+		break;
+	}
+
+	if (s == NULL) {
+		const keymap* const* tables;
+		if (gt_is_mode_flag(te, MODE_KEYAPP)) {
+			static const keymap* const t[] = {_keys_app, _keys_common, NULL};
+			tables = t;
+		} else {
+			static const keymap* const t[] = {_keys_normal, _keys_common, NULL};
+			tables = t;
+		}
+
+		for (const keymap* const* t = tables; s == NULL && t != NULL; t++) {
+			for (const keymap* m = *t; s == NULL && m->keysym != TE_KEY_UNDEFINED; m++) {
+				if (key == m->keysym) {
+					s = m->str;
+				}
+			}
+		}
+	}
+
+	if (s != NULL) {
+		gt_fe_send_back_char(te, s);
+		return 1;
+	} else {
+		return 0;
+	}
 }
 
 void te_handle_keypress(TE_Backend* te, int32_t cp, te_modifier_t modifiers) {
-	gt_handle_keypress(te, cp, modifiers);
+	if (modifiers & TE_MOD_META) {
+		int32_t buf[] = {'\033', cp, '\0'};
+		gt_fe_send_back(te, buf);
+	} else {
+		int32_t buf[] = {cp, '\0'};
+		gt_fe_send_back(te, buf);
+	}
 }
 
 void te_position(TE_Backend* te, int offset) {
