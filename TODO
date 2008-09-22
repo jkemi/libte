@@ -9,6 +9,9 @@ libte:
  * create actual library
  * copyright texts
  * dynamic scroll history size
+ * xterm set title, via osc
+ * mouse handling
+ * cut-n-paste ?
 
 flterm:
 
