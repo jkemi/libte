@@ -96,21 +96,19 @@ void parser_input(Parser* parser, int len, const int32_t* data, TE* te)
 
 void _parser_unknown_esc(TE* te) {
 	int32_t cp = *te->parser->input_data;
-	printf("unknown esc dispatch: ");
 	if (cp >= 32 && cp <= 126) {
-		printf("'%c'\n", cp);
+		WARNF("unknown esc dispatch: '%c'\n", cp);
 	} else {
-		printf("0x%x\n", cp);
+		WARNF("unknown esc dispatch: 0x%x\n", cp);
 	}
 }
 
 void _parser_unknown_csi(TE* te) {
 	int32_t cp = *te->parser->input_data;
-	printf("unknown csi dispatch: ");
 	if (cp >= 32 && cp <= 126) {
-		printf("'%c'\n", cp);
+		WARNF("unknown csi dispatch: '%c'\n", cp);
 	} else {
-		printf("0x%x\n", cp);
+		WARNF("unknown csi dispatch: 0x%x\n", cp);
 	}
 }
 

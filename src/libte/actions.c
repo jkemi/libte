@@ -290,7 +290,7 @@ void ac_set_mode(TE* te)  // h
 			be_move_cursor(te, te->cursor_x, te->cursor_y);
 			break;
 		default:
-			printf ("unhandled private set mode (DECSET) mode: %d\n", p);
+			DEBUGF("unhandled private set mode (DECSET) mode: %d\n", p);
 			break;
 		}
 	} else {
@@ -302,7 +302,7 @@ void ac_set_mode(TE* te)  // h
 		case 12:	be_clear_mode_flag(te, MODE_LOCALECHO);	break;	// Send/receive (SRM)
 		case 20:	be_set_mode_flag(te, MODE_NEWLINE);		break;	// Automatic Newline (LNM)
 		default:
-			printf ("unhandled set mode (SM) mode: %d\n", p);
+			DEBUGF("unhandled set mode (SM) mode: %d\n", p);
 			break;
 		}
 	}
@@ -370,7 +370,7 @@ void ac_set_margins(TE* te)
 	t = int_clamp(parser_get_param(te->parser,0,1), 1, te->height-1);
 	b = int_clamp(parser_get_param(te->parser,1,te->height), t+1, te->height);
 
-	printf("scrolling region set to: %d,%d\n", t,b);
+	DEBUGF("scrolling region set to: %d,%d\n", t,b);
 
 	te->scroll_top = t-1;
 	te->scroll_bot = b-1;
@@ -431,7 +431,7 @@ void ac_erase_display(TE* te)
 		break;
 	case 3:	// Erase Saved Lines (xterm)
 	default:
-		printf("unhandled parameter in erase in display\n");
+		DEBUGF("unhandled parameter in erase in display\n");
 		break;
 	}
 }
@@ -516,7 +516,7 @@ void ac_char_attrs(TE* te)
 				break;
 
 			default:
-				printf("recieved unhandled character attribute: %d\n", p);
+				DEBUGF("recieved unhandled character attribute: %d\n", p);
 			}
 		}
 	}
@@ -590,7 +590,7 @@ void ac_erase_char(TE* te)
 void ac_scroll_up (TE* te) {
 	const int n = int_clamp(parser_get_param(te->parser,0,1), 1, te->scroll_bot-te->scroll_top);
 
-	printf("scroll up by %d\n", n);
+	DEBUGF("scroll up by %d\n", n);
 
 	be_scroll_region(te, te->scroll_top, te->scroll_bot, n);
 }
@@ -600,7 +600,7 @@ void ac_scroll_up (TE* te) {
 void ac_scroll_down (TE* te) {
 	const int n = int_clamp(parser_get_param(te->parser,0,1), 1, te->scroll_bot-te->scroll_top);
 
-	printf("scroll down by %d\n", n);
+	DEBUGF("scroll down by %d\n", n);
 
 	be_scroll_region(te, te->scroll_top, te->scroll_bot, -n);
 }

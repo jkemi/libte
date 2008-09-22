@@ -46,7 +46,13 @@ static inline uint uint_clamp(uint x, uint lo, uint hi) {
 //
 void errorf(const char* format, ...) __attribute__ ((__format__ (__printf__, 1, 2)));
 
-#define DEBUGF(fmt,...) _debugf("DEBUG:   ",__FILE__,__func__,__LINE__,fmt, ##__VA_ARGS__)
+#ifndef NDEBUG
+#	define DEBUGF(fmt,...) _debugf("DEBUG:   ",__FILE__,__func__,__LINE__,fmt, ##__VA_ARGS__)
+#else
+#	define DEBUGF(fmt,...)
+#endif
+
+
 #define WARNF(fmt,...)  _debugf("WARNING: ",__FILE__,__func__,__LINE__,fmt, ##__VA_ARGS__)
 #define ERRORF(fmt,...) _debugf("ERROR:   ",__FILE__,__func__,__LINE__,fmt, ##__VA_ARGS__)
 // error reporting as both window message and debugger string

@@ -115,7 +115,7 @@ void viewport_lock_scroll (TE* te, bool lock) {
 
 void viewport_request_redraw(TE* te, int x, int y, int w, int h, bool force) {
 	if (te->viewport->updating) {
-		printf("bad update!\n");
+		DEBUGF("bad update!\n");
 		return;
 	}
 	te->viewport->updating = true;

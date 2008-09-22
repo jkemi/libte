@@ -56,7 +56,7 @@ void dirty_taint(Dirty* d, int row, int start, int end) {
 	}
 
 	if (olds != d->start[row] || olde != d->end[row]) {
-//		printf("dirt: %d  %d,%d -> %d,%d\n", row, olds, olde, this->start[row], this->end[row]);
+//		DEBUGF("dirt: %d  %d,%d -> %d,%d\n", row, olds, olde, this->start[row], this->end[row]);
 	}
 }
 
@@ -78,6 +78,6 @@ void dirty_cleanse(Dirty* d, int row, int start, int end) {
 
 
 	if (olds != d->start[row] || olde != d->end[row]) {
-//		printf("dirt: %d  %d,%d -> %d,%d\n", row, olds, olde, this->start[row], this->end[row]);
+//		DEBUGF("dirt: %d  %d,%d -> %d,%d\n", row, olds, olde, this->start[row], this->end[row]);
 	}
 }
