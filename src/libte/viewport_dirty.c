@@ -19,8 +19,8 @@ void dirty_init(Dirty* d, uint nrows, uint ncols) {
 	d->_nrows = nrows;
 	d->_ncols = ncols;
 
-	d->start = (int*)malloc(sizeof(int)*nrows);
-	d->end = (int*)malloc(sizeof(int)*nrows);
+	d->start = xnew(int, nrows);
+	d->end = xnew(int, nrows);
 
 	// start dirty
 	for (uint i = 0; i < nrows; i++) {

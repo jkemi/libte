@@ -9,11 +9,13 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "misc.h"
+
 #include "buffer.h"
 
 void buffer_init(Buffer* buf, History* hist, uint nrows, uint ncols) {
 	buf->hist = hist;
-	buf->rows = (BufferRow**)malloc(sizeof(BufferRow*)*nrows);
+	buf->rows = xnew(BufferRow*, nrows);
 	for (uint rowno = 0; rowno < nrows; rowno++) {
 		buf->rows[rowno] = bufrow_new();
 	}
@@ -35,7 +37,7 @@ void buffer_reshape(Buffer* buf, uint nrows, uint ncols) {
 		return;
 	}
 
-	BufferRow** newrows = (BufferRow**)malloc(sizeof(BufferRow*)*nrows);
+	BufferRow** newrows = xnew(BufferRow*, nrows);
 	if (nrows < buf->nrows) {
 		// Buffer should shrink
 

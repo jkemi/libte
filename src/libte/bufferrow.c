@@ -19,7 +19,7 @@ static void _bufrow_init(BufferRow* br, uint initsize) {
 	}
 	br->used = 0;
 	br->capacity = initsize;
-	br->data = (symbol_t*)malloc(sizeof(symbol_t)*initsize);
+	br->data = xnew(symbol_t, initsize);
 }
 
 static void _bufrow_ensureCapacity(BufferRow* br, uint capacity) {
@@ -29,7 +29,8 @@ static void _bufrow_ensureCapacity(BufferRow* br, uint capacity) {
 			newcapacity *= 2;
 		}
 
-		symbol_t* newdata = (symbol_t*)malloc(sizeof(symbol_t)*newcapacity);
+		// TODO: realloc??
+		symbol_t* newdata = xnew(symbol_t, newcapacity);
 		memcpy(newdata, br->data, sizeof(symbol_t)*br->used);
 		free (br->data);
 
@@ -47,7 +48,7 @@ static void _bufrow_pad(BufferRow* br, uint x, int len) {
 }
 
 BufferRow* bufrow_new(void) {
-	BufferRow* br = (BufferRow*)malloc(sizeof(BufferRow));
+	BufferRow* br = xnew(BufferRow, 1);
 	_bufrow_init(br, 32);
 	return br;
 }

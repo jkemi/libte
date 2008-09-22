@@ -249,7 +249,7 @@ void be_move_cursor(TE* te, int x, int y)
 
 TE* te_new(const TE_Frontend* fe, void* fe_priv, int w, int h)
 {
-	TE* te = (TE*)malloc(sizeof(TE));
+	TE* te = xnew(TE, 1);
 
 	te->fe = fe;
 	te->fe_priv = fe_priv;
