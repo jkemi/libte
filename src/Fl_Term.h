@@ -40,9 +40,11 @@ protected:
 	} gfx;
 
 	iconv_t		_fltk_to_cp;
+	iconv_t		_cp_to_fltk;
 
 private:
 	int32_t			_fltkToCP(const char* text, size_t len);
+	char			_cpToFltk(int32_t cp);
 	bool		 	_handle_keyevent(void);
 
 	void			(*_send_back_func)(void* priv, const int32_t* data);

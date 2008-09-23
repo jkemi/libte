@@ -75,10 +75,12 @@ Fl_Term::Fl_Term(int sz, int X, int Y, int W, int H, const char *L) : Fl_Box(X,Y
 	// also we don't want UCS-4LE on a big-endian machine...
 #ifdef __APPLE__
 	_fltk_to_cp = iconv_open("UCS-4LE", "MACROMAN");
+	_cp_to_fltk = iconv_open("MACROMAN", "UCS-4LE");
 #else
 	_fltk_to_cp = iconv_open("UCS-4LE", "UTF8");
+	_cp_to_fltk = iconv_open("UTF8", "UCS-4LE");
 #endif
-	if (_fltk_to_cp == (iconv_t)-1) {
+	if ((_fltk_to_cp == (iconv_t)-1) || _cp_to_fltk == (iconv_t)-1) {
 		// TODO: handle somehow
 		exit(1);
 	}
@@ -86,6 +88,7 @@ Fl_Term::Fl_Term(int sz, int X, int Y, int W, int H, const char *L) : Fl_Box(X,Y
 
 Fl_Term::~Fl_Term() {
 	iconv_close(_fltk_to_cp);
+	iconv_close(_cp_to_fltk);
 }
 
 int32_t Fl_Term::_fltkToCP(const char* text, size_t len) {
@@ -124,6 +127,36 @@ int32_t Fl_Term::_fltkToCP(const char* text, size_t len) {
 		return cp;
 	} else {
 		return -1;
+	}
+}
+
+char Fl_Term::_cpToFltk(int32_t cp) {
+	char* inbuf = (char*)&cp;
+	size_t inleft = sizeof(int32_t);
+
+	char c = 0;
+	char* outbuf = &c;
+	size_t outleft = 1;
+
+	// reinitialize iconv state
+	iconv(_cp_to_fltk, NULL, NULL, NULL, NULL);
+
+	size_t result = iconv(_cp_to_fltk, &inbuf, &inleft, &outbuf, &outleft);
+
+	if (result == (size_t)-1) {
+		int err = errno;
+		printf("not good: %d %s\n", err, strerror(err));
+		return -1;
+	}
+
+	size_t written = (size_t)((uintptr_t)outbuf - (uintptr_t)&c);
+
+	printf ("result: %d %p, %p: %d\n", (int)result, &c, outbuf, (int)written);
+
+	if (written > 0) {
+		return c;
+	} else {
+		return 0;
 	}
 }
 
@@ -383,15 +416,20 @@ void Fl_Term::fe_draw_text(int xpos, int ypos, const symbol_t* symbols, int len)
 			fl_font(FL_COURIER, def_fnt_size);
 		}
 
-#ifdef __APPLE__
-		char tmp = cp;
-		str[0] = fl_latin1_to_local(&tmp, 1)[0];
-		if (str[0] != tmp) {
-			printf("converted from 0x%02x to 0x%02x\n", tmp, str[0]);
+/* #ifdef __APPLE__
+		char tmp[2] = {cp, '\0'};
+		str[0] = fl_latin1_to_local(tmp)[0];
+		if (str[0] != tmp[0]) {
+			printf("converted from 0x%02x to 0x%02x\n", tmp[0], str[0]);
 		}
-#else
-		str[0] = cp;
-#endif
+#else */
+//		str[0] = cp;
+//#endif
+		str[0] = _cpToFltk(cp);
+		if (str[0] == 0) {
+			str[0] = '?';
+		}
+
 		fl_color(fg);
 		fl_draw(str, 1, xp, yp+font.pixh-font.descent);
 
