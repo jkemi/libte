@@ -193,14 +193,12 @@ static int _pts_slave(PTY* pty) {
 
 PTY* pty_spawn(const char *exe, const char* const* envdata) {
 	int pid, sfd;
-
-	const int uid = getuid();
-	const int gid = getgid();
-
-
 	PTY* pty = (PTY*)malloc(sizeof(PTY));
 
 #ifdef __APPLE__ /* or other BSD's? */
+	const int uid = getuid();
+	const int gid = getgid();
+
 	pid = forkpty(&pty->mfd, pty->ptyname, NULL, NULL);
 	if (pid < 0)
 	{
