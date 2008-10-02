@@ -25,3 +25,4 @@ flterm:
  * add menu and about-box
  * multiple tabs
  * parse some common command-line options
+ * limit font cache size
