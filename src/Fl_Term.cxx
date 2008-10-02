@@ -9,7 +9,10 @@
 
 #include "strutil.h"
 
+#include "fontrender.h"
+
 #include "Fl_Term.h"
+
 
 // VT100 color table - map Colors to FL-colors:
 static Fl_Color col_table[] = {
@@ -27,6 +30,23 @@ static Fl_Color col_table[] = {
 	FL_DARK_YELLOW,
 	FL_DARK_GREEN,
 	FL_DARK_MAGENTA
+};
+
+static uint8_t col_palette[] = {
+		0,0,0,			// BLACK
+		255,0,0,		// RED
+		0,255,0,		// GREEN
+		255,255,0,		// YELLOW
+		0,0,255,		// BLUE
+		255,0,255,		// MAGENTA
+		0,255,255,		// CYAN
+		255,255,255,	// WHITE
+		0,0,128,		// DARK BLUE
+		128,128,128,	// DARK CYAN
+		128,0,0,		// DARK RED
+		128,128,0,		// DARK YELLOW
+		0,128,0,		// DARK GREEN
+		128,0,128,		// DARK MAGENTA
 };
 
 #define _DEFER_DRAWING_US	20000
@@ -57,14 +77,11 @@ Fl_Term::Fl_Term(int sz, int X, int Y, int W, int H, const char *L) : Fl_Box(X,Y
 {
 	box(FL_THIN_DOWN_FRAME);
 
-	def_fnt_size = sz;
-	fl_font(FL_COURIER, def_fnt_size);
+	tr_init(col_palette);
 
 	// Size of cell in pixels
-	const double cw = fl_width("MHW#i1l") / 7; // get an average char width, in case of Prop Fonts!
-	font.pixh = fl_height();
-	font.pixw = (int)(cw + 0.5);
-	font.descent = fl_descent();
+	font.pixw = tr_width();
+	font.pixh = tr_height();
 
 	// Size of graphics area in cells
 	gfx.ncols = (w()-Fl::box_dw(box())) / font.pixw;
@@ -106,6 +123,8 @@ Fl_Term::Fl_Term(int sz, int X, int Y, int W, int H, const char *L) : Fl_Box(X,Y
 Fl_Term::~Fl_Term() {
 	iconv_close(_fltk_to_cp);
 	iconv_close(_cp_to_fltk);
+
+	tr_term();
 }
 
 int32_t Fl_Term::_fltkToCP(const char* text, size_t len) {
@@ -429,67 +448,25 @@ void Fl_Term::fe_draw_text(int xpos, int ypos, const symbol_t* symbols, int len)
 		//printf("DrawText(): %d, %d (%d))\n", xpos, ypos, len);
 	}
 
-	// Now prepare to draw the actual terminal text
-	fl_font(FL_COURIER, def_fnt_size);
-
 	int xp = xo + xpos*font.pixw;
 	const int yp = yo + ypos*font.pixh;
-
-	char str[4];
-	str[1] = '\0';
 
 	for (int i = 0; i < len; i++) {
 		const symbol_t sym = symbols[i];
 		const int cp = symbol_get_codepoint(sym);
-		const symbol_attributes_t attrs = symbol_get_attributes(sym);
+		if (cp == ' ') {
+			const symbol_attributes_t attrs = symbol_get_attributes(sym);
+			symbol_color_t bg_color = symbol_get_bg(sym);
+			if (attrs & SYMBOL_INVERSE) {
+				bg_color = symbol_get_fg(sym);
+			}
 
-		const symbol_color_t fg_color = symbol_get_fg(sym);
-		const symbol_color_t bg_color = symbol_get_bg(sym);
-
-		assert (fg_color >= 0 && fg_color <= 7);
-		assert (bg_color >= 0 && bg_color <= 7);
-
-		Fl_Color fg = col_table[fg_color];
-		Fl_Color bg = col_table[bg_color];
-
-		if (attrs & SYMBOL_INVERSE) {
-			Fl_Color tmp = fg;
-			fg = bg;
-			bg = tmp;
-		}
-
-		fl_color(bg);
-		fl_rectf(xp, yp, font.pixw, font.pixh);
-
-		if ((attrs & (SYMBOL_BOLD|SYMBOL_BLINK)) == (SYMBOL_BOLD|SYMBOL_BLINK)) {
-			fl_font(FL_COURIER_BOLD_ITALIC, (def_fnt_size));
-		} else if (attrs & SYMBOL_BOLD) {
-			fl_font(FL_COURIER_BOLD, (def_fnt_size));
-		} else if (attrs & SYMBOL_BLINK) {
-			fl_font(FL_COURIER_ITALIC, (def_fnt_size));
+			Fl_Color bg = col_table[bg_color];
+			fl_color(bg);
+			fl_rectf(xp, yp, font.pixw, font.pixh);
 		} else {
-			fl_font(FL_COURIER, def_fnt_size);
-		}
-
-/* #ifdef __APPLE__
-		char tmp[2] = {cp, '\0'};
-		str[0] = fl_latin1_to_local(tmp)[0];
-		if (str[0] != tmp[0]) {
-			printf("converted from 0x%02x to 0x%02x\n", tmp[0], str[0]);
-		}
-#else */
-//		str[0] = cp;
-//#endif
-		str[0] = _cpToFltk(cp);
-		if (str[0] == 0) {
-			str[0] = '?';
-		}
-
-		fl_color(fg);
-		fl_draw(str, 1, xp, yp+font.pixh-font.descent);
-
-		if (attrs & SYMBOL_UNDERLINE) {
-			fl_line(xp, yp, (xp+font.pixw), font.pixh);
+			const uint8_t* fontdata = tr_get(sym);
+			fl_draw_image(fontdata, xp, yp, font.pixw, font.pixh, 3);
 		}
 
 		xp += font.pixw;
@@ -499,27 +476,17 @@ void Fl_Term::fe_draw_text(int xpos, int ypos, const symbol_t* symbols, int len)
 void Fl_Term::fe_draw_clear(int xpos, int ypos, const symbol_color_t bg_color, int len) {
 	//	printf("DrawClear: %d, %d (%d))\n", xpos, ypos, len);
 
-		const int xo = x() + gfx.xoff;
-		const int yo = y() + gfx.yoff;
+	const int xo = x() + gfx.xoff;
+	const int yo = y() + gfx.yoff;
 
-		// Now prepare to draw the actual terminal text
-		fl_font(FL_COURIER, def_fnt_size);
+	int xp = xo + xpos*font.pixw;
+	const int yp = yo + ypos*font.pixh;
 
-		int xp = xo + xpos*font.pixw;
-		const int yp = yo + ypos*font.pixh;
+	assert (bg_color >= 0 && bg_color <= 7);
+	Fl_Color bg = col_table[bg_color];
 
-		char str[4];
-		str[1] = '\0';
-
-		for (int i = 0; i < len; i++) {
-			assert (bg_color >= 0 && bg_color <= 7);
-			Fl_Color bg = col_table[bg_color];
-
-			fl_color(bg);
-			fl_rectf(xp, yp, font.pixw, font.pixh);
-
-			xp += font.pixw;
-		}
+	fl_color(bg);
+	fl_rectf(xp, yp, font.pixw*len, font.pixh);
 }
 
 void Fl_Term::fe_draw_cursor(symbol_color_t fg_color, symbol_color_t bg_color, symbol_attributes_t attrs, int xpos, int ypos, int32_t cp) {

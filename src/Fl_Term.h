@@ -23,13 +23,10 @@ class Fl_Term : public Fl_Box, public TE
 private:
 	uint64_t	last_draw;
 
-	int def_fnt_size;
-
 	// font stuff
 	struct {
 		int pixw;		// width of each font cell in pixels
 		int pixh;		// height of each font cell in pixels
-		int descent;	// TODO
 	} font;
 
 	// draw stuff
