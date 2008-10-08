@@ -31,9 +31,9 @@ typedef enum {
 	// Without auto wrap:
 	//   Display characters received when cursor is at right margin replace previously
 	//   displayed character.
-	MODE_AUTOWRAP	= (1<<4),
+	MODE_AUTOWRAP	= (1<<0),
 
-	MODE_CURSORAPP	= (1<<5),
+	MODE_CURSORAPP	= (1<<1),
 
 	// New line mode (DECNLM)
 	//
@@ -44,7 +44,7 @@ typedef enum {
 	// Without new line:
 	//   Causes a received linefeed, form feed, or vertical tab to move cursor to next line in current column.
 	//   RETURN transmits a carriage return.
-	MODE_NEWLINE	= (1<<7),
+	MODE_NEWLINE	= (1<<2),
 
 	// Insertion-Replacement Mode (IRM)
 	// With insert mode:
@@ -53,10 +53,10 @@ typedef enum {
 	// Without insert mode:
 	//   New display characters replace old display characters at cursor position.
 	//   The old character is erased.
-	MODE_INSERT		= (1<<8),
+	MODE_INSERT		= (1<<3),
 
 	// Application Keypad Mode (DECKPAM)
-	MODE_KEYAPP		= (1<<9),
+	MODE_KEYAPP		= (1<<4),
 
 	// Scroll Mode (DECSCLM)
 	//
@@ -65,16 +65,16 @@ typedef enum {
 	//   or 5 lines per second (power feature = 50 Hz).
 	// Without scroll mode:
 	//   Jump scroll lets the terminal add lines to the screen as fast as possible.
-	MODE_SMOOTHSCROLL	= (1<<10),
+	MODE_SMOOTHSCROLL	= (1<<5),
 
 	// TODO: what are these??
-	MODE_DESTRUCTBS		= (1<<11),
-	MODE_TEXTONLY		= (1<<12),
+	MODE_DESTRUCTBS		= (1<<6),
+	MODE_TEXTONLY		= (1<<7),
 
 	// Send-Receive Mode (SRM), local echo
-	MODE_LOCALECHO		= (1<<13),
+	MODE_LOCALECHO		= (1<<8),
 
-	MODE_CURSORINVISIBLE	= (1<<14),
+	MODE_CURSORINVISIBLE	= (1<<9),
 
 	// Origin mode (DECOM)
 	//
@@ -86,7 +86,7 @@ typedef enum {
 	//   Selects home position in upper-left corner of screen. Line numbers are independent
 	//   of the scrolling region (absolute). Use CUP and HVP sequences to move cursor out of
 	//   scrolling region.
-	MODE_ORIGIN			= (1<<15),
+	MODE_ORIGIN			= (1<<10),
 } te_mode_t;
 
 
