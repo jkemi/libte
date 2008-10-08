@@ -289,6 +289,8 @@ void ac_set_mode(TE* te)  // h
 			be_clear_mode_flag(te, MODE_CURSORINVISIBLE);
 			be_move_cursor(te, te->cursor_x, te->cursor_y);
 			break;
+//		case 1002:	// Use Cell Motion Mouse Tracking.
+//		case 1049:	// Save cursor as in DECSC and use Alternate Screen Buffer, clearing it first
 		default:
 			DEBUGF("unhandled private set mode (DECSET) mode: %d\n", p);
 			break;
@@ -311,11 +313,13 @@ void ac_set_mode(TE* te)  // h
 // Reset Mode (RM)
 void ac_clear_mode(TE* te)  // l
 {
+	const int p = parser_get_param(te->parser,0,-1);
+
 	if (parser_get_intermediate(te->parser) == '?') {
 		// DEC Private Mode Reset (DECRST)
 		// Lots of these are missing
 
-		switch (parser_get_param(te->parser,0,-1)) {
+		switch (p) {
 		case 1:	be_clear_mode_flag(te, MODE_CURSORAPP);		break;	// Normal Cursor Keys (DECCKM)
 //		case 2:	current_state = vt52_normal_state; break;			// Designate VT52 mode (DECANM).
 		case 3:
@@ -328,15 +332,24 @@ void ac_clear_mode(TE* te)  // l
 			be_set_mode_flag(te, MODE_CURSORINVISIBLE);	break;
 			be_move_cursor(te, te->cursor_x, te->cursor_y);
 			break;
+//		case 47:	// Use Normal Screen Buffer
+//		case 1002:	// Don't Use Cell Motion Mouse Tracking.
+//		case 1049:	// Use Normal Screen Buffer and restore cursor as in DECRC
+		default:
+			DEBUGF("unhandled private reset mode (DECRST) mode: %d\n", p);
+			break;
 		}
 	} else {
 		// Reset Mode (RM)
 
-		switch (parser_get_param(te->parser,0,-1)) {
+		switch (p) {
 //		case 2:														// Keyboard Action Mode (AM)
 		case 4:		be_clear_mode_flag(te, MODE_INSERT);	break;	// Insert Mode (IRM)
 		case 12:	be_set_mode_flag(te, MODE_LOCALECHO);	break;	// Send/receive (SRM)
 		case 20:	be_clear_mode_flag(te, MODE_NEWLINE);	break;	// Automatic Newline (LNM)
+		default:
+			DEBUGF("unhandled reset mode (RM) mode: %d\n", p);
+			break;
 		}
 	}
 }
