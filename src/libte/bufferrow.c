@@ -29,12 +29,7 @@ static void _bufrow_ensureCapacity(BufferRow* br, uint capacity) {
 			newcapacity *= 2;
 		}
 
-		// TODO: realloc??
-		symbol_t* newdata = xnew(symbol_t, newcapacity);
-		memcpy(newdata, br->data, sizeof(symbol_t)*br->used);
-		free (br->data);
-
-		br->data = newdata;
+		br->data = xreallocnew(symbol_t, br->data, newcapacity);
 		br->capacity = newcapacity;
 	}
 }
