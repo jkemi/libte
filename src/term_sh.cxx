@@ -27,9 +27,6 @@
 typedef unsigned int uint;
 
 
-// Set this to use deferred rather than direct terminal updates
-//#define USE_DEFERUPDATE
-
 /************************************************************************/
 static Fl_Window* main_win = NULL;
 static Flx_Terminal* term = NULL;
