@@ -1,3 +1,4 @@
+// -*- mode: c; tab-width: 4; coding: utf-8 -*-
 /*
  * This file is part of libTE, please consult the files README and
  * COPYING for further information.
@@ -70,8 +71,11 @@ void* _xcalloc(const char* func, size_t size);
 #define xcalloc(s)				_xcalloc(__func__,s)
 #define xcnew(t,n)				(t*)xcalloc(sizeof(t)*(n))
 
-#define allocanew(t,n)				(t*)alloca(sizeof(t)*(n))
+#define allocanew(t,n)			(t*)alloca(sizeof(t)*(n))
 
+void* _xrealloc(const char* func, void* oldptr, size_t size);
+#define xrealloc(oldptr,size)				_xrealloc(__func__,oldptr,size)
+#define xreallocnew(type,oldptr,nelems)		(type*)xrealloc(oldptr,sizeof(type)*nelems)
 
 
 #endif /* MISC_H_ */
