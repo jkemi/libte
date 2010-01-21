@@ -142,6 +142,7 @@ int main(int argc, char** argv)
 
 	main_win->resizable(term);
 
+	// Variables to replace in environ
 	static const char*const envdata[] = {
 		"TERM=xterm",
 		"LANG=en_US.UTF-8",

@@ -77,9 +77,9 @@ static void _env_free(char** env) {
  * Returned data should be freed with _env_free
  *
  * \param envdata	A collection of variables to add.
- * \return The new combined environment.
+ * \return The newly allocated combined environment.
  */
-static char**_env_augment(const char* const* envdata) {
+static char** _env_augment(const char* const* envdata) {
 	// Count maximum number of environment variables from both collections
 
 	int nvars = 0;
