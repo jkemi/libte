@@ -19,9 +19,7 @@ void history_init(History* hist, uint capacity) {
 	hist->size = 0;
 	hist->pos = 0;
 
-	// TODO: calloc?
-	hist->data = xnew(HistoryEntry, capacity);
-	memset(hist->data, 0, sizeof(HistoryEntry)*capacity);
+	hist->data = xcnew(HistoryEntry, capacity);
 }
 
 void history_term(History* hist) {
@@ -73,9 +71,7 @@ void history_store(History* hist, const BufferRow* row) {
 		hist->size++;
 	}
 
-	// TODO: realloc?
-	e->data = xnew(symbol_t, row->used);
-	memcpy(e->data, row->data, sizeof(symbol_t)*row->used);
+	e->data = xdup(symbol_t, row->data, row->used);
 	e->size = row->used;
 }
 
