@@ -77,5 +77,8 @@ void* _xrealloc(const char* func, void* oldptr, size_t size);
 #define xrealloc(oldptr,size)				_xrealloc(__func__,oldptr,size)
 #define xreallocnew(type,oldptr,nelems)		(type*)xrealloc(oldptr,sizeof(type)*nelems)
 
+void* _xmemdup(const char* func, const void* oldptr, size_t size);
+#define xmemdup(oldptr, size)				_xmemdup(__func__, oldptr, size)
+#define xdup(type,oldptr,nelems)			(type*)xmemdup(oldptr,sizeof(type)*nelems)
 
 #endif /* MISC_H_ */

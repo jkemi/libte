@@ -58,3 +58,14 @@ void* _xrealloc(const char* func, void* oldptr, size_t size) {
 	}
 	return p;
 }
+
+void* _xmemdup(const char* func, const void* oldptr, size_t size) {
+	void* p = malloc(size);
+	if (p == NULL) {
+		errorf("ERROR: %s: xmemdup(%lu) failed with reason: %s\n", func, size, strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+	memcpy(p, oldptr, size);
+	return p;
+}
+
