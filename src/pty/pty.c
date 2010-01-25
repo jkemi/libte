@@ -109,7 +109,7 @@ static char** _env_augment(const char* const* envdata) {
 		}
 
 		const size_t len = (size_t)((uintptr_t)eqpos-(uintptr_t)var);
-		if (_env_find_value(envdata, var, len) != NULL) {
+		if (_env_find_value(envdata, var, len) == NULL) {
 			ret[pos++] = strdup(var);
 		}
 	}
@@ -276,6 +276,7 @@ PTY* pty_spawn(const char *exe, const char* const* envdata) {
 			exit(1);
 		}
 		execle(exe, exe, NULL, env);
+		// FIXME: execle doesn't ever return
 		_env_free(env);
 		exit(0);
 	} // end of slave process
