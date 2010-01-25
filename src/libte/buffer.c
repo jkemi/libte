@@ -30,6 +30,12 @@ void buffer_term(Buffer* buf) {
 	free (buf->rows);
 }
 
+void buffer_clear(Buffer* buf) {
+	for (uint rowno = 0; rowno < buf->nrows; rowno++) {
+		bufrow_clear(buf->rows[rowno]);
+	}
+}
+
 void buffer_reshape(Buffer* buf, uint nrows, uint ncols) {
 	buf->ncols = ncols;
 

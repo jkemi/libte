@@ -24,6 +24,7 @@ typedef struct {
 
 void buffer_init(Buffer* buf, History* hist, uint nrows, uint ncols);
 void buffer_term(Buffer* buf);
+void buffer_clear(Buffer* buf);
 void buffer_reshape(Buffer* buf, uint nrows, uint ncols);
 //void buffer_scroll(Buffer* buf, uint top, uint bottom, int byoffset);
 void buffer_scroll_up(Buffer* buf, uint top, uint bottom);
