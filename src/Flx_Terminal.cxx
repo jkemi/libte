@@ -239,4 +239,7 @@ void Flx_Terminal::setToChildCB(void (*func)(const int32_t* data, size_t size, v
 void Flx_Terminal::setTermSizeCB(void (*func)(int width, int height, void* priv), void* priv) {
 	_impl->_term_size_cb = func;
 	_impl->_term_size_cb_data = priv;
+	if (func != NULL) {
+		func(_impl->term->teGetWidth(), _impl->term->teGetHeight(), priv);
+	}
 }
