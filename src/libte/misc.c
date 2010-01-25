@@ -35,7 +35,11 @@ void _debugf (const char* label, const char* file, const char* func, int line, c
 void* _xmalloc(const char* func, size_t size) {
 	void* p = malloc(size);
 	if (p == NULL) {
+#ifndef NDEBUG
 		errorf("ERROR: %s: xmalloc(%lu) failed with reason: %s\n", func, size, strerror(errno));
+#else
+		perror("Memory allocation failed");
+#endif
 		exit(EXIT_FAILURE);
 	}
 	return p;
@@ -44,7 +48,11 @@ void* _xmalloc(const char* func, size_t size) {
 void* _xcalloc(const char* func, size_t size) {
 	void* p = calloc(1,size);
 	if (p == NULL) {
+#ifndef NDEBUG
 		errorf("ERROR: %s: xcmalloc(%lu) failed with reason: %s\n", func, size, strerror(errno));
+#else
+		perror("Memory allocation failed");
+#endif
 		exit(EXIT_FAILURE);
 	}
 	return p;
@@ -53,7 +61,11 @@ void* _xcalloc(const char* func, size_t size) {
 void* _xrealloc(const char* func, void* oldptr, size_t size) {
 	void* p = realloc(oldptr,size);
 	if (p == NULL) {
+#ifndef NDEBUG
 		errorf("ERROR: %s: xrealloc(%lu) failed with reason: %s\n", func, size, strerror(errno));
+#else
+		perror("Memory allocation failed");
+#endif
 		exit(EXIT_FAILURE);
 	}
 	return p;
@@ -62,7 +74,11 @@ void* _xrealloc(const char* func, void* oldptr, size_t size) {
 void* _xmemdup(const char* func, const void* oldptr, size_t size) {
 	void* p = malloc(size);
 	if (p == NULL) {
+#ifndef NDEBUG
 		errorf("ERROR: %s: xmemdup(%lu) failed with reason: %s\n", func, size, strerror(errno));
+#else
+		perror("Memory allocation failed");
+#endif
 		exit(EXIT_FAILURE);
 	}
 	memcpy(p, oldptr, size);

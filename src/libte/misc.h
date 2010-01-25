@@ -59,26 +59,32 @@ void errorf(const char* format, ...) __attribute__ ((__format__ (__printf__, 1, 
 // error reporting as both window message and debugger string
 void _debugf(const char* label, const char* file, const char* func, int line, const char* format, ...) __attribute__ ((format (printf, 5, 6)));
 
+#ifndef NDEBUG
+#	define _CALLERFUNC	__func__
+#else
+#	define _CALLERFUNC	NULL
+#endif
+
 //
 // Memory allocation/deallocation
 //
 void* _xmalloc(const char* func, size_t size);
-#define xmalloc(s)				_xmalloc(__func__,s)
+#define xmalloc(s)				_xmalloc(_CALLERFUNC,s)
 #define xnew(t,n)				(t*)xmalloc(sizeof(t)*(n))
 #define xnew_aligned(t,a,n)		(t*)xmalloc_aligned(a,sizeof(t)*(n))
 
 void* _xcalloc(const char* func, size_t size);
-#define xcalloc(s)				_xcalloc(__func__,s)
+#define xcalloc(s)				_xcalloc(_CALLERFUNC,s)
 #define xcnew(t,n)				(t*)xcalloc(sizeof(t)*(n))
 
 #define allocanew(t,n)			(t*)alloca(sizeof(t)*(n))
 
 void* _xrealloc(const char* func, void* oldptr, size_t size);
-#define xrealloc(oldptr,size)				_xrealloc(__func__,oldptr,size)
+#define xrealloc(oldptr,size)				_xrealloc(_CALLERFUNC,oldptr,size)
 #define xreallocnew(type,oldptr,nelems)		(type*)xrealloc(oldptr,sizeof(type)*nelems)
 
 void* _xmemdup(const char* func, const void* oldptr, size_t size);
-#define xmemdup(oldptr, size)				_xmemdup(__func__, oldptr, size)
+#define xmemdup(oldptr, size)				_xmemdup(_CALLERFUNC, oldptr, size)
 #define xdup(type,oldptr,nelems)			(type*)xmemdup(oldptr,sizeof(type)*nelems)
 
 #endif /* MISC_H_ */
