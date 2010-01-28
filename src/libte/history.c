@@ -62,6 +62,9 @@ uint history_peek(History* hist, uint age, symbol_t* dest, uint n) {
 }
 
 void history_store(History* hist, const BufferRow* row) {
+	if (hist->capacity == 0) {
+		return;
+	}
 	HistoryEntry* e = hist->data + hist->pos%hist->capacity;
 	hist->pos++;
 
@@ -76,6 +79,10 @@ void history_store(History* hist, const BufferRow* row) {
 }
 
 void history_fetch(History* hist, BufferRow* row) {
+	if (hist->capacity == 0) {
+		bufrow_clear(row);
+		return;
+	}
 	hist->pos--;
 	HistoryEntry* e = hist->data + hist->pos%hist->capacity;
 
