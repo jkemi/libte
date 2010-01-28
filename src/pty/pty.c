@@ -22,6 +22,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#include "term.h"
+
 #include "pty.h"
 
 // TODO: gross hack, please remove
@@ -264,11 +266,13 @@ PTY* pty_spawn(const char *exe, const char* const* envdata) {
 //		if (ioctl(sfd, TIOCSCTTY, NULL))
 //			fprintf(stderr, "Could not set controllint tty\n");
 
-		dup2(sfd, 0);
-		dup2(sfd, 1);
-		dup2(sfd, 2);
+		dup2(sfd, STDIN_FILENO);
+		dup2(sfd, STDOUT_FILENO);
+		dup2(sfd, STDERR_FILENO);
 		if (sfd > 2)
 			close(sfd);
+
+		term_set_utf8(sfd, 1);
 
 		char** env = _env_augment(envdata);
 		if (env == NULL) {

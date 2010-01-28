@@ -14,6 +14,7 @@ extern "C" {
 #endif
 
 void term_set_window_size(int fd, int width, int height);
+void term_set_utf8(int fd, int utf8);
 
 #ifdef __cplusplus
 }
