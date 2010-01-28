@@ -145,6 +145,7 @@ void ac_index_up(TE* te)
 //
 //   Full Reset (RIS) is here implemented in the same way as DECSTR
 //   due to the emulated nature.
+// TODO: should alternative buffer also be cleared here?
 void ac_reset(TE* te)
 {
 	te->bg_color = SYMBOL_BG_DEFAULT;
@@ -157,10 +158,13 @@ void ac_reset(TE* te)
 
 	te->attributes = 0;
 
-	be_clear_area(te, 0, 0, te->width, te->height);
+	te->buffer = &te->norm_buffer;
+	te->history = &te->norm_history;
+
+	buffer_clear(te->buffer);
 	be_move_cursor(te, 0, 0);
 
-	history_clear(&te->history);
+	history_clear(&te->norm_history);
 	viewport_set(te, 0);
 	viewport_taint_all(te);
 }
@@ -260,7 +264,7 @@ void ac_delete_char(TE* te)
 	if (n >= mx) {
 		be_clear_area(te, te->cursor_x, te->cursor_y, te->width-te->cursor_x, 1);
 	} else {
-		BufferRow* row = buffer_get_row(&te->buffer, te->cursor_y);
+		BufferRow* row = buffer_get_row(te->buffer, te->cursor_y);
 		bufrow_remove(row,te->cursor_x,n);
 		viewport_taint(te, te->cursor_y, te->cursor_x, te->width-te->cursor_x);
 	}
@@ -283,14 +287,19 @@ void ac_set_mode(TE* te)  // h
 			fe_request_resize(te, 132, te->height);
 			be_clear_area(te, 0, 0, te->width, te->height);
 			break;
+//		case 4:													// Scrolling (DECSCLM)
+		case 5: be_set_mode_flag(te, MODE_SCREEN);		break;	// Screen mode (DECSCNM)
 		case 6: be_set_mode_flag(te, MODE_ORIGIN);		break;	// Origin mode (DECOM)
 		case 7:	be_set_mode_flag(te, MODE_AUTOWRAP);	break;	// Wraparound Mode (DECAWM)
+//		case 8:													// Auto repeating (DECARM)
 		case 25:												// Hide Cursor (DECTCEM)
 			be_clear_mode_flag(te, MODE_CURSORINVISIBLE);
 			be_move_cursor(te, te->cursor_x, te->cursor_y);
 			break;
 //		case 1002:	// Use Cell Motion Mouse Tracking.
-//		case 1049:	// Save cursor as in DECSC and use Alternate Screen Buffer, clearing it first
+		case 1049:	// Save cursor as in DECSC and use Alternate Screen Buffer, clearing it first
+			be_switch_buffer(te, true);
+			break;
 		default:
 			DEBUGF("unhandled private set mode (DECSET) mode: %d\n", p);
 			break;
@@ -323,18 +332,23 @@ void ac_clear_mode(TE* te)  // l
 		case 1:	be_clear_mode_flag(te, MODE_CURSORAPP);		break;	// Normal Cursor Keys (DECCKM)
 //		case 2:	current_state = vt52_normal_state; break;			// Designate VT52 mode (DECANM).
 		case 3:
-			fe_request_resize(te, 80, te->height);				// 132 Column Mode (DECCOLM)
+			fe_request_resize(te, 80, te->height);					// 132 Column Mode (DECCOLM)
 			be_clear_area(te, 0, 0, te->width, te->height);
 			break;
+//		case 4:															// Scrolling (DECSCLM)
+		case 5: be_clear_mode_flag(te, MODE_SCREEN);			break;	// Screen mode (DECSCNM)
 		case 6: be_clear_mode_flag(te, MODE_ORIGIN);			break;	// Origin mode (DECOM)
 		case 7:	be_clear_mode_flag(te, MODE_AUTOWRAP);			break;	// Wraparound Mode (DECAWM)
+//		case 8:															// Auto repeating (DECARM)
 		case 25:														// Hide Cursor (DECTCEM)
 			be_set_mode_flag(te, MODE_CURSORINVISIBLE);	break;
 			be_move_cursor(te, te->cursor_x, te->cursor_y);
 			break;
 //		case 47:	// Use Normal Screen Buffer
 //		case 1002:	// Don't Use Cell Motion Mouse Tracking.
-//		case 1049:	// Use Normal Screen Buffer and restore cursor as in DECRC
+		case 1049:	// Use Normal Screen Buffer and restore cursor as in DECRC
+			be_switch_buffer(te, false);
+			break;
 		default:
 			DEBUGF("unhandled private reset mode (DECRST) mode: %d\n", p);
 			break;
@@ -389,6 +403,7 @@ void ac_set_margins(TE* te)
 	te->scroll_bot = b-1;
 
 	if (be_is_mode_flag(te, MODE_ORIGIN)) {
+		DEBUGF("was MODE_ORIGIN\n");
 		be_move_cursor(te, te->scroll_top, 0);
 	} else {
 		be_move_cursor(te, 0, 0);
@@ -556,7 +571,7 @@ void ac_insert_char(TE* te)
 	if (n >= mx) {
 		be_clear_area(te, te->cursor_x, te->cursor_y, te->width-te->cursor_x, 1);
 	} else {
-		BufferRow* row = buffer_get_row(&te->buffer, te->cursor_y);
+		BufferRow* row = buffer_get_row(te->buffer, te->cursor_y);
 
 		// TODO: remove this buffer
 		symbol_t buf[n];
@@ -581,7 +596,7 @@ void ac_screen_align(TE* te)
 	}
 
 	for (int y=0; y<te->height; y++) {
-		BufferRow* row = buffer_get_row(&te->buffer, y);
+		BufferRow* row = buffer_get_row(te->buffer, y);
 		viewport_taint(te, y, 0, te->width);
 		bufrow_replace(row, 0, syms, te->width);
 	}

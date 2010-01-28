@@ -25,6 +25,7 @@ void viewport_reshape	(TE* te, uint w, uint h);
  */
 void viewport_taint		(TE* te, uint y, uint start_x, uint end_x);
 void viewport_taint_all	(TE* te);
+void viewport_report_scroll	(TE* te);
 void viewport_move		(TE* te, uint y, uint n, int offset);
 
 void viewport_history_inc(TE* te);

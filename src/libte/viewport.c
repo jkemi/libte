@@ -20,7 +20,7 @@ struct Viewport_ {
 };
 
 static void _report_scroll(TE* te) {
-	fe_position(te, te->viewport->offset, history_size(&te->history));
+	fe_position(te, te->viewport->offset, history_size(te->history));
 }
 
 
@@ -57,6 +57,11 @@ void viewport_taint_all	(TE* te) {
 	}
 }
 
+void viewport_report_scroll(TE* te) {
+	_report_scroll(te);
+}
+
+
 void viewport_move (TE* te, uint y, uint n, int offset) {
 	// TODO: implement?
 }
@@ -79,7 +84,7 @@ void viewport_history_inc(TE* te) {
 }
 
 void viewport_history_dec(TE* te) {
-	uint hsz = history_size(&te->history);
+	uint hsz = history_size(te->history);
 	if (te->viewport->offset > 0) {
 		if (te->viewport->scroll_lock) {
 			if (te->viewport->offset > hsz) {
@@ -97,7 +102,7 @@ void viewport_history_dec(TE* te) {
 }
 
 void viewport_set (TE* te, int offset) {
-	uint hsz = history_size(&te->history);
+	uint hsz = history_size(te->history);
 	const uint off = int_clamp(offset, 0, hsz);
 
 	if (off != te->viewport->offset) {
@@ -138,9 +143,9 @@ void viewport_request_redraw(TE* te, int x, int y, int w, int h, bool force) {
     	const int age = offset - rowno;
     	if (age > 0) {
     		data = buf;
-    		ndata = history_peek(&te->history, age-1, buf, x+w);
+    		ndata = history_peek(te->history, age-1, buf, x+w);
     	} else {
-        	BufferRow* row = buffer_get_row(&te->buffer, rowno-offset);
+        	BufferRow* row = buffer_get_row(te->buffer, rowno-offset);
     		data = row->data;
     		ndata = row->used;
     	}
@@ -175,7 +180,7 @@ void viewport_request_redraw(TE* te, int x, int y, int w, int h, bool force) {
 		// draw cursor if force or inside rectangle
 		if ( force || (xpos >= x && xpos < x+w && ypos >= y && ypos < y+h) ) {
 			// TODO: check row->used, row->capacity here!
-			const BufferRow* row = buffer_get_row(&te->buffer, te->cursor_y);
+			const BufferRow* row = buffer_get_row(te->buffer, te->cursor_y);
 			const symbol_t sym = row->data[xpos];
 
 			const symbol_color_t fg = symbol_get_fg(sym);

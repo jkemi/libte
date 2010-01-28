@@ -87,6 +87,12 @@ typedef enum {
 	//   of the scrolling region (absolute). Use CUP and HVP sequences to move cursor out of
 	//   scrolling region.
 	MODE_ORIGIN			= (1<<10),
+
+	// Screen mode (DECSCNM)
+	//
+	// Set selects reverse screen, a white screen background with black characters.
+	// Currently ignored
+	MODE_SCREEN			= (1<<11),
 } te_mode_t;
 
 
@@ -103,9 +109,13 @@ struct TE_Backend_ {
 
 	// terminal info
 	int width, height;
-	Buffer	buffer;
-	History	history;
+	Buffer*	buffer;
+	History* history;
 
+	Buffer	norm_buffer;
+	History	norm_history;
+	Buffer	alt_buffer;
+	History	alt_history;
 
 	// Scroll margins, as set by DECSTBM
 	int scroll_top, scroll_bot;
@@ -137,6 +147,7 @@ static inline bool be_is_mode_set(TE* te, int mode) { return te->mode_flags & mo
 void be_scroll_region(TE* te, uint start_y, uint end_y, int num);	// does clear
 void be_clear_area(TE* te, int start_x, int start_y, int end_x, int end_y);
 void be_move_cursor(TE* te, int x, int y);
+void be_switch_buffer(TE* te, bool alt);
 
 // terminal actions
 static inline int be_get_mode(TE* te) { return te->mode_flags; }
@@ -180,7 +191,6 @@ static inline void fe_draw_cursor	(TE* te, symbol_color_t fg_color, symbol_color
 
 static inline void fe_draw_move		(TE* te, int y, int height, int byoffset)
 	{te->fe->draw_move(te->fe_priv, y, height, byoffset); }
-
 
 
 

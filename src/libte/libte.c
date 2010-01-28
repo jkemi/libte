@@ -130,7 +130,7 @@ void be_input(TE* te, const int32_t* text, size_t len) {
 
 	if (be_is_mode_set(te, MODE_AUTOWRAP)) {
 		while (len > 0) {
-			BufferRow* row = buffer_get_row(&te->buffer, te->cursor_y);
+			BufferRow* row = buffer_get_row(te->buffer, te->cursor_y);
 
 			size_t n = uint_min(len, te->width-te->cursor_x);
 			for (size_t i = 0; i < n; i++) {
@@ -156,7 +156,7 @@ void be_input(TE* te, const int32_t* text, size_t len) {
 			}
 		}
 	} else {
-		BufferRow* row = buffer_get_row(&te->buffer, te->cursor_y);
+		BufferRow* row = buffer_get_row(te->buffer, te->cursor_y);
 
 		size_t n = uint_min(len, te->width-te->cursor_x-1);
 
@@ -186,10 +186,10 @@ void be_input(TE* te, const int32_t* text, size_t len) {
 void be_scroll_region(TE* te, uint start_y, uint end_y, int num)
 {
 	for (int i = 0; i < num; i++) {
-		buffer_scroll_up(&te->buffer, te->scroll_top, te->scroll_bot);
+		buffer_scroll_up(te->buffer, te->scroll_top, te->scroll_bot);
 	}
 	for (int i = num; i < 0; i++) {
-		buffer_scroll_down(&te->buffer, te->scroll_top, te->scroll_bot);
+		buffer_scroll_down(te->buffer, te->scroll_top, te->scroll_bot);
 		viewport_history_dec(te);
 	}
 
@@ -218,7 +218,7 @@ void be_clear_area(TE* te, int xpos, int ypos, int width, int height)
 	}
 
 	for (int y=ypos; y < ypos+height; y++) {
-		BufferRow* row = buffer_get_row(&te->buffer, y);
+		BufferRow* row = buffer_get_row(te->buffer, y);
 		bufrow_fill(row, xpos, sym, width);
 		viewport_taint(te, y, xpos, width);
 	}
@@ -247,6 +247,21 @@ void be_move_cursor(TE* te, int x, int y)
 	}
 }
 
+void be_switch_buffer(TE* te, bool alt) {
+	if (alt) {
+		te->buffer = &te->alt_buffer;
+		te->history = &te->alt_history;
+		buffer_clear(&te->alt_buffer);
+		viewport_set(te, 0);
+	} else {
+		te->buffer = &te->norm_buffer;
+		te->history = &te->norm_history;
+	}
+
+	viewport_taint_all(te);
+	viewport_report_scroll(te);
+}
+
 TE* te_new(const TE_Frontend* fe, void* fe_priv, int w, int h)
 {
 	TE* te = xnew(TE, 1);
@@ -260,13 +275,19 @@ TE* te_new(const TE_Frontend* fe, void* fe_priv, int w, int h)
 	te->height = h;
 
 
-	history_init(&te->history, 1000);
-	buffer_init(&te->buffer, &te->history, h, w);
+	history_init(&te->norm_history, 1000);
+	buffer_init(&te->norm_buffer, &te->norm_history, h, w);
+
+	history_init(&te->alt_history, 0);
+	buffer_init(&te->alt_buffer, &te->alt_history, h, w);
+
+	te->buffer = &te->norm_buffer;
+	te->history = &te->norm_history;
+
 	viewport_init(te, w, h);
 
 	// Create tab stops
-	te->tab_stops = xnew(bool, w);
-	memset(te->tab_stops, 0, sizeof(bool)*w);
+	te->tab_stops = xcnew(bool, w);
 
 	te->cursor_x = 0;
 	te->cursor_y = 0;
@@ -321,8 +342,11 @@ TE_Backend* te_create(const TE_Frontend* front, void* priv, int width, int heigh
 }
 
 void te_destroy(TE_Backend* te) {
-	buffer_term(&te->buffer);
 	viewport_term(te);
+	buffer_term(&te->norm_buffer);
+	history_clear(&te->norm_history);
+	buffer_term(&te->alt_buffer);
+	history_clear(&te->alt_history);
 	parser_delete(te->parser);
 }
 
@@ -353,7 +377,8 @@ void te_resize(TE_Backend* te, int width, int height) {
 	int cy = int_min(te->height-1, te->cursor_y);
 	be_move_cursor(te, cx, cy);
 
-	buffer_reshape(&te->buffer, height, width);
+	buffer_reshape(&te->norm_buffer, height, width);
+	buffer_reshape(&te->alt_buffer, height, width);
 
 	viewport_reshape(te, width, height);
 

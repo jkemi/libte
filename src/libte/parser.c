@@ -71,6 +71,7 @@ void parser_input(Parser* parser, int len, const int32_t* data, TE* te)
 	parser->input_data = data;
 
 	while (parser->input_remaining > 0) {
+		// Look for next state
 		const StateOption* state = parser->current_state;
 		while (state->cp != -1 && state->cp != *parser->input_data) {
 			state++;
