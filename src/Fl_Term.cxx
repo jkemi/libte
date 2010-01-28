@@ -82,7 +82,7 @@ Fl_Term::Fl_Term(int sz, int X, int Y, int W, int H, const char *L) : Fl_Box(X,Y
 #endif
 	if ((_fltk_to_cp == (iconv_t)-1) || _cp_to_fltk == (iconv_t)-1) {
 		// TODO: handle somehow
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 }
 

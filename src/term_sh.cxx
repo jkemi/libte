@@ -21,7 +21,6 @@
 #include "pty/pty.h"
 #include "pty/term.h"
 
-
 #include "strutil.h"
 
 typedef unsigned int uint;
@@ -63,6 +62,7 @@ static void mfd_cb(int mfd, void* unused_priv)
 {
 	ssize_t ret = read(mfd, buf+buffill, (BUFSIZE-buffill)*sizeof(unsigned char));
 	if (ret == -1) {
+		printf("bye from %s:%d\n", __FILE__,__LINE__);
 		// TODO: hello
 		exit(0);
 		//return;
@@ -117,8 +117,11 @@ int main(int argc, char** argv)
 	setlocale(LC_ALL, "");
 	Fl::args(argc, argv);
 
-	const uint W = 654;
-	const uint H = 410;
+/*	const uint W = 654;
+	const uint H = 410;*/
+
+	const uint W = 740;
+	const uint H = 370;
 
 	// create the main window and the terminal widget
 	main_win = new Fl_Double_Window(W, H);
@@ -173,5 +176,7 @@ int main(int argc, char** argv)
 
 	pty_restore(pty);
 
+
+	printf("Exited cleanly with status: %d\n", exit_res);
 	return exit_res;
 }
