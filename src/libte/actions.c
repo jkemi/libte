@@ -544,7 +544,7 @@ void ac_char_attrs(TE* te)
 				break;
 
 			default:
-				DEBUGF("recieved unhandled character attribute: %d\n", p);
+				DEBUGF("received unhandled character attribute: %d\n", p);
 			}
 		}
 	}

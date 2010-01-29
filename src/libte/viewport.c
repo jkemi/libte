@@ -66,6 +66,7 @@ void viewport_move (TE* te, uint y, uint n, int offset) {
 	// TODO: implement?
 }
 
+// Increase history scrollbar
 void viewport_history_inc(TE* te) {
 	if (te->viewport->offset > 0) {
 		if (te->viewport->scroll_lock) {
@@ -83,6 +84,7 @@ void viewport_history_inc(TE* te) {
 	_report_scroll(te);
 }
 
+// Decrease history scroller bar
 void viewport_history_dec(TE* te) {
 	uint hsz = history_size(te->history);
 	if (te->viewport->offset > 0) {
