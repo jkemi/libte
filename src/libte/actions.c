@@ -222,10 +222,11 @@ void ac_cursor_position(TE* te)
 {
 	int y, x;
 
+	int lineno = int_max( parser_get_param(te->parser, 0, 1), 1 );
 	if (be_is_mode_set(te, MODE_ORIGIN)) {
-		y = int_clamp(parser_get_param(te->parser, 0, 1)+te->scroll_top, te->scroll_top, te->scroll_bot+1);
+		y = int_clamp( lineno + te->scroll_top, te->scroll_top, te->scroll_bot+1);
 	} else {
-		y = int_clamp(parser_get_param(te->parser, 0, 1), 1, te->height);
+		y = int_clamp( lineno, 1, te->height);
 	}
 	x = int_clamp(parser_get_param(te->parser, 1, 1), 1, te->width);
 
@@ -394,19 +395,21 @@ void ac_set_margins(TE* te)
 {
 	int t, b;
 
-	t = int_clamp(parser_get_param(te->parser,0,1), 1, te->height-1);
-	b = int_clamp(parser_get_param(te->parser,1,te->height), t+1, te->height);
+	t = int_clamp(parser_get_param(te->parser,0,1), 1, te->height);
+	b = int_clamp(parser_get_param(te->parser,1,te->height), 1, te->height);
 
-	DEBUGF("scrolling region set to: %d,%d\n", t,b);
+	if (b-t > 0) {
+		DEBUGF("scrolling region set to: %d,%d\n", t,b);
+		te->scroll_top = t-1;
+		te->scroll_bot = b-1;
 
-	te->scroll_top = t-1;
-	te->scroll_bot = b-1;
-
-	if (be_is_mode_flag(te, MODE_ORIGIN)) {
-		DEBUGF("was MODE_ORIGIN\n");
-		be_move_cursor(te, te->scroll_top, 0);
+		if (be_is_mode_flag(te, MODE_ORIGIN)) {
+			be_move_cursor(te, te->scroll_top, 0);
+		} else {
+			be_move_cursor(te, 0, 0);
+		}
 	} else {
-		be_move_cursor(te, 0, 0);
+		DEBUGF("scrolling region %d,%d invalid, ignoring.\n", t,b);
 	}
 }
 
