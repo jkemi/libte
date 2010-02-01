@@ -30,7 +30,7 @@ static Fl_Color col_table[] = {
 };
 
 #define _DEFER_DRAWING_US	20000
-#define _DEFERRED_DRAWING_DELAY	0.06
+#define _DEFERRED_DRAWING_DELAY	0.02
 
 static uint64_t getCurrentTime_us(void) {
 	struct timeval tv;
@@ -121,7 +121,9 @@ int32_t Fl_Term::_fltkToCP(const char* text, size_t len) {
 
 	size_t written = (size_t)((uintptr_t)outbuf - (uintptr_t)&cp);
 
+#ifndef NDEBUG
 	printf ("result: %d %p, %p: %d\n", (int)result, &cp, outbuf, (int)written);
+#endif
 
 	if (written > 0) {
 		return cp;
@@ -151,7 +153,9 @@ char Fl_Term::_cpToFltk(int32_t cp) {
 
 	size_t written = (size_t)((uintptr_t)outbuf - (uintptr_t)&c);
 
+#ifndef NDEBUG
 	printf ("result: %d %p, %p: %d\n", (int)result, &c, outbuf, (int)written);
+#endif
 
 	if (written > 0) {
 		return c;
@@ -224,7 +228,9 @@ bool Fl_Term::_handle_keyevent(void) {
 
 		const int32_t cp = _fltkToCP(Fl::event_text(), Fl::event_length());
 
+#ifndef NDEBUG
 		printf("cp was: %d\n", cp);
+#endif
 
 		int mod = TE_MOD_NONE;
 		if (Fl::event_alt()) {
