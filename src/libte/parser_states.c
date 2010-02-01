@@ -131,7 +131,8 @@ static const StateOption state_csi[] = {
     { 'B', &ac_cursor_down,		state_normal },
     { 'C', &ac_cursor_right,	state_normal },
     { 'D', &ac_cursor_left,		state_normal },
-    { 'G', &ac_column_position,	state_normal },
+    { 'G', &ac_column_position,	state_normal },	// CHA
+    { '`', &ac_column_position,	state_normal },	// HPA
     { 'H', &ac_cursor_position,	state_normal },
     { 'J', &ac_erase_display,	state_normal },
     { 'K', &ac_erase_line,		state_normal },
