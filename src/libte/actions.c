@@ -412,7 +412,7 @@ void ac_set_margins(TE* te)
 		te->scroll_bot = b-1;
 
 		if (be_is_mode_flag(te, MODE_ORIGIN)) {
-			be_move_cursor(te, te->scroll_top, 0);
+			be_move_cursor(te, 0, te->scroll_top);
 		} else {
 			be_move_cursor(te, 0, 0);
 		}
