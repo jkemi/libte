@@ -224,7 +224,7 @@ void ac_cursor_position(TE* te)
 
 	int lineno = int_max( parser_get_param(te->parser, 0, 1), 1 );
 	if (be_is_mode_set(te, MODE_ORIGIN)) {
-		y = int_clamp( lineno + te->scroll_top, te->scroll_top, te->scroll_bot+1);
+		y = int_clamp( lineno + te->scroll_top, te->scroll_top+1, te->scroll_bot+1);
 	} else {
 		y = int_clamp( lineno, 1, te->height);
 	}
@@ -244,7 +244,15 @@ void ac_column_position(TE* te)
 // Line Position Absolute [row] (default = [1,column]) (VPA)
 void ac_line_position(TE* te)
 {
-	int	y = int_clamp(parser_get_param(te->parser, 0, 1), 1, te->height);
+	int y;
+
+	int	lineno = parser_get_param(te->parser, 0, 1);
+
+	if (te->mode_flags & MODE_ORIGIN) {
+		y = int_clamp(lineno + te->scroll_top, te->scroll_top+1, te->scroll_bot+1);
+	} else {
+		y  = int_clamp(lineno, 1, te->height);
+	}
 
 	be_move_cursor(te, te->cursor_x, y-1);
 }
