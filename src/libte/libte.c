@@ -226,14 +226,14 @@ void be_clear_area(TE* te, int xpos, int ypos, int width, int height)
 
 void be_move_cursor(TE* te, int x, int y)
 {
-/*	if (cursor_x >= width) {
-		cursor_x = width-1;
-	}
-	if (cursor_y >= height) {
-		cursor_y = height-1;
-	}*/
 	x = int_clamp(x, 0, te->width-1);
 	y = int_clamp(y, 0, te->height-1);
+
+	/*
+	if (y > te->scroll_bot || y < te->scroll_top) {
+		abort();
+	}
+	*/
 
 	if (x != te->cursor_x || y != te->cursor_y) {
 		// Old cursor position is dirty
