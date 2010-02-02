@@ -111,7 +111,7 @@ class T(object):
 		"""
 		self.csi('A', [n])
 
-	def CUD(self, n=1):
+	def CUD(self, n=None):
 		"""
 		CURSOR_DOWN [#lines=1]
 		"""
@@ -128,6 +128,31 @@ class T(object):
 		REVERSE_INDEX
 		"""
 		self.write('\033M')
+
+	def IND(self):
+		"""
+		INDEX_DOWN
+		"""
+		self.write('\033D')
+
+	def ICH(self, nchars=None):
+		"""
+		INSERT_CHARACTER [#chars=1]
+		"""
+		self.csi('@', params=[nchars])
+
+	def VPA(self, lineno=None):
+		"""
+		VERTICAL_LINE_POSITION_ABSOLUTE [lineno=1]
+		"""
+		self.csi('d', params=[lineno])
+
+	def CHA(self, colno=None):
+		"""
+		CURSOR_HORIZONTAL_ABSOLUTE [colno=1]
+		"""
+		self.csi('G', params=[colno])
+
 
 	def holdit(self):
 		self.write('Push <RETURN>')
@@ -209,3 +234,32 @@ class T(object):
 					self.write( str(y)[-1] )
 				else:
 					self.write('-')
+
+	def jkTestScroll(self):
+		self.RIS()
+		self.DECSTBM(3,8)
+		self.CUP(1,1)
+		for i in range(10):
+			self.write('X')
+			self.IND()
+
+		self.CUP(10,1)
+		for i in range(10):
+			self.write('A')
+			self.IND()
+
+		self.holdit()
+
+		self.RIS()
+		self.DECSTBM(1,20)
+		self.CUP(1,1)
+		for i in range(10):
+			self.write('B')
+			self.IND()
+
+		self.CUP(10,1)
+		for i in range(25):
+			self.write('C')
+			self.IND()
+
+		self.holdit()
