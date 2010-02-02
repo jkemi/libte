@@ -129,7 +129,7 @@ static const StateOption state_csi[] = {
     { '8', &_parser_param_digit,	state_csi },
     { '9', &_parser_param_digit,	state_csi },
     { ';', &_parser_next_param,		state_csi },
-    { '@', &ac_insert_char,		state_normal },
+    { '@', &ac_insert_char,		state_normal },	// ICH
     { 'A', &ac_cursor_up,		state_normal },
     { 'B', &ac_cursor_down,		state_normal },
     { 'C', &ac_cursor_right,	state_normal },

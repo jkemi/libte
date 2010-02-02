@@ -577,21 +577,31 @@ void ac_clear_tab(TE* te)
 void ac_insert_char(TE* te)
 {
 	int n, mx;
-	n = int_max(1, parser_get_param(te->parser,0,1) );
-	mx = te->width-te->cursor_x;
+	mx = te->width - te->cursor_x;
+	n = int_clamp(parser_get_param(te->parser,0,1), 1, mx );
+
+	BufferRow* row = buffer_get_row(te->buffer, te->cursor_y);
+	// TODO: spec. says blank character, "with the normal character attributes" what are those?
+	symbol_t fillsym = symbol_make_style(te->fg_color, te->bg_color, te->attributes) | ' ';
+
 	if (n >= mx) {
-		be_clear_area(te, te->cursor_x, te->cursor_y, te->width-te->cursor_x, 1);
+		bufrow_fill(row, te->cursor_x, fillsym, mx);
 	} else {
-		BufferRow* row = buffer_get_row(te->buffer, te->cursor_y);
+		int trail = te->width - te->cursor_x - n;
+
+		if (trail > 0) {
+			bufrow_remove(row, trail, n);
+		}
 
 		// TODO: remove this buffer
 		symbol_t buf[n];
 		for (int i = 0; i < n; i++) {
-			buf[i] = ' ';
+			buf[i] = fillsym;
 		}
 		bufrow_insert(row, te->cursor_x, buf, n);
-		viewport_taint(te, te->cursor_y, te->cursor_x, te->width-te->cursor_x);
 	}
+
+	viewport_taint(te, te->cursor_y, te->cursor_x, mx);
 }
 
 // DEC Screen Alignment Test (DECALN)
