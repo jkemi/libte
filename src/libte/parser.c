@@ -6,6 +6,7 @@
  */
 
 #include <stdlib.h>
+
 #include "misc.h"
 #include "bufferrow.h"
 #include "buffer.h"
@@ -171,6 +172,7 @@ void _parser_next_param(TE* te)
 void _parser_normal_input(TE* te)
 {
 	if (*te->parser->input_data < 32) {
+		DEBUGF("%d is unhandled... mkay, ignoring\n", *te->parser->input_data);
 		return;
 	}
 
@@ -187,7 +189,7 @@ void _parser_normal_input(TE* te)
 	be_input(te, te->parser->input_data, n);
 
 	// Only advance the number of extra characters consumed by this operation
-	// One character is always consumed by process_input(), hence n-1 here
+	// One character is always consumed by parser_input().
 	te->parser->input_data += n-1;
 	te->parser->input_remaining -= n-1;
 }
