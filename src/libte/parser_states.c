@@ -28,13 +28,15 @@ static const StateOption state_hash[];
 
 // state machine transition tables
 const StateOption state_normal[] = {
-    { '\r', &ac_cr,		state_normal },	// CR
-    { '\n', &ac_lf,		state_normal },	// LF
-    { '\f', &ac_lf,		state_normal },	// FF (xterm spec says same as LF)
-    { '\v', &ac_lf,		state_normal },	// VT (xterm spec says same as LF)
-    { '\t', &ac_tab,	state_normal }, // HT
-    { '\b', &ac_bs,		state_normal }, // BS
-    { '\a', &ac_bell,	state_normal }, // BEL
+    { '\a', &ac_bell,	state_normal }, // BEL	- 7
+    { '\b', &ac_bs,		state_normal }, // BS	- 8
+    { '\t', &ac_tab,	state_normal }, // HT	- 9
+    { '\n', &ac_lf,		state_normal },	// LF	- 10
+    { '\v', &ac_lf,		state_normal },	// VT 	- 11	(xterm spec says same as LF)
+    { '\f', &ac_lf,		state_normal },	// FF	- 12	(xterm spec says same as LF)
+    { '\r', &ac_cr,		state_normal },	// CR	- 13
+    { 14, NULL,			state_normal }, // SO	- 14	SHIFT OUT
+    { 15, NULL,			state_normal }, // SI	- 15	SHIFT IN
 	{ 27, NULL,			state_esc },
 
 	// 8-bit codes below
@@ -54,6 +56,7 @@ const StateOption state_normal[] = {
 	{ 0x9d, &_parser_osc_start, state_osc },	// Operating System Command (OSC)
 	{ 0x9e, NULL, state_ignore_to_st },			// Privacy Message (PM)
 	{ 0x9f, NULL, state_ignore_to_st },			// Application Program Command (APC)
+
 
     { -1, &_parser_normal_input,	state_normal}
 };
@@ -133,7 +136,7 @@ static const StateOption state_csi[] = {
     { 'D', &ac_cursor_left,		state_normal },
     { 'G', &ac_column_position,	state_normal },	// CHA
     { '`', &ac_column_position,	state_normal },	// HPA
-    { 'H', &ac_cursor_position,	state_normal },
+    { 'H', &ac_cursor_position,	state_normal },	// CUP
     { 'J', &ac_erase_display,	state_normal },
     { 'K', &ac_erase_line,		state_normal },
     { 'L', &ac_insert_line,		state_normal },
@@ -144,7 +147,7 @@ static const StateOption state_csi[] = {
     { 'X', &ac_erase_char,		state_normal },
     { 'c', &ac_device_attrib,	state_normal },	// Send Device Attributes (Primary DA)
     { 'd', &ac_line_position,	state_normal },
-    { 'f', &ac_cursor_position,	state_normal },
+    { 'f', &ac_cursor_position,	state_normal },	// HVP
     { 'g', &ac_clear_tab,		state_normal },
     { 'h', &ac_set_mode,		state_normal },
     { 'l', &ac_clear_mode,		state_normal },
