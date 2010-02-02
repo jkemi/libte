@@ -103,7 +103,10 @@ void buffer_scroll_up(Buffer* buf, uint top, uint bottom) {
 	assert (bottom < buf->nrows);
 
 	BufferRow* tmp = buf->rows[top];
-	history_store(buf->hist, tmp);
+	// Only store scrolled out lines if top is located at first line
+	if (top == 0) {
+		history_store(buf->hist, tmp);
+	}
 	for (uint y = top; y < bottom; y++) {
 		buf->rows[y] = buf->rows[y+1];
 	}
@@ -156,6 +159,10 @@ void buffer_scroll_down(Buffer* buf, uint top, uint bottom) {
 	for (uint y = bottom; y > top; y--) {
 		buf->rows[y] = buf->rows[y-1];
 	}
-	history_fetch(buf->hist, tmp);
+	if (top == 0) {
+		history_fetch(buf->hist, tmp);
+	} else {
+		bufrow_clear(tmp);
+	}
 	buf->rows[top] = tmp;
 }
