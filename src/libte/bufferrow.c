@@ -63,7 +63,7 @@ void bufrow_insert(BufferRow* br, uint x, const symbol_t* symbols, uint len) {
 		bufrow_replace(br, x, symbols, len);
 	} else {
 		_bufrow_ensureCapacity(br, br->used+len);
-		memcpy(br->data+x+len, br->data+x, sizeof(symbol_t)*trail);
+		memmove(br->data+x+len, br->data+x, sizeof(symbol_t)*trail);
 		memcpy(br->data+x, symbols, sizeof(symbol_t)*len);
 		br->used += len;
 	}
