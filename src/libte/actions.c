@@ -132,6 +132,7 @@ void ac_next_line(TE* te)
 	ac_cr(te);
 }
 
+// Reverse Index (RI)
 void ac_index_up(TE* te)
 {
 	if (te->cursor_y == te->scroll_top) {
@@ -267,15 +268,15 @@ void ac_device_attrib(TE* te)
 void ac_delete_char(TE* te)
 {
 	int n, mx;
-	n = int_max(1, parser_get_param(te->parser,0,1) );
-
 	mx = te->width - te->cursor_x;
+	n = int_clamp(parser_get_param(te->parser,0,1), 1, mx);
+
 	if (n >= mx) {
-		be_clear_area(te, te->cursor_x, te->cursor_y, te->width-te->cursor_x, 1);
+		be_clear_area(te, te->cursor_x, te->cursor_y, mx, 1);
 	} else {
 		BufferRow* row = buffer_get_row(te->buffer, te->cursor_y);
 		bufrow_remove(row,te->cursor_x,n);
-		viewport_taint(te, te->cursor_y, te->cursor_x, te->width-te->cursor_x);
+		viewport_taint(te, te->cursor_y, te->cursor_x, mx);
 	}
 }
 
@@ -424,11 +425,17 @@ void ac_set_margins(TE* te)
 // Delete P s Line(s) (default = 1) (DL)
 void ac_delete_line(TE* te)
 {
-	int n, mx;
-	n = int_max(parser_get_param(te->parser, 0, 1), 1);
-	mx = te->scroll_bot-te->cursor_y+1;
-	if (n>=mx) {
-		be_clear_area(te, 0, te->cursor_y, te->width, te->scroll_bot-te->cursor_y);
+	// Ignore if cursor is outside of scrolling region
+	if (	te->cursor_y < te->scroll_top ||
+			te->cursor_y > te->scroll_bot) {
+		return;
+	}
+
+	int n;
+	const int mx = te->scroll_bot-te->cursor_y+1;
+	n = int_clamp(parser_get_param(te->parser, 0, 1), 1, mx);
+	if (n == mx) {
+		be_clear_area(te, 0, te->cursor_y, te->width, mx);
 	} else {
 		be_scroll_region(te, te->cursor_y, te->scroll_bot, n);
 	}
@@ -479,13 +486,13 @@ void ac_erase_display(TE* te)
 void ac_erase_line(TE* te)
 {
 	switch ( parser_get_param(te->parser, 0, 0) ) {
-	case 0:	// Erase to Right (default)
+	case 0:	// Erase to Right (default) - From the cursor through the end of the line
 		be_clear_area(te, te->cursor_x, te->cursor_y, te->width-te->cursor_x, 1);
 		break;
-	case 1:	// Erase to Left
+	case 1:	// Erase to Left - From the beginning of the line through the cursor
 		be_clear_area(te, 0, te->cursor_y, te->cursor_x+1, 1);
 		break;
-	case 2: // Erase All
+	case 2: // Erase All - The complete line
 		be_clear_area(te, 0, te->cursor_y, te->width, 1);
 		break;
 	}
@@ -587,10 +594,10 @@ void ac_insert_char(TE* te)
 	if (n >= mx) {
 		bufrow_fill(row, te->cursor_x, fillsym, mx);
 	} else {
-		int trail = te->width - te->cursor_x - n;
+		int trail = (te->cursor_x+n) - te->width;
 
 		if (trail > 0) {
-			bufrow_remove(row, trail, n);
+			bufrow_remove(row, te->cursor_x+n, trail);
 		}
 
 		// TODO: remove this buffer
