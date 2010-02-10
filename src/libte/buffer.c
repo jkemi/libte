@@ -98,6 +98,7 @@ void buffer_reshape(Buffer* buf, uint nrows, uint ncols) {
 	buf->nrows = nrows;
 }
 
+// Scrolls lines top to bottom (including) upwards
 void buffer_scroll_up(Buffer* buf, uint top, uint bottom) {
 	assert (bottom > top);
 	assert (bottom < buf->nrows);

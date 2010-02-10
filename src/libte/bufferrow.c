@@ -38,7 +38,7 @@ static void _bufrow_pad(BufferRow* br, uint x, int len) {
 	assert (x+len <= br->capacity);
 
 	for (uint i = x; i < x+len; i++) {
-		br->data[i] = ' ';
+		br->data[i] = ' ';	// TODO: What style to use here?
 	}
 }
 
@@ -93,10 +93,9 @@ void bufrow_fill(BufferRow* br, uint x, const symbol_t value, uint len) {
 		_bufrow_ensureCapacity(br, x+len);
 	}
 
-	uint ds = x;
+	assert (x <= br->used);
 	if (x > br->used) {
 		_bufrow_pad(br, br->used, x-br->used);
-		ds = br->used;
 	}
 
 	for (uint i = x; i < x+len; i++) {
