@@ -16,6 +16,12 @@ class T(object):
 	def csi(self, command, params=[], intermediate=''):
 		self.write('\033[' + intermediate + ';'.join([str(p) for p in params if p!=None]) +command )
 
+	def BS(self):
+		"""
+		BACKSPACE
+		"""
+		self.write('\010')
+
 	def RIS(self):
 		"""
 		RESET_TO_INITIAL_STATE
@@ -141,6 +147,12 @@ class T(object):
 		"""
 		self.csi('@', params=[nchars])
 
+	def DCH(self, nchars=None):
+		"""
+		DELETE_CHARACTERS [#nchars=1]
+		"""
+		self.csi('P', params=[nchars])
+
 	def VPA(self, lineno=None):
 		"""
 		VERTICAL_LINE_POSITION_ABSOLUTE [lineno=1]
@@ -153,16 +165,24 @@ class T(object):
 		"""
 		self.csi('G', params=[colno])
 
+	def RI(self):
+		"""
+		REVERSE-INDEX
+		"""
+		self.csi('M')
 
-	def holdit(self):
-		self.write('Push <RETURN>')
+
+	def holdit(self,silent=False):
+		if not silent:
+			self.write('Push <RETURN>')
 		print 'Waiting forever... (hit CTRL-C)'
 		try:
 			while True:
 				time.sleep(3)
 		except:
 			pass
-		self.write('\n')
+		if not silent:
+			self.write('\n')
 
 	def do_scrolling(self):
 		# vttest, main.c, do_scrolling()
@@ -262,4 +282,28 @@ class T(object):
 			self.write('C')
 			self.IND()
 
+		self.holdit()
+
+	def jkTestICH_BS(self):
+		self.RIS()
+
+		for c in 'ABCDEF':
+			self.write(c)
+			self.BS()
+			self.ICH(2)
+			self.holdit(True)
+#
+		self.CUP(2,1)
+		self.holdit()
+
+	def jkTestDCH(self):
+		self.RIS()
+
+		self.write('AB')
+		for i in range(7):
+			self.write('A')
+		self.write('*')
+		self.CUP(1,2)
+		self.DCH(78)
+		self.CUP(2,1)
 		self.holdit()
