@@ -122,7 +122,7 @@ static const keymap _keys_common[] = {
 	{TE_KEY_UNDEFINED,	NULL}
 };
 
-
+// This receives plain input characters (no line-breaks, control-characters etc)
 void be_input(TE* te, const int32_t* text, size_t len) {
 	// TODO: remove temporary stack buffer from here..
 	symbol_t syms[te->width];
@@ -132,13 +132,18 @@ void be_input(TE* te, const int32_t* text, size_t len) {
 		while (len > 0) {
 			BufferRow* row = buffer_get_row(te->buffer, te->cursor_y);
 
-			size_t n = uint_min(len, te->width-te->cursor_x);
+			const size_t n = uint_min(len, te->width-te->cursor_x);
 			for (size_t i = 0; i < n; i++) {
 				const symbol_t sym = style | text[i];
 				syms[i] = sym;
 			}
 
 			if (be_is_mode_set(te, MODE_INSERT)) {
+				int trail = (te->cursor_x+n)-te->width;
+				if (trail > 0) {
+					bufrow_remove(row, te->cursor_x+n, trail);
+				}
+
 				bufrow_insert(row, te->cursor_x, syms, n);
 				viewport_taint(te, te->cursor_y, te->cursor_x, te->width-te->cursor_x);
 			} else {
@@ -186,11 +191,10 @@ void be_input(TE* te, const int32_t* text, size_t len) {
 void be_scroll_region(TE* te, uint start_y, uint end_y, int num)
 {
 	for (int i = 0; i < num; i++) {
-		buffer_scroll_up(te->buffer, te->scroll_top, te->scroll_bot);
+		buffer_scroll_up(te->buffer, start_y, end_y);
 	}
 	for (int i = num; i < 0; i++) {
-		buffer_scroll_down(te->buffer, te->scroll_top, te->scroll_bot);
-		viewport_history_dec(te);
+		buffer_scroll_down(te->buffer, start_y, end_y);
 	}
 
 	if (num > 0) {
@@ -199,9 +203,6 @@ void be_scroll_region(TE* te, uint start_y, uint end_y, int num)
 	if (num < 0) {
 		viewport_history_dec(te);
 	}
-
-
-//	buffer_scroll(&buffer, start_y, end_y, num);
 
 	for (uint y = start_y; y <= end_y; y++) {
 		viewport_taint(te, y, 0, te->width);
