@@ -461,3 +461,18 @@ void te_position(TE_Backend* te, int offset) {
 void te_lock_scroll(TE_Backend* te, int scroll_lock) {
 	viewport_lock_scroll(te, scroll_lock != 0);
 }
+
+#ifndef NDEBUG
+void te_debug(TE_Backend* te, FILE* where) {
+	fprintf(where, "dimensions WxH = %dx%d\n", te->width, te->height);
+	fprintf(where, "cursor     X,Y = %d,%d\n", te->cursor_x, te->cursor_y);
+	fprintf(where, "margins    TOP,BOTTOM = %d,%d\n", te->scroll_top, te->scroll_bot);
+	fprintf(where, "buffer: %s\n", (te->buffer == &te->norm_buffer) ? "normal" : "alternative");
+	fprintf(where, "buffer     W,H  = %d,%d\n", te->buffer->ncols, te->buffer->nrows);
+	fprintf(where, "history           %d (of %d), pos %d\n", te->history->size, te->history->capacity, te->history->pos);
+	for (int i = 0; i < te->buffer->nrows; i++) {
+		fprintf(where, "line %d : %d (of %d)\n", i, te->buffer->rows[i]->used, te->buffer->rows[i]->capacity);
+	}
+}
+#endif
+

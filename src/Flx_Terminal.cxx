@@ -190,6 +190,15 @@ int Flx_Terminal::handle(int event) {
 				return 1;
 			}
 			break;
+#ifndef NDEBUG
+		case 'd':
+			if (shift && Fl::event_ctrl()) {
+				printf("forced debug!\n");
+				_impl->term->debug(stdout);
+				return 1;
+			}
+			break;
+#endif
 		}
 		return _impl->term->handle(event);
 		break;

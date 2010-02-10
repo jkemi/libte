@@ -13,6 +13,10 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#ifndef NDEBUG
+#	include <stdio.h>
+#endif
+
 #include "symbol.h"
 
 #include "macros.h"
@@ -161,6 +165,10 @@ DLLEXPORT void te_handle_keypress(TE_Backend* te, int32_t cp, te_modifier_t modi
 DLLEXPORT void te_position(TE_Backend* te, int offset);
 
 DLLEXPORT void te_lock_scroll(TE_Backend* te, int scroll_lock);
+
+#ifndef NDEBUG
+DLLEXPORT void te_debug(TE_Backend* te, FILE* where);
+#endif
 
 #ifdef __cplusplus
 }

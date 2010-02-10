@@ -93,6 +93,11 @@ public:
 	// font handling
 	void font_size(int sz) {def_fnt_size = sz;}
 
+#ifndef NDEBUG
+	void debug(FILE* where);
+#endif
+
+
 	void set_scroll_func(void (*funcptr)(void* priv, int offset, int size), void* priv) {_scroll_func = funcptr; _scroll_priv = priv;}
 	void set_send_back_func(void (*funcptr)(void* priv, const int32_t* data), void* priv) {_send_back_func = funcptr; _send_back_priv = priv;}
 	void set_size_func(void (*funcptr)(void* priv, int width, int height), void* priv) {_size_func = funcptr; _size_priv = priv;}

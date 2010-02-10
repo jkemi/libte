@@ -69,6 +69,12 @@ public:
 		te_lock_scroll(_te, scroll_lock);
 	}
 
+#ifndef NDEBUG
+	void teDebug(FILE* where) {
+		te_debug(_te, where);
+	}
+#endif
+
 	virtual void fe_draw_text(int x, int y, const symbol_t* symbols, int len) = 0;
 	virtual void fe_draw_clear(int x, int y, const symbol_color_t bg_color, int len) = 0;
 	virtual void fe_draw_cursor(symbol_color_t fg_color, symbol_color_t bg_color, symbol_attributes_t attrs, int x, int y, int32_t cp) = 0;

@@ -343,6 +343,13 @@ void Fl_Term::resize(int x, int y, int W, int H)
 }
 
 /************************************************************************/
+#ifndef NDEBUG
+void Fl_Term::debug(FILE* where) {
+	teDebug(where);
+}
+#endif
+
+/************************************************************************/
 void Fl_Term::draw(void)
 {
 	const int xo = x() + Fl::box_dx(this->box());
