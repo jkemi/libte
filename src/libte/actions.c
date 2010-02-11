@@ -307,7 +307,14 @@ void ac_set_mode(TE* te)  // h
 			be_move_cursor(te, te->cursor_x, te->cursor_y);
 			break;
 //		case 1002:	// Use Cell Motion Mouse Tracking.
+		case 1047:	// Use alternative Screen Buffer, clearing it first
+			be_switch_buffer(te, true);
+			break;
+		case 1048:	// Save cursor as in DECSC
+			ac_save_cursor(te);
+			break;
 		case 1049:	// Save cursor as in DECSC and use Alternate Screen Buffer, clearing it first
+			ac_save_cursor(te);
 			be_switch_buffer(te, true);
 			break;
 		default:
@@ -356,7 +363,14 @@ void ac_clear_mode(TE* te)  // l
 			break;
 //		case 47:	// Use Normal Screen Buffer
 //		case 1002:	// Don't Use Cell Motion Mouse Tracking.
+		case 1047:	// Use Normal Screen Buffer
+			be_switch_buffer(te, false);
+			break;
+		case 1048:	// Restore cursor as in DECRC
+			ac_restore_cursor(te);
+			break;
 		case 1049:	// Use Normal Screen Buffer and restore cursor as in DECRC
+			ac_restore_cursor(te);
 			be_switch_buffer(te, false);
 			break;
 		default:
