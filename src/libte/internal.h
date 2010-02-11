@@ -33,6 +33,14 @@ typedef enum {
 	//   displayed character.
 	MODE_AUTOWRAP	= (1<<0),
 
+	// Cursor Keys Mode (DECCKM)
+	// This control function selects the sequences the arrow keys send.
+	// You can use the four arrow keys to move the cursor through the
+	// current page or to send special application commands.
+	// With cursor keys mode:
+	//   The arrow keys send application sequences to the host.
+	// Without cursor keys mode:
+	//   The arrow keys send ANSI cursor sequences to the host.
 	MODE_CURSORAPP	= (1<<1),
 
 	// New line mode (DECNLM)

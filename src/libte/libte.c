@@ -23,12 +23,25 @@ typedef struct {
 	const char*	str;
 } keymap;
 
-static const keymap _keys_normal[] = {
+static const keymap _keys_cursor_keys_on[] = {
+	{TE_KEY_UP,			"\033OA"},
+	{TE_KEY_DOWN,		"\033OB"},
+	{TE_KEY_RIGHT,		"\033OC"},
+	{TE_KEY_LEFT,		"\033OD"},
+
+	{TE_KEY_UNDEFINED,	NULL}
+};
+
+static const keymap _keys_cursor_keys_off[] = {
 	{TE_KEY_UP,			"\033[A"},
 	{TE_KEY_DOWN,		"\033[B"},
 	{TE_KEY_RIGHT,		"\033[C"},
 	{TE_KEY_LEFT,		"\033[D"},
 
+	{TE_KEY_UNDEFINED,	NULL}
+};
+
+static const keymap _keys_normal[] = {
 	{TE_KEY_HOME,		"\033[H"},	// "\033[1~" for vt220 (or "\033[7~" in rxvt?)
 	{TE_KEY_END,		"\033[F"},	// "\033[4~" for vt200 (or "\033[8~" in rxvt?)
 
@@ -57,11 +70,6 @@ static const keymap _keys_normal[] = {
 };
 
 static const keymap _keys_app[] = {
-	{TE_KEY_UP,			"\033OA"},
-	{TE_KEY_DOWN,		"\033OB"},
-	{TE_KEY_RIGHT,		"\033OC"},
-	{TE_KEY_LEFT,		"\033OD"},
-
 	{TE_KEY_HOME,		"\033OH"},	// "\033[1~" for vt220 (or "\033[7~" in rxvt?)
 	{TE_KEY_END,		"\033OF"},	// "\033[4~" for vt200 (or "\033[8~" in rxvt?)
 
@@ -419,14 +427,12 @@ int te_handle_button(TE_Backend* te, te_key_t key) {
 	}
 
 	if (s == NULL) {
-		const keymap* const* tables;
-		if (be_is_mode_flag(te, MODE_KEYAPP)) {
-			static const keymap* const t[] = {_keys_app, _keys_common, NULL};
-			tables = t;
-		} else {
-			static const keymap* const t[] = {_keys_normal, _keys_common, NULL};
-			tables = t;
-		}
+		const keymap* const tables[] = {
+				be_is_mode_flag(te, MODE_CURSORAPP) ? _keys_cursor_keys_on : _keys_cursor_keys_off,
+				be_is_mode_flag(te, MODE_KEYAPP) ? _keys_app : _keys_normal,
+				_keys_common,
+				NULL
+		};
 
 		for (const keymap* const* t = tables; s == NULL && t != NULL; t++) {
 			for (const keymap* m = *t; s == NULL && m->keysym != TE_KEY_UNDEFINED; m++) {
@@ -465,6 +471,8 @@ void te_lock_scroll(TE_Backend* te, int scroll_lock) {
 
 #ifndef NDEBUG
 void te_debug(TE_Backend* te, FILE* where) {
+	fprintf(where, "Cursor Keys Mode:        %s\n", be_is_mode_set(te, MODE_CURSORAPP) ? "on" : "off");
+	fprintf(where, "Application Keypad Mode: %s\n", be_is_mode_set(te, MODE_KEYAPP) ? "on" : "off");
 	fprintf(where, "dimensions WxH = %dx%d\n", te->width, te->height);
 	fprintf(where, "cursor     X,Y = %d,%d\n", te->cursor_x, te->cursor_y);
 	fprintf(where, "margins    TOP,BOTTOM = %d,%d\n", te->scroll_top, te->scroll_bot);
