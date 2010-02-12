@@ -256,11 +256,13 @@ void be_move_cursor(TE* te, int x, int y)
 	}
 }
 
-void be_switch_buffer(TE* te, bool alt) {
+void be_switch_buffer(TE* te, bool alt, bool erase_display_on_alt) {
 	if (alt) {
 		te->buffer = &te->alt_buffer;
 		te->history = &te->alt_history;
-		buffer_clear(&te->alt_buffer);
+		if (erase_display_on_alt) {
+			buffer_clear(&te->alt_buffer);
+		}
 		viewport_set(te, 0);
 	} else {
 		te->buffer = &te->norm_buffer;

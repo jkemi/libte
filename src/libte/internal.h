@@ -155,7 +155,7 @@ static inline bool be_is_mode_set(TE* te, int mode) { return te->mode_flags & mo
 void be_scroll_region(TE* te, uint start_y, uint end_y, int num);	// does clear
 void be_clear_area(TE* te, int start_x, int start_y, int end_x, int end_y);
 void be_move_cursor(TE* te, int x, int y);
-void be_switch_buffer(TE* te, bool alt);
+void be_switch_buffer(TE* te, bool alt, bool erase_on_alt);
 
 // terminal actions
 static inline int be_get_mode(TE* te) { return te->mode_flags; }
