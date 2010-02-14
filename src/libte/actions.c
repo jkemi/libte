@@ -680,3 +680,33 @@ void ac_scroll_down (TE* te) {
 
 	be_scroll_region(te, te->scroll_top, te->scroll_bot, -n);
 }
+
+// Set character set G0 to UK
+void ac_g0_set_uk (TE* te) {
+	te->charset_g0 = chartable_uk;
+}
+
+// Set character set G0 to US
+void ac_g0_set_us (TE* te) {
+	te->charset_g0 = chartable_us;
+}
+
+// Set character set G0 to DEC special graphics
+void ac_g0_set_sg (TE* te) {
+	te->charset_g0 = chartable_special;
+}
+
+// Set character set G1 to UK
+void ac_g1_set_uk (TE* te) {
+	te->charset_g1 = chartable_uk;
+}
+
+// Set character set G1 to US
+void ac_g1_set_us (TE* te) {
+	te->charset_g1 = chartable_us;
+}
+
+// Set character set G1 to DEC special graphics
+void ac_g1_set_sg (TE* te) {
+	te->charset_g1 = chartable_special;
+}

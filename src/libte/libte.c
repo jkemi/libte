@@ -142,7 +142,15 @@ void be_input(TE* te, const int32_t* text, size_t len) {
 
 			const size_t n = uint_min(len, te->width-te->cursor_x);
 			for (size_t i = 0; i < n; i++) {
-				const symbol_t sym = style | text[i];
+				int32_t cp = text[i];
+				// Find replacement in selected charset
+				for (const te_chartable_entry_t* ce = te->charset_g0; ce->from != '\0'; ce++) {
+					if (ce->from == cp) {
+						cp = ce->to;
+						break;
+					}
+				}
+				const symbol_t sym = style | cp;
 				syms[i] = sym;
 			}
 
@@ -323,6 +331,9 @@ TE* te_new(const TE_Frontend* fe, void* fe_priv, int w, int h)
 	te->stored.autowrap = true;
 	te->stored.cursor_x = 0;
 	te->stored.cursor_y = 0;
+
+	te->charset_g0 = chartable_us;
+	te->charset_g1 = chartable_us;
 
 	return te;
 }

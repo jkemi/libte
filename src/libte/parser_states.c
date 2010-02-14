@@ -61,7 +61,6 @@ const StateOption state_normal[] = {
     { -1, &_parser_normal_input,	state_normal}
 };
 
-//const StateOption state_esc[] = {
 static const StateOption state_esc[] = {
     { '[', &_parser_clear_param,	state_csi },
     { ']', &_parser_osc_start,		state_osc },
@@ -94,18 +93,23 @@ static const StateOption state_esc[] = {
     { -1, &_parser_unknown_esc,		state_normal}
 };
 
-// Should put cursor control characters in these groups as well.
-// Maybe later.
-
 static const StateOption state_cset_shiftin[] = {
-	{ 'A',	NULL,	state_normal },	// should set UK characters
-	{ '0',	NULL,	state_normal },	// should set Business Gfx
-	{ -1,	NULL,	state_normal },	// default to ASCII
+	{ 'A',	&ac_g0_set_uk,	state_normal },	// UK
+	{ 'B',	&ac_g0_set_us,	state_normal },	// US-ASCII
+	{ '0',	&ac_g0_set_sg,	state_normal },	// DEC Special Character and Line Drawing Set
+	{ '1',	NULL,			state_normal },	// Alternate Character ROM Standard Character Set
+	{ '2',	NULL,			state_normal },	// Alternate Character ROM Special Graphics
+
+	{ -1,	NULL,			state_normal },	// default to ASCII
 };
 
 static const StateOption state_cset_shiftout[] = {
-	{ 'A',	NULL,	state_normal },	// should set UK characters
-	{ '0',	NULL,	state_normal },	// should set Business Gfx
+	{ 'A',	&ac_g1_set_uk,	state_normal },	// UK
+	{ 'B',	&ac_g1_set_us,	state_normal },	// US-ASCII
+	{ '0',	&ac_g1_set_sg,	state_normal },	// DEC Special Character and Line Drawing Set
+	{ '1',	NULL,	state_normal },	// Alternate Character ROM Standard Character Set
+	{ '2',	NULL,	state_normal },	// Alternate Character ROM Special Graphics
+
 	{ -1,	NULL,	state_normal },	// default to ASCII
 };
 

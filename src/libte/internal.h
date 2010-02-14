@@ -5,8 +5,8 @@
  * libTE is copyright (c) 2008 by Jakob Kemi.
  */
 
-#ifndef INCLUDED_GTERM_H
-#define INCLUDED_GTERM_H
+#ifndef INTERNAL_H_
+#define INTERNAL_H_
 
 #include <string.h>
 #include <stdio.h>
@@ -14,6 +14,7 @@
 
 #include "symbol.h"
 #include "buffer.h"
+#include "charsets.h"
 
 #include "libte.h"
 
@@ -135,6 +136,8 @@ struct TE_Backend_ {
 	symbol_color_t bg_color;
 	symbol_attributes_t	attributes;
 
+	const te_chartable_entry_t* charset_g0;
+	const te_chartable_entry_t* charset_g1;
 
 	// Used by store-cursor / restore-cursor (DECSC/DECRC)
 	struct {
@@ -207,6 +210,4 @@ void	be_resize_terminal(TE* te, int w, int h);
 int		be_handle_button(TE* te, te_key_t key);
 void	be_handle_keypress(TE* te, int32_t cp, te_modifier_t modifiers);
 
-#endif
-
-/* End of File */
+#endif // INTERNAL_H_

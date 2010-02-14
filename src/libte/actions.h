@@ -52,7 +52,12 @@ DLLLOCAL void ac_screen_align		(TE* te);	// DEC Screen Alignment Test (DECALN)
 DLLLOCAL void ac_erase_char			(TE* te);	// Erase P s Character(s) (default = 1) (ECH)
 DLLLOCAL void ac_scroll_up			(TE* te);	// Scroll up Ps lines (default = 1) (SU)
 DLLLOCAL void ac_scroll_down		(TE* te);	// Scroll up Ps lines (default = 1) (SD)
-DLLLOCAL void ac_vt52_cursor		(TE* te);
-DLLLOCAL void ac_vt52_ident			(TE* te);
+DLLLOCAL void ac_g0_set_uk			(TE* te);	// Set character set G0 to UK
+DLLLOCAL void ac_g0_set_us			(TE* te);	// Set character set G0 to US
+DLLLOCAL void ac_g0_set_sg			(TE* te);	// Set character set G0 to DEC special graphics
+DLLLOCAL void ac_g1_set_uk			(TE* te);	// Set character set G1 to UK
+DLLLOCAL void ac_g1_set_us			(TE* te);	// Set character set G1 to US
+DLLLOCAL void ac_g1_set_sg			(TE* te);	// Set character set G1 to DEC special graphics
+
 
 #endif /* ACTIONS_H_ */
