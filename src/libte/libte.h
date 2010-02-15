@@ -162,6 +162,8 @@ DLLEXPORT int te_handle_button(TE_Backend* te, te_key_t key);
  */
 DLLEXPORT void te_handle_keypress(TE_Backend* te, int32_t cp, te_modifier_t modifiers);
 
+DLLEXPORT void te_paste_text(TE_Backend* te, const int32_t* data, size_t len);
+
 DLLEXPORT void te_position(TE_Backend* te, int offset);
 
 DLLEXPORT void te_lock_scroll(TE_Backend* te, int scroll_lock);

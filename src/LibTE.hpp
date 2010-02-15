@@ -61,6 +61,10 @@ public:
 		te_handle_keypress(_te, cp, modifiers);
 	}
 
+	void tePasteText(const int32_t* data, size_t len) {
+		te_paste_text(_te, data, len);
+	}
+
 	void tePosition(int offset) {
 		te_position(_te, offset);
 	}

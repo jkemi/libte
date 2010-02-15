@@ -474,6 +474,10 @@ void te_handle_keypress(TE_Backend* te, int32_t cp, te_modifier_t modifiers) {
 	}
 }
 
+void te_paste_text(TE_Backend* te, const int32_t* data, size_t len) {
+	// FIXME: implement me
+}
+
 void te_position(TE_Backend* te, int offset) {
 	viewport_set(te, offset);
 }
