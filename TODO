@@ -2,8 +2,8 @@
 
 libte:
 
- * alternate screen buffer
- * limit row-buffer dynamic growth to screen width
+ * alternate screen buffer (done)
+ * limit row-buffer dynamic growth to screen width (done?)
  * c-ify remaining files (done)
  * versioning (done)
  * create actual library
