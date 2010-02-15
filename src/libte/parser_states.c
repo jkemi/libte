@@ -35,9 +35,11 @@ const StateOption state_normal[] = {
     { '\v', &ac_lf,		state_normal },	// VT 	- 11	(xterm spec says same as LF)
     { '\f', &ac_lf,		state_normal },	// FF	- 12	(xterm spec says same as LF)
     { '\r', &ac_cr,		state_normal },	// CR	- 13
-    { 14, NULL,			state_normal }, // SO	- 14	SHIFT OUT
-    { 15, NULL,			state_normal }, // SI	- 15	SHIFT IN
-	{ 27, NULL,			state_esc },
+    { 14, NULL,			state_normal }, // SO	- 016 SHIFT OUT ( invoke G0 charset, as designated by SCS )
+    { 15, NULL,			state_normal }, // SI	- 017 SHIFT IN ( invoke G1 charset, as selected by <ESC>( )
+    { 24, NULL,			state_normal }, // CAN  - 030 if sent during a control-seq, it's ignored and displays error character
+    { 26, NULL,			state_normal }, // SUB  - 032 same as CAN
+	{ 27, NULL,			state_esc },	// ESC	- 033
 
 	// 8-bit codes below
 	{ 0x84, &ac_index_down, state_normal }, 	// Index (IND)
@@ -134,33 +136,33 @@ static const StateOption state_csi[] = {
     { '9', &_parser_param_digit,	state_csi },
     { ';', &_parser_next_param,		state_csi },
     { '@', &ac_insert_char,		state_normal },	// ICH
-    { 'A', &ac_cursor_up,		state_normal },
-    { 'B', &ac_cursor_down,		state_normal },
-    { 'C', &ac_cursor_right,	state_normal },
-    { 'D', &ac_cursor_left,		state_normal },
+    { 'A', &ac_cursor_up,		state_normal }, // CUU
+    { 'B', &ac_cursor_down,		state_normal }, // CUD
+    { 'C', &ac_cursor_right,	state_normal }, // CUF
+    { 'D', &ac_cursor_left,		state_normal }, // CUB
     { 'G', &ac_column_position,	state_normal },	// CHA
     { '`', &ac_column_position,	state_normal },	// HPA
     { 'H', &ac_cursor_position,	state_normal },	// CUP
-    { 'J', &ac_erase_display,	state_normal },
+    { 'J', &ac_erase_display,	state_normal }, // ED
     { 'K', &ac_erase_line,		state_normal },	// EL
-    { 'L', &ac_insert_line,		state_normal },
-    { 'M', &ac_delete_line,		state_normal },
-    { 'P', &ac_delete_char,		state_normal },
+    { 'L', &ac_insert_line,		state_normal }, // IL
+    { 'M', &ac_delete_line,		state_normal }, // DL
+    { 'P', &ac_delete_char,		state_normal }, // DCH
     { 'S', &ac_scroll_up,		state_normal },	// Scroll Up (SU)
     { 'T', &ac_scroll_down,		state_normal },	// Scroll Down (SD)
-    { 'X', &ac_erase_char,		state_normal },
+    { 'X', &ac_erase_char,		state_normal }, // ECH
     { 'c', &ac_device_attrib,	state_normal },	// Send Device Attributes (Primary DA)
-    { 'd', &ac_line_position,	state_normal },
+    { 'd', &ac_line_position,	state_normal }, // VPA
     { 'f', &ac_cursor_position,	state_normal },	// HVP
-    { 'g', &ac_clear_tab,		state_normal },
-    { 'h', &ac_set_mode,		state_normal },
-    { 'l', &ac_clear_mode,		state_normal },
-    { 'm', &ac_char_attrs,		state_normal },
-    { 'n', &ac_status_report,	state_normal },
+    { 'g', &ac_clear_tab,		state_normal }, // TBC
+    { 'h', &ac_set_mode,		state_normal }, // SM
+    { 'l', &ac_clear_mode,		state_normal }, // RM
+    { 'm', &ac_char_attrs,		state_normal }, // SGR
+    { 'n', &ac_status_report,	state_normal }, // DSR
 	{ 'p', &ac_set_conformance,	state_normal },	// Set conformance level (DECSCL) and Soft terminal reset (DECSTR)
-    { 'r', &ac_set_margins,		state_normal },
-    { 's', &ac_save_cursor,		state_normal },
-    { 'u', &ac_restore_cursor,	state_normal },
+    { 'r', &ac_set_margins,		state_normal }, // DECSTBM
+    { 's', &ac_save_cursor,		state_normal }, // DECSC
+    { 'u', &ac_restore_cursor,	state_normal }, // DECRC
     { 'x', &ac_request_param,	state_normal },
 
 	// standard VT100 wants cursor controls in the middle of ESC sequences
