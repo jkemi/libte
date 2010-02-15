@@ -3,4 +3,4 @@
 Release*/
 Debug*/
 *~
-
+*.pyc
