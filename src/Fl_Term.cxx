@@ -41,6 +41,15 @@ static uint64_t getCurrentTime_us(void) {
 	return (uint64_t)tv.tv_sec * 1000000L + tv.tv_usec;
 }
 
+// Must only be called inside handle()
+static te_modifier_t getTeKeyModifiers() {
+	return (te_modifier_t)(
+		(Fl::event_ctrl()  ? TE_MOD_CTRL  : TE_MOD_NONE) |
+		(Fl::event_alt()   ? TE_MOD_META  : TE_MOD_NONE) |
+		(Fl::event_shift() ? TE_MOD_SHIFT : TE_MOD_NONE)
+	);
+}
+
 /************************************************************************/
 // This is the implementation of the user-facing parts of the widget...
 /************************************************************************/
@@ -51,15 +60,21 @@ Fl_Term::Fl_Term(int sz, int X, int Y, int W, int H, const char *L) : Fl_Box(X,Y
 	def_fnt_size = sz;
 	fl_font(FL_COURIER, def_fnt_size);
 
+	// Size of cell in pixels
 	const double cw = fl_width("MHW#i1l") / 7; // get an average char width, in case of Prop Fonts!
 	font.pixh = fl_height();
 	font.pixw = (int)(cw + 0.5);
 	font.descent = fl_descent();
 
+	// Size of graphics area in cells
 	gfx.ncols = (w()-Fl::box_dw(box())) / font.pixw;
 	gfx.nrows = (h()-Fl::box_dh(box())) / font.pixh;
+
+	// Size of graphics area in pixels
 	gfx.pixw = gfx.ncols*font.pixw;
 	gfx.pixh = gfx.nrows*font.pixh;
+
+	// Start of graphics area, relative widget
 	gfx.xoff = Fl::box_dx(box()); // ((w()-Fl::box_dw(box())) - gfx.pixw) / 2 + Fl::box_dx(box());
 	gfx.yoff = Fl::box_dy(box()); // ((h()-Fl::box_dh(box())) - gfx.pixh) / 2 + Fl::box_dy(box());
 
@@ -232,19 +247,10 @@ bool Fl_Term::_handle_keyevent(void) {
 		printf("cp was: %d\n", cp);
 #endif
 
-		int mod = TE_MOD_NONE;
-		if (Fl::event_alt()) {
-			mod |= TE_MOD_META;
-		}
-		if (Fl::event_ctrl()) {
-			mod |= TE_MOD_CTRL;
-		}
-		if (Fl::event_shift()) {
-			mod |= TE_MOD_SHIFT;
-		}
+		te_modifier_t mod = getTeKeyModifiers();
 
 		if (cp >= 0) {
-			teHandleKeypress(cp, (te_modifier_t)mod);
+			teHandleKeypress(cp, mod);
 			return true;
 		}
 	}
@@ -302,8 +308,42 @@ int Fl_Term::handle(int event)
 	case FL_FOCUS:
 	case FL_UNFOCUS:
 		return 1;
-	case FL_KEYBOARD: {
+	case FL_KEYBOARD:
 		if (_handle_keyevent()) {
+			return 1;
+		}
+		break;
+
+	//
+	// Mouse handling
+	//
+	case FL_ENTER:	// Mouse enters
+	case FL_LEAVE:	// Mouse leaves
+		return 1;
+	case FL_PUSH:
+	case FL_DRAG:
+	case FL_RELEASE:
+	case FL_MOUSEWHEEL:
+	case FL_MOVE: {
+		// Make sure that we're inside terminal area
+		if ( Fl::event_inside(x()+gfx.xoff, y()+gfx.yoff, gfx.pixw, gfx.pixh) ) {
+			int cellx = (Fl::event_x() - x()-gfx.xoff) / font.pixw;
+			int celly = (Fl::event_y() - y()-gfx.yoff) / font.pixh;
+
+			te_modifier_t mod =	getTeKeyModifiers();
+
+			te_mouse_button_t btn = (te_mouse_button_t)(
+				(Fl::event_button1() ? TE_MOUSE_LEFT   : TE_MOUSE_NONE) |
+				(Fl::event_button2() ? TE_MOUSE_MIDDLE : TE_MOUSE_NONE) |
+				(Fl::event_button3() ? TE_MOUSE_RIGHT  : TE_MOUSE_NONE) |
+				((event==FL_MOUSEWHEEL && Fl::event_dy() <0) ? TE_MOUSE_WHEEL_UP
+															 : TE_MOUSE_NONE) |
+				((event==FL_MOUSEWHEEL && Fl::event_dy() >0) ? TE_MOUSE_WHEEL_DOWN
+															 : TE_MOUSE_NONE)
+			);
+
+			//printf("%d,%d %x %x\n", cellx, celly, btn, mod);
+			teHandleMouse(cellx, celly, btn, mod);
 			return 1;
 		}
 		break;
