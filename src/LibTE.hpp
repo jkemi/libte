@@ -61,6 +61,10 @@ public:
 		te_handle_keypress(_te, cp, modifiers);
 	}
 
+	void teHandleMouse(int mouse_x, int mouse_y, te_mouse_button_t mouse_buttons, te_modifier_t modifiers) {
+		te_handle_mouse(_te, mouse_x, mouse_y, mouse_buttons, modifiers);
+	}
+
 	void tePasteText(const int32_t* data, size_t len) {
 		te_paste_text(_te, data, len);
 	}

@@ -123,8 +123,8 @@ typedef enum _te_modifier {
 typedef enum _te_mouse_button {
 	TE_MOUSE_NONE		= 0,
 	TE_MOUSE_LEFT		= (1<<0),
-	TE_MOUSE_RIGHT		= (1<<1),
-	TE_MOUSE_MIDDLE		= (1<<2),
+	TE_MOUSE_MIDDLE		= (1<<1),
+	TE_MOUSE_RIGHT		= (1<<2),
 	TE_MOUSE_WHEEL_UP	= (1<<3),
 	TE_MOUSE_WHEEL_DOWN	= (1<<4),
 } te_mouse_button_t;

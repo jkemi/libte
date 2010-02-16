@@ -500,18 +500,18 @@ void te_handle_mouse(TE_Backend* te, int mouse_x, int mouse_y, te_mouse_button_t
 	}
 
 	int32_t buf[] = {'\033', '[', 'M', 0, te->mouse_x+1+32, te->mouse_y+1+32, '\0'};
-	const char base = 32 +	( modifiers & TE_MOD_CTRL  ) ? 16 : 0 +
-							( modifiers & TE_MOD_META  ) ?  8 : 0 +
-							( modifiers & TE_MOD_SHIFT ) ?  4 : 0;
+	const uint8_t base = 32 |	(( modifiers & TE_MOD_CTRL  ) ? 16 : 0) |
+								(( modifiers & TE_MOD_META  ) ?  8 : 0) |
+								(( modifiers & TE_MOD_SHIFT ) ?  4 : 0);
 
 	// Handle changes in mouse buttons
 	if (buttonchange && te->mouse_mode) {
 		uint8_t b = base;
 		if (pressed & TE_MOUSE_LEFT) {
 			b = b;
-		} else if (pressed & TE_MOUSE_RIGHT) {
-			b += 1;
 		} else if (pressed & TE_MOUSE_MIDDLE) {
+			b += 1;
+		} else if (pressed & TE_MOUSE_RIGHT) {
 			b += 2;
 		} else if (pressed & TE_MOUSE_WHEEL_UP) {
 			b += 64 + 0;
@@ -520,7 +520,7 @@ void te_handle_mouse(TE_Backend* te, int mouse_x, int mouse_y, te_mouse_button_t
 		} else if (released) {
 			b += 3;
 		} else {
-			DEBUGF("Unexpected button change: %x\n", buttonchange);
+			WARNF("Unexpected button change: %x\n", buttonchange);
 			return;
 		}
 		buf[3] = b;
@@ -537,9 +537,9 @@ void te_handle_mouse(TE_Backend* te, int mouse_x, int mouse_y, te_mouse_button_t
 		uint8_t b = base + 32;	// motion indicator
 		if (te->mouse_buttons & TE_MOUSE_LEFT) {
 			b = b;
-		} else if (te->mouse_buttons & TE_MOUSE_RIGHT) {
-			b += 1;
 		} else if (te->mouse_buttons & TE_MOUSE_MIDDLE) {
+			b += 1;
+		} else if (te->mouse_buttons & TE_MOUSE_RIGHT) {
 			b += 2;
 		} else {
 			b += 3;
