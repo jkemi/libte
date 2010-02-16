@@ -173,8 +173,8 @@ void be_input(TE* te, const int32_t* text, size_t len);
 
 void fe_send_back_char (TE* te, const char* data);
 
-static inline void fe_send_back		(TE* te, const int32_t* data)
-	{ te->fe->send_back(te->fe_priv, data); }
+static inline void fe_send_back		(TE* te, const int32_t* data, int len)
+	{ te->fe->send_back(te->fe_priv, data, len); }
 
 static inline void fe_bell			(TE* te)
 	{ te->fe->bell(te->fe_priv); }

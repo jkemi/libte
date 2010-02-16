@@ -73,7 +73,7 @@ public:
 	}
 
 	// Called by Fl_Term on sendback
-	void _send_back_cb(const int32_t* data) {
+	void _send_back_cb(const int32_t* data, int len) {
 		size_t n;
 		for (n = 0; data[n] != 0; n++) {
 
@@ -104,8 +104,8 @@ static void _scroll_cb(void* priv, int offset, int size) {
 }
 
 // Called by Fl_Term on sendback
-static void _send_back_cb(void* priv, const int32_t* data) {
-	((Flx_Terminal_Impl*)priv)->_send_back_cb(data);
+static void _send_back_cb(void* priv, const int32_t* data, int len) {
+	((Flx_Terminal_Impl*)priv)->_send_back_cb(data, len);
 }
 
 // Called by Fl_Term on terminal resize

@@ -272,9 +272,9 @@ bool Fl_Term::_handle_keyevent(void) {
 
 }
 
-void Fl_Term::_sendBack(const int32_t* data) {
+void Fl_Term::_sendBack(const int32_t* data, int len) {
 	if (_send_back_func != 0) {
-		_send_back_func(_send_back_priv, data);
+		_send_back_func(_send_back_priv, data, len);
 	}
 }
 
@@ -522,8 +522,8 @@ void Fl_Term::fe_title(const int32_t* text) {
 	// TODO: implement
 }
 
-void Fl_Term::fe_send_back(const int32_t* data) {
-	_sendBack(data);
+void Fl_Term::fe_send_back(const int32_t* data, int len) {
+	_sendBack(data, len);
 }
 
 void Fl_Term::fe_request_resize(int width, int height) {

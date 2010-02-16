@@ -47,7 +47,7 @@ private:
 	char			_cpToFltk(int32_t cp);
 	bool		 	_handle_keyevent(void);
 
-	void			(*_send_back_func)(void* priv, const int32_t* data);
+	void			(*_send_back_func)(void* priv, const int32_t* data, int len);
 	void*			_send_back_priv;
 
 	void			(*_scroll_func)(void* priv, int offset, int size);
@@ -74,7 +74,7 @@ public:
 	void fe_bell();
 	void fe_mouse(int x, int y);
 	void fe_title(const int32_t* text);
-	void fe_send_back(const int32_t* data);
+	void fe_send_back(const int32_t* data, int len);
 	void fe_request_resize(int width, int height);
 	void fe_position(int offset, int size);
 
@@ -99,10 +99,10 @@ public:
 
 
 	void set_scroll_func(void (*funcptr)(void* priv, int offset, int size), void* priv) {_scroll_func = funcptr; _scroll_priv = priv;}
-	void set_send_back_func(void (*funcptr)(void* priv, const int32_t* data), void* priv) {_send_back_func = funcptr; _send_back_priv = priv;}
+	void set_send_back_func(void (*funcptr)(void* priv, const int32_t* data, int len), void* priv) {_send_back_func = funcptr; _send_back_priv = priv;}
 	void set_size_func(void (*funcptr)(void* priv, int width, int height), void* priv) {_size_func = funcptr; _size_priv = priv;}
 
-	void			_sendBack(const int32_t* data);
+	void			_sendBack(const int32_t* data, int len);
 	void			_scrollPosition(int offset, int size);
 	void			_termSize(int width, int height);
 };

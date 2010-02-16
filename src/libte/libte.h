@@ -45,7 +45,7 @@ struct TE_Frontend_ {
 	void (*bell) 		(void* priv);
 	void (*mouse) 		(void* priv, int x, int y);
 	void (*title) 		(void* priv, const int32_t* text);
-	void (*send_back)	(void* priv, const int32_t* data);
+	void (*send_back)	(void* priv, const int32_t* data, int len);
 	void (*request_resize) (void* priv, int width, int height);
 	void (*position) (void* priv, int offset, int size);
 };

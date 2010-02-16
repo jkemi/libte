@@ -35,8 +35,8 @@ static void _impl_mouse (void* priv, int x, int y) {
 static void _impl_title (void* priv, const int32_t* text) {
 	((TE*)priv)->fe_title(text);
 }
-static void _impl_send_back (void* priv, const int32_t* data) {
-	((TE*)priv)->fe_send_back(data);
+static void _impl_send_back (void* priv, const int32_t* data, int len) {
+	((TE*)priv)->fe_send_back(data, len);
 }
 static void _impl_request_resize (void* priv, int width, int height) {
 	((TE*)priv)->fe_request_resize(width, height);

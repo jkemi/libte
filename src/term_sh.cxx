@@ -37,8 +37,7 @@ static size_t		buffill = 0;
 
 /************************************************************************/
 
-static void send_back_cb(const int32_t* data, size_t size, void* priv) {
-	size_t n = str_cpslen(data);
+static void send_back_cb(const int32_t* data, size_t n, void* priv) {
 	size_t nbytes = MB_CUR_MAX*(n+1);
 	char tmp[nbytes];
 

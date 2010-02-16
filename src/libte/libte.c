@@ -294,7 +294,7 @@ TE* te_new(const TE_Frontend* fe, void* fe_priv, int w, int h)
 	te->height = h;
 
 
-	history_init(&te->norm_history, 1000);
+	history_init(&te->norm_history, 1000);		// TODO: make configurable
 	buffer_init(&te->norm_buffer, &te->norm_history, h, w);
 
 	history_init(&te->alt_history, 0);
@@ -347,7 +347,7 @@ void fe_send_back_char(TE* te, const char* data) {
 		buf[i] = data[i];
 	}
 
-	fe_send_back(te, buf);
+	fe_send_back(te, buf, len);
 }
 
 //
@@ -467,10 +467,11 @@ int te_handle_button(TE_Backend* te, te_key_t key) {
 void te_handle_keypress(TE_Backend* te, int32_t cp, te_modifier_t modifiers) {
 	if (modifiers & TE_MOD_META) {
 		int32_t buf[] = {'\033', cp, '\0'};
-		fe_send_back(te, buf);
+		fe_send_back(te, buf, 2);
 	} else {
+		// TODO: this little buffer can die
 		int32_t buf[] = {cp, '\0'};
-		fe_send_back(te, buf);
+		fe_send_back(te, buf, 1);
 	}
 }
 

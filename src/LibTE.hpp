@@ -89,7 +89,7 @@ public:
 	virtual void fe_bell() = 0;
 	virtual void fe_mouse(int x, int y) = 0;
 	virtual void fe_title(const int32_t* text) = 0;
-	virtual void fe_send_back(const int32_t* data) = 0;
+	virtual void fe_send_back(const int32_t* data, int len) = 0;
 	virtual void fe_request_resize(int width, int height) = 0;
 	virtual void fe_position(int offset, int size) = 0;
 };
