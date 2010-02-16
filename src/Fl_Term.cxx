@@ -15,8 +15,8 @@
 
 
 // VT100 color table - map Colors to FL-colors:
-static Fl_Color col_table[] = {
-	FL_BLACK,
+static const Fl_Color col_table[] = {
+/*	FL_BLACK,
 	FL_RED,
 	FL_GREEN,
 	FL_YELLOW,
@@ -29,11 +29,26 @@ static Fl_Color col_table[] = {
 	FL_DARK_RED,
 	FL_DARK_YELLOW,
 	FL_DARK_GREEN,
-	FL_DARK_MAGENTA
+	FL_DARK_MAGENTA,*/
+
+	FL_BLACK,
+	fl_rgb_color(139, 0, 0),		// RED
+	fl_rgb_color(0, 139, 0),		// GREEN
+	fl_rgb_color(139, 139, 0),		// YELLOW
+	fl_rgb_color(0, 0, 139),		// BLUE
+	fl_rgb_color(139, 0, 139),		// MAGENTA
+	fl_rgb_color(0, 139, 139),		// CYAN
+	fl_rgb_color(167, 167, 167),	// WHITE
+	FL_DARK_BLUE,
+	FL_DARK_CYAN,
+	FL_DARK_RED,
+	FL_DARK_YELLOW,
+	FL_DARK_GREEN,
+	FL_DARK_MAGENTA,
 };
 
-static uint8_t col_palette[] = {
-		0,0,0,			// BLACK
+static const uint8_t col_palette[] = {
+/*		0,0,0,			// BLACK
 		255,0,0,		// RED
 		0,255,0,		// GREEN
 		255,255,0,		// YELLOW
@@ -46,7 +61,23 @@ static uint8_t col_palette[] = {
 		128,0,0,		// DARK RED
 		128,128,0,		// DARK YELLOW
 		0,128,0,		// DARK GREEN
+		128,0,128,		// DARK MAGENTA*/
+
+		0,0,0,			// BLACK
+		139,0,0,		// RED
+		0,139,0,		// GREEN
+		139,139,0,		// YELLOW
+		0,0,139,		// BLUE
+		139,0,139,		// MAGENTA
+		0,139,139,		// CYAN
+		167,167,167,	// WHITE
+		0,0,128,		// DARK BLUE
+		128,128,128,	// DARK CYAN
+		128,0,0,		// DARK RED
+		128,128,0,		// DARK YELLOW
+		0,128,0,		// DARK GREEN
 		128,0,128,		// DARK MAGENTA
+
 };
 
 #define _DEFER_DRAWING_US	20000
