@@ -556,10 +556,6 @@ void Fl_Term::fe_bell() {
 	fl_beep();
 }
 
-void Fl_Term::fe_mouse(int x, int y) {
-	// TODO: implement
-}
-
 void Fl_Term::fe_title(const int32_t* text) {
 	// TODO: implement
 }

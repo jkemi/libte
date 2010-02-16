@@ -29,9 +29,6 @@ static void _impl_reset (void* priv) {
 static void _impl_bell (void* priv) {
 	((TE*)priv)->fe_bell();
 }
-static void _impl_mouse (void* priv, int x, int y) {
-	((TE*)priv)->fe_mouse(x, y);
-}
 static void _impl_title (void* priv, const int32_t* text) {
 	((TE*)priv)->fe_title(text);
 }
@@ -55,7 +52,6 @@ const static TE_Frontend _callbacks = {
 		&_impl_updated,
 		&_impl_reset,
 		&_impl_bell,
-		&_impl_mouse,
 		&_impl_title,
 		&_impl_send_back,
 		&_impl_request_resize,

@@ -72,7 +72,6 @@ public:
 	void fe_updated();
 	void fe_reset();
 	void fe_bell();
-	void fe_mouse(int x, int y);
 	void fe_title(const int32_t* text);
 	void fe_send_back(const int32_t* data, int len);
 	void fe_request_resize(int width, int height);
