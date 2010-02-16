@@ -302,6 +302,7 @@ void ac_set_mode(TE* te)  // h
 		case 6: be_set_mode_flag(te, MODE_ORIGIN);		break;	// Origin mode (DECOM)
 		case 7:	be_set_mode_flag(te, MODE_AUTOWRAP);	break;	// Wraparound Mode (DECAWM)
 //		case 8:													// Auto repeating (DECARM)
+//		case 9:													// X10 mouse mode
 		case 25:												// Hide Cursor (DECTCEM)
 			be_clear_mode_flag(te, MODE_CURSORINVISIBLE);
 			be_move_cursor(te, te->cursor_x, te->cursor_y);
@@ -309,8 +310,10 @@ void ac_set_mode(TE* te)  // h
 		case 47:
 			be_switch_buffer(te, true, false);
 			break;
-//		case 1000:	// Use Cell Motion Mouse Tracking.
-//		case 1002:	// Use Cell Motion Mouse Tracking.
+		case 1000:	te->mouse_mode = MOUSE_TRACK_BUTTON;		break;	// Send X & Y on button press and release.
+//		case 1001:	// mouse hilight tracking
+		case 1002:	te->mouse_mode = MOUSE_TRACK_BUTTONMOTION;	break;	// Track motion when button is pressed
+		case 1003:	te->mouse_mode = MOUSE_TRACK_MOTION;		break;	// Track all mouse motion
 		case 1047:	// Use alternative Screen Buffer, clearing it first
 			be_switch_buffer(te, true, true);
 			break;
@@ -321,6 +324,7 @@ void ac_set_mode(TE* te)  // h
 			ac_save_cursor(te);
 			be_switch_buffer(te, true, true);
 			break;
+		case 2004:	be_set_mode_flag(te, MODE_BRACKETPASTE);	break;	// Use bracketed paste mode
 		default:
 			DEBUGF("unhandled private set mode (DECSET) mode: %d\n", p);
 			break;
@@ -361,14 +365,19 @@ void ac_clear_mode(TE* te)  // l
 		case 6: be_clear_mode_flag(te, MODE_ORIGIN);			break;	// Origin mode (DECOM)
 		case 7:	be_clear_mode_flag(te, MODE_AUTOWRAP);			break;	// Wraparound Mode (DECAWM)
 //		case 8:															// Auto repeating (DECARM)
+//		case 9:															// X10 mouse mode
 		case 25:														// Hide Cursor (DECTCEM)
 			be_set_mode_flag(te, MODE_CURSORINVISIBLE);	break;
 			be_move_cursor(te, te->cursor_x, te->cursor_y);
 			break;
 		case 47:	// Use Normal Screen Buffer
 			be_switch_buffer(te, false, false);
-//		case 1000:	// Use Cell Motion Mouse Tracking.
-//		case 1002:	// Don't Use Cell Motion Mouse Tracking.
+		case 1000:										// Send X & Y on button press and release.
+//		case 1001:										// mouse hilight tracking
+		case 1002:										// Track motion when button is pressed
+		case 1003:										// Track all mouse motion
+			te->mouse_mode = MOUSE_TRACK_NONE;
+			break;
 		case 1047:	// Use Normal Screen Buffer
 			be_switch_buffer(te, false, false);
 			break;
@@ -379,6 +388,7 @@ void ac_clear_mode(TE* te)  // l
 			ac_restore_cursor(te);
 			be_switch_buffer(te, false, false);
 			break;
+		case 2004:	be_clear_mode_flag(te, MODE_BRACKETPASTE);	break;	// Don't use bracketed paste mode
 		default:
 			DEBUGF("unhandled private reset mode (DECRST) mode: %d\n", p);
 			break;

@@ -102,8 +102,23 @@ typedef enum {
 	// Set selects reverse screen, a white screen background with black characters.
 	// Currently ignored
 	MODE_SCREEN			= (1<<11),
+
+	// Bracketed paste mode (xterm)
+	//
+	// When bracketed paste mode is set, pasted text is bracketed with control sequences so
+	// that the program can differentiate pasted text from typed-in text.
+	// When bracketed paste mode is set, the program will receive: ESC [ 200 ~, followed by the
+	// pasted text, followed by ESC [ 201 ~.
+	MODE_BRACKETPASTE	= (1<<12),
+
 } te_mode_t;
 
+typedef enum {
+	MOUSE_TRACK_NONE			= 0,	// No mouse tracking (default)
+	MOUSE_TRACK_BUTTON			= 1,	// Report button press and release (xterm: VT200_MOUSE)
+	MOUSE_TRACK_BUTTONMOTION	= 2,	// Report mouse motion when any button is pressed (xterm: BTN_EVENT_MOUSE)
+	MOUSE_TRACK_MOTION			= 3,	// Report mouse motion without any button pressed (xterm: ANY_EVENT_MOUSE)
+} te_mouse_mode_t;
 
 struct TE_Backend_ {
 
@@ -145,6 +160,10 @@ struct TE_Backend_ {
 		symbol_attributes_t attributes;
 		bool autowrap;
 	} stored;
+
+	int					mouse_x, mouse_y;	// last reported mouse pos.
+	te_mouse_button_t	mouse_buttons;		// last reported mouse button status.
+	te_mouse_mode_t		mouse_mode;
 
 	struct Parser_* parser;
 	struct Viewport_* viewport;

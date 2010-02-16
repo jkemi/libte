@@ -332,6 +332,11 @@ TE* te_new(const TE_Frontend* fe, void* fe_priv, int w, int h)
 	te->stored.cursor_x = 0;
 	te->stored.cursor_y = 0;
 
+	te->mouse_mode = MOUSE_TRACK_NONE;
+	te->mouse_x = -1;
+	te->mouse_y = -1;
+	te->mouse_buttons = TE_MOUSE_NONE;
+
 	te->charset_g0 = chartable_us;
 	te->charset_g1 = chartable_us;
 
@@ -475,8 +480,83 @@ void te_handle_keypress(TE_Backend* te, int32_t cp, te_modifier_t modifiers) {
 	}
 }
 
+void te_handle_mouse(TE_Backend* te, int mouse_x, int mouse_y, te_mouse_button_t mouse_buttons, te_modifier_t modifiers) {
+	// Clamp x,y to within screen
+	mouse_x = int_clamp(mouse_x, 0, te->width);
+	mouse_y = int_clamp(mouse_y, 0, te->height);
+
+	const bool motion = te->mouse_x != mouse_x || te->mouse_y != mouse_y;
+	te->mouse_x = mouse_x;
+	te->mouse_y = mouse_y;
+
+	te_mouse_button_t buttonchange = te->mouse_buttons ^ mouse_buttons;
+	const te_mouse_button_t pressed = mouse_buttons & buttonchange;					// bitmask, pressed buttons
+	const te_mouse_button_t released = (~mouse_buttons) & buttonchange; 			// bitmask, released buttons
+	te->mouse_buttons = mouse_buttons & (~(TE_MOUSE_WHEEL_DOWN|TE_MOUSE_WHEEL_UP));	// always release wheel
+
+	// Leave early if we're not tracking mouse
+	if (te->mouse_mode == MOUSE_TRACK_NONE) {
+		return;
+	}
+
+	int32_t buf[] = {'\033', '[', 'M', 0, te->mouse_x+1+32, te->mouse_y+1+32, '\0'};
+	const char base = 32 +	( modifiers & TE_MOD_CTRL  ) ? 16 : 0 +
+							( modifiers & TE_MOD_META  ) ?  8 : 0 +
+							( modifiers & TE_MOD_SHIFT ) ?  4 : 0;
+
+	// Handle changes in mouse buttons
+	if (buttonchange && te->mouse_mode) {
+		uint8_t b = base;
+		if (pressed & TE_MOUSE_LEFT) {
+			b = b;
+		} else if (pressed & TE_MOUSE_RIGHT) {
+			b += 1;
+		} else if (pressed & TE_MOUSE_MIDDLE) {
+			b += 2;
+		} else if (pressed & TE_MOUSE_WHEEL_UP) {
+			b += 64 + 0;
+		} else if (pressed & TE_MOUSE_WHEEL_DOWN) {
+			b += 64 + 1;
+		} else if (released) {
+			b += 3;
+		} else {
+			DEBUGF("Unexpected button change: %x\n", buttonchange);
+			return;
+		}
+		buf[3] = b;
+		fe_send_back(te, buf, 6);
+		return;
+	}
+
+	// Handle mouse motion
+	if (motion && (
+		(te->mouse_mode == MOUSE_TRACK_MOTION) ||
+		(te->mouse_mode == MOUSE_TRACK_BUTTONMOTION && te->mouse_buttons)
+		)
+	) {
+		uint8_t b = base + 32;	// motion indicator
+		if (te->mouse_buttons & TE_MOUSE_LEFT) {
+			b = b;
+		} else if (te->mouse_buttons & TE_MOUSE_RIGHT) {
+			b += 1;
+		} else if (te->mouse_buttons & TE_MOUSE_MIDDLE) {
+			b += 2;
+		} else {
+			b += 3;
+		}
+		buf[3] = b;
+		fe_send_back(te, buf, 6);
+	}
+}
+
 void te_paste_text(TE_Backend* te, const int32_t* data, size_t len) {
-	// FIXME: implement me
+	if (be_is_mode_set(te, MODE_BRACKETPASTE)) {
+		fe_send_back_char(te, "\033[200~");
+		fe_send_back(te, data, len);
+		fe_send_back_char(te, "\033[201~");
+	} else {
+		fe_send_back(te, data, len);
+	}
 }
 
 void te_position(TE_Backend* te, int offset) {

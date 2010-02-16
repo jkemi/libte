@@ -120,6 +120,16 @@ typedef enum _te_modifier {
 	TE_MOD_META		= (1<<2),
 } te_modifier_t;
 
+typedef enum _te_mouse_button {
+	TE_MOUSE_NONE		= 0,
+	TE_MOUSE_LEFT		= (1<<0),
+	TE_MOUSE_RIGHT		= (1<<1),
+	TE_MOUSE_MIDDLE		= (1<<2),
+	TE_MOUSE_WHEEL_UP	= (1<<3),
+	TE_MOUSE_WHEEL_DOWN	= (1<<4),
+} te_mouse_button_t;
+
+
 DLLEXPORT const char* te_binary_version(void);
 
 DLLEXPORT TE_Backend* te_create(const TE_Frontend* front, void* priv, int width, int height);
@@ -161,6 +171,8 @@ DLLEXPORT int te_handle_button(TE_Backend* te, te_key_t key);
  * Handles ordinary letters/numbers key presses
  */
 DLLEXPORT void te_handle_keypress(TE_Backend* te, int32_t cp, te_modifier_t modifiers);
+
+DLLEXPORT void te_handle_mouse(TE_Backend* te, int mouse_x, int mouse_y, te_mouse_button_t mouse_buttons, te_modifier_t modifiers);
 
 DLLEXPORT void te_paste_text(TE_Backend* te, const int32_t* data, size_t len);
 
