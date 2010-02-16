@@ -83,6 +83,8 @@ Fl_Term::Fl_Term(int sz, int X, int Y, int W, int H, const char *L) : Fl_Box(X,Y
 	_scroll_func = 0;
 	_scroll_priv = 0;
 
+	_termSize(gfx.ncols, gfx.nrows);
+
 	teInit(gfx.ncols, gfx.nrows);
 
 	// TODO: something weird here:
