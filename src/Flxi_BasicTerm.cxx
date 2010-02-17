@@ -11,8 +11,11 @@
 
 #include "fontrender.h"
 
-#include "Fl_Term.h"
+#include "Flxi_BasicTerm.hpp"
 
+namespace Flx {
+namespace VT {
+namespace impl {
 
 // VT100 color table - map Colors to FL-colors:
 static const Fl_Color col_table[] = {
@@ -104,7 +107,13 @@ static te_modifier_t getTeKeyModifiers() {
 /************************************************************************/
 // This is the implementation of the user-facing parts of the widget...
 /************************************************************************/
-Fl_Term::Fl_Term(int sz, int X, int Y, int W, int H, const char *L) : Fl_Box(X,Y,W,H,L), TE()
+BasicTerm::BasicTerm (	int fontsize,
+						IChildHandler* childh, IEventHandler* eventh,
+						int X, int Y, int W, int H)
+// Parent constructors
+	: Fl_Box(X,Y,W,H,0)
+	, LibTE()
+
 {
 	box(FL_THIN_DOWN_FRAME);
 
@@ -126,14 +135,9 @@ Fl_Term::Fl_Term(int sz, int X, int Y, int W, int H, const char *L) : Fl_Box(X,Y
 	gfx.xoff = Fl::box_dx(box()); // ((w()-Fl::box_dw(box())) - gfx.pixw) / 2 + Fl::box_dx(box());
 	gfx.yoff = Fl::box_dy(box()); // ((h()-Fl::box_dh(box())) - gfx.pixh) / 2 + Fl::box_dy(box());
 
-	_send_back_func = 0;
-	_send_back_priv = 0;
-	_scroll_func = 0;
-	_scroll_priv = 0;
+	_child_handler = childh;
+	_event_handler = eventh;
 
-	_termSize(gfx.ncols, gfx.nrows);
-
-	teInit(gfx.ncols, gfx.nrows);
 
 	// TODO: something weird here:
 	// FLTK-1.1 _should_ really return iso8859-1 in event_text() but gives us UTF8 instead
@@ -151,14 +155,40 @@ Fl_Term::Fl_Term(int sz, int X, int Y, int W, int H, const char *L) : Fl_Box(X,Y
 	}
 }
 
-Fl_Term::~Fl_Term() {
+BasicTerm::~BasicTerm() {
 	iconv_close(_fltk_to_cp);
 	iconv_close(_cp_to_fltk);
 
 	tr_term();
+
+//	delete _child_handler;
+//	delete _event_handler;
 }
 
-int32_t Fl_Term::_fltkToCP(const char* text, size_t len) {
+void BasicTerm::init() {
+	teInit(gfx.ncols, gfx.nrows);
+	_child_handler->child_resize(gfx.ncols, gfx.nrows);
+
+	const int pixwidth = (gfx.ncols*font.pixw)+Fl::box_dw(box());
+	const int pixheight = (gfx.nrows*font.pixh)+Fl::box_dh(box());
+
+	printf("requested size %d %d\n", gfx.ncols, gfx.nrows);
+	_event_handler->event_want_size(pixwidth, pixheight);
+
+	// Size limits are determined by:
+	//  - Height at least 2 lines (for scroll margins)
+	//  - Width at least 4 (for wrapping, bs etc..)
+	//  - Width and height must be max 256-32-1=233 for mouse report to work correctly
+	const int minw = (4)*font.pixw + Fl::box_dw(box());
+	const int maxw = (256-32+1)*font.pixw+Fl::box_dw(box());
+
+	const int minh = (2)*font.pixh + Fl::box_dh(box());
+	const int maxh = (256-32+1)*font.pixh+Fl::box_dh(box());
+
+	_event_handler->event_size_range(minw, minh, maxw, maxh, font.pixw, font.pixh);
+}
+
+int32_t BasicTerm::_fltkToCP(const char* text, size_t len) {
 	str_mbs_hexdump("in: ", text, len);
 
 /*	int deleted;
@@ -199,7 +229,7 @@ int32_t Fl_Term::_fltkToCP(const char* text, size_t len) {
 	}
 }
 
-char Fl_Term::_cpToFltk(int32_t cp) {
+char BasicTerm::_cpToFltk(int32_t cp) {
 	char* inbuf = (char*)&cp;
 	size_t inleft = sizeof(int32_t);
 
@@ -231,7 +261,7 @@ char Fl_Term::_cpToFltk(int32_t cp) {
 	}
 }
 
-bool Fl_Term::_handle_keyevent(void) {
+bool BasicTerm::_handle_keyevent(void) {
 	const int keysym = Fl::event_key();
 
 	te_key_t tekey = TE_KEY_UNDEFINED;
@@ -330,31 +360,13 @@ bool Fl_Term::_handle_keyevent(void) {
 
 }
 
-void Fl_Term::_sendBack(const int32_t* data, int len) {
-	if (_send_back_func != 0) {
-		_send_back_func(_send_back_priv, data, len);
-	}
-}
-
-void Fl_Term::_scrollPosition(int offset, int size) {
-	if (_scroll_func != 0) {
-		_scroll_func(_scroll_priv, offset, size);
-	}
-}
-
-void Fl_Term::_termSize(int width, int height) {
-	if (_size_func != 0) {
-		_size_func(_size_priv, width, height);
-	}
-}
-
-void Fl_Term::_deferred_update_cb() {
+void BasicTerm::_deferred_update_cb() {
 	damage(FL_DAMAGE_USER1);
 }
 
 /************************************************************************/
 // handle keyboard focus etc
-int Fl_Term::handle(int event)
+int BasicTerm::handle(int event)
 {
 	switch (event) {
 	case FL_FOCUS:
@@ -388,11 +400,18 @@ int Fl_Term::handle(int event)
 				(Fl::event_button1() ? TE_MOUSE_LEFT   : TE_MOUSE_NONE) |
 				(Fl::event_button2() ? TE_MOUSE_MIDDLE : TE_MOUSE_NONE) |
 				(Fl::event_button3() ? TE_MOUSE_RIGHT  : TE_MOUSE_NONE) |
-				((event==FL_MOUSEWHEEL && Fl::event_dy() <0) ? TE_MOUSE_WHEEL_UP
-															 : TE_MOUSE_NONE) |
-				((event==FL_MOUSEWHEEL && Fl::event_dy() >0) ? TE_MOUSE_WHEEL_DOWN
-															 : TE_MOUSE_NONE)
+				((event==FL_MOUSEWHEEL && Fl::event_dy() <0) ? TE_MOUSE_WHEEL_UP : TE_MOUSE_NONE) |
+				((event==FL_MOUSEWHEEL && Fl::event_dy() >0) ? TE_MOUSE_WHEEL_DOWN : TE_MOUSE_NONE) |
+				((event==FL_PUSH && Fl::event_clicks() > 0) ? TE_MOUSE_DOUBLE : TE_MOUSE_NONE) |
+				((event==FL_PUSH && Fl::event_clicks() > 1) ? TE_MOUSE_TRIPLE : TE_MOUSE_NONE)
 			);
+
+			if (btn & TE_MOUSE_TRIPLE) {
+				Fl::event_clicks(0);
+			}
+
+
+//			printf("clicks: %d\n", Fl::event_clicks());
 
 			//printf("%d,%d %x %x\n", cellx, celly, btn, mod);
 			teHandleMouse(cellx, celly, btn, mod);
@@ -408,8 +427,7 @@ int Fl_Term::handle(int event)
 }
 
 /************************************************************************/
-// handle window resizing - THIS DOES NOT WORK RIGHT!
-void Fl_Term::resize(int x, int y, int W, int H)
+void BasicTerm::resize(int x, int y, int W, int H)
 {
 	Fl_Box::resize(x, y, W, H);
 
@@ -417,7 +435,6 @@ void Fl_Term::resize(int x, int y, int W, int H)
 	gfx.nrows = (h()-Fl::box_dh(box())) / font.pixh;
 
 	if (gfx.ncols != teGetWidth() || gfx.nrows != teGetHeight()) {
-		// Then tell the GTerm the new character sizes sizes...
 		teResize(gfx.ncols, gfx.nrows);
 
 		gfx.ncols = teGetWidth();
@@ -427,8 +444,7 @@ void Fl_Term::resize(int x, int y, int W, int H)
 		gfx.xoff = Fl::box_dx(box()); // ((w()-Fl::box_dw(box())) - gfx.pixw) / 2 + Fl::box_dx(box());
 		gfx.yoff = Fl::box_dy(box()); // ((h()-Fl::box_dh(box())) - gfx.pixh) / 2 + Fl::box_dy(box());
 
-
-		_termSize(gfx.ncols, gfx.nrows);
+		_child_handler->child_resize(gfx.ncols, gfx.nrows);
 
 		printf("terminal resized to: %d, %d\n", gfx.ncols, gfx.nrows);
 	}
@@ -436,13 +452,13 @@ void Fl_Term::resize(int x, int y, int W, int H)
 
 /************************************************************************/
 #ifndef NDEBUG
-void Fl_Term::debug(FILE* where) {
+void BasicTerm::printTerminalDebug(FILE* where) {
 	teDebug(where);
 }
 #endif
 
 /************************************************************************/
-void Fl_Term::draw(void)
+void BasicTerm::draw(void)
 {
 	const int xo = x() + Fl::box_dx(this->box());
 	const int yo = y() + Fl::box_dy(this->box());
@@ -471,7 +487,7 @@ void Fl_Term::draw(void)
 // TE_Frontend methods
 //////////////////////////////////////////////////////////////////////
 
-void Fl_Term::fe_draw_text(int xpos, int ypos, const symbol_t* symbols, int len) {
+void BasicTerm::fe_draw_text(int xpos, int ypos, const symbol_t* symbols, int len) {
 	const int xo = x() + gfx.xoff;
 	const int yo = y() + gfx.yoff;
 
@@ -504,7 +520,7 @@ void Fl_Term::fe_draw_text(int xpos, int ypos, const symbol_t* symbols, int len)
 	}
 }
 
-void Fl_Term::fe_draw_clear(int xpos, int ypos, const symbol_color_t bg_color, int len) {
+void BasicTerm::fe_draw_clear(int xpos, int ypos, const symbol_color_t bg_color, int len) {
 	//	printf("DrawClear: %d, %d (%d))\n", xpos, ypos, len);
 
 	const int xo = x() + gfx.xoff;
@@ -520,7 +536,7 @@ void Fl_Term::fe_draw_clear(int xpos, int ypos, const symbol_color_t bg_color, i
 	fl_rectf(xp, yp, font.pixw*len, font.pixh);
 }
 
-void Fl_Term::fe_draw_cursor(symbol_color_t fg_color, symbol_color_t bg_color, symbol_attributes_t attrs, int xpos, int ypos, int32_t cp) {
+void BasicTerm::fe_draw_cursor(symbol_color_t fg_color, symbol_color_t bg_color, symbol_attributes_t attrs, int xpos, int ypos, int32_t cp) {
 	const int xp = x() + gfx.xoff + font.pixw * xpos;
 	const int yp = y() + gfx.yoff + font.pixh * ypos;
 
@@ -532,11 +548,11 @@ void Fl_Term::fe_draw_cursor(symbol_color_t fg_color, symbol_color_t bg_color, s
 	fl_rectf(xp, yp, font.pixw, font.pixh);
 }
 
-void Fl_Term::fe_draw_move(int y, int height, int byoffset) {
+void BasicTerm::fe_draw_move(int y, int height, int byoffset) {
 	// TODO: implement
 }
 
-void Fl_Term::fe_updated() {
+void BasicTerm::fe_updated() {
 	const uint64_t now = getCurrentTime_us();
 	if (now-last_draw < _DEFER_DRAWING_US) {
 		Fl::remove_timeout(&_s_deferred_update_cb, this);
@@ -546,33 +562,59 @@ void Fl_Term::fe_updated() {
 	damage(FL_DAMAGE_USER1);
 }
 
-void Fl_Term::fe_reset() {
+void BasicTerm::fe_reset() {
 	// TODO: implement
 }
 
-void Fl_Term::fe_bell() {
+void BasicTerm::fe_bell() {
 	fl_beep();
 }
 
-void Fl_Term::fe_title(const int32_t* text, int len) {
-	// TODO: implement
+void BasicTerm::fe_title(const int32_t* text, int len) {
+	_event_handler->event_title(text, len);
 }
 
-void Fl_Term::fe_send_back(const int32_t* data, int len) {
-	_sendBack(data, len);
+void BasicTerm::fe_send_back(const int32_t* data, int len) {
+	_child_handler->child_sendto(data, len);
 }
 
-void Fl_Term::fe_request_resize(int width, int height) {
-	// TODO: almost working, needs to be able resize parent widget as well...
-	printf("requested resized to: %d, %d\n", width, height);
-
+void BasicTerm::fe_request_resize(int width, int height) {
 	int pixwidth = (width*font.pixw)+Fl::box_dw(box());
 	int pixheight = (height*font.pixh)+Fl::box_dh(box());
 
-	resize(x(), y(), pixwidth, pixheight);
+	_event_handler->event_want_size(pixwidth, pixheight);
 }
 
-void Fl_Term::fe_position(int offset, int size) {
-	_scrollPosition(offset, size);
+void BasicTerm::fe_position(int offset, int size) {
+	_event_handler->event_scrollposition(offset, size);
 }
 
+void BasicTerm::fe_set_clipboard (te_clipbuf_t clipbuf, const int32_t* text, int len) {
+	int clipboard;
+	switch(clipbuf) {
+	case TE_CLIPBUF_PRIMARY:		clipboard = 0;	break;
+	case TE_CLIPBUF_CLIPBOARD:		clipboard = 1;	break;
+	default:
+		return;
+	}
+
+	// TODO: redo!
+	size_t nbytes = MB_CUR_MAX*(len+1);
+	char tmp[nbytes];
+
+	size_t nwritten;
+	str_cps_to_mbs_n(tmp, text, nbytes, len, &nwritten, NULL);
+	tmp[nwritten] = '\0';
+
+	Fl::copy(tmp, clipboard);
+}
+
+int BasicTerm::fe_request_clipboard (te_clipbuf_t clipbuf, int32_t* text, int size) {
+	// TODO: implement ?
+	return 0;
+}
+
+
+}	// namespace impl
+}	// namespace VT
+}	// namespace Flx

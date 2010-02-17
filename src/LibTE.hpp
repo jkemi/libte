@@ -1,20 +1,39 @@
 #include "libte/libte.h"
 
-class TE {
+class LibTE {
 private:
 	TE_Backend*	_te;
 public:
 
-	TE() {_te = NULL;}
-	TE(const TE&);	// Intentionally not defined.
-	virtual ~TE() {
+	LibTE() {_te = NULL;}
+	LibTE(const LibTE&);	// Intentionally not defined.
+	virtual ~LibTE() {
 		if (_te != NULL) {
 			te_destroy(_te);
 		}
 	}
 
+	void teInit(int width, int height) {
+		const static TE_Frontend _callbacks = {
+				&_impl_draw_text,
+				&_impl_draw_clear,
+				&_impl_draw_cursor,
+				&_impl_draw_move,
 
-	void teInit(int width, int height);
+				&_impl_updated,
+				&_impl_reset,
+				&_impl_bell,
+				&_impl_title,
+				&_impl_send_back,
+				&_impl_request_resize,
+				&_impl_position,
+
+				&_impl_set_clipboard,
+				&_impl_request_clipboard,
+		};
+
+		_te = te_create(&_callbacks, this, width, height);
+	}
 
 	/**
 	 * Resize terminal
@@ -116,40 +135,52 @@ protected:
 	virtual void fe_send_back(const int32_t* data, int len) = 0;
 	virtual void fe_request_resize(int width, int height) = 0;
 	virtual void fe_position(int offset, int size) = 0;
+	virtual void fe_set_clipboard (te_clipbuf_t clipbuf, const int32_t* text, int len) = 0;
+	virtual int fe_request_clipboard (te_clipbuf_t clipbuf, int32_t* text, int size) = 0;
+
 
 private:
 	static void _impl_draw_text (void* priv, int x, int y, const symbol_t* symbols, int len) {
-		((TE*)priv)->fe_draw_text(x, y, symbols, len);
+		((LibTE*)priv)->fe_draw_text(x, y, symbols, len);
 	}
 	static void _impl_draw_clear (void* priv, int x, int y, const symbol_color_t bg_color, int len) {
-		((TE*)priv)->fe_draw_clear(x, y, bg_color, len);
+		((LibTE*)priv)->fe_draw_clear(x, y, bg_color, len);
 	}
 	static void _impl_draw_cursor (void* priv, symbol_color_t fg_color, symbol_color_t bg_color, symbol_attributes_t attrs, int x, int y, int32_t cp) {
-		((TE*)priv)->fe_draw_cursor(fg_color, bg_color, attrs, x, y, cp);
+		((LibTE*)priv)->fe_draw_cursor(fg_color, bg_color, attrs, x, y, cp);
 	}
 	static void _impl_draw_move (void* priv, int y, int height, int byoffset) {
-		((TE*)priv)->fe_draw_move(y, height, byoffset);
+		((LibTE*)priv)->fe_draw_move(y, height, byoffset);
 	}
 	static void _impl_updated (void* priv) {
-		((TE*)priv)->fe_updated();
+		((LibTE*)priv)->fe_updated();
 	}
 	static void _impl_reset (void* priv) {
-		((TE*)priv)->fe_reset();
+		((LibTE*)priv)->fe_reset();
 	}
 	static void _impl_bell (void* priv) {
-		((TE*)priv)->fe_bell();
+		((LibTE*)priv)->fe_bell();
 	}
 	static void _impl_title (void* priv, const int32_t* text, int len) {
-		((TE*)priv)->fe_title(text, len);
+		((LibTE*)priv)->fe_title(text, len);
 	}
 	static void _impl_send_back (void* priv, const int32_t* data, int len) {
-		((TE*)priv)->fe_send_back(data, len);
+		((LibTE*)priv)->fe_send_back(data, len);
 	}
 	static void _impl_request_resize (void* priv, int width, int height) {
-		((TE*)priv)->fe_request_resize(width, height);
+		((LibTE*)priv)->fe_request_resize(width, height);
 	}
 	static void _impl_position (void* priv, int offset, int size) {
-		((TE*)priv)->fe_position(offset, size);
+		((LibTE*)priv)->fe_position(offset, size);
 	}
+
+	static void _impl_set_clipboard (void* priv, te_clipbuf_t clipbuf, const int32_t* text, int len) {
+		((LibTE*)priv)->fe_set_clipboard(clipbuf, text, len);
+	}
+
+	static int _impl_request_clipboard (void* priv, te_clipbuf_t clipbuf, int32_t* text, int size) {
+		return ((LibTE*)priv)->fe_request_clipboard(clipbuf, text, size);
+	}
+
 
 };

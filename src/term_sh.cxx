@@ -14,132 +14,62 @@
 #include <FL/Fl.H>
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_Button.H>
-#include <FL/Fl_Scrollbar.H>
-
-#include "Flx_Terminal.hpp"
 
 #include "pty/pty.h"
 #include "pty/term.h"
 
 #include "strutil.h"
 
-typedef unsigned int uint;
+#include "Flx_PseudoTerm.hpp"
 
+static Fl_Window* main_win;
 
-/************************************************************************/
-static Fl_Window* main_win = NULL;
-static Flx_Terminal* term = NULL;
-static int pty_fd = -1;
+class ResizeHandler : public Flx::IResizableParent {
+	void event_size_range(int minw, int minh, int maxw, int maxh, int stepw, int steph) {
+		const int dw = Fl::box_dw(main_win->box());
+		const int dh = Fl::box_dh(main_win->box());
 
-#define BUFSIZE		1024
-static char			buf[BUFSIZE];
-static size_t		buffill = 0;
+		minw += dw;
+		maxw += dw;
+		minh += dh;
+		maxh += dh;
 
-/************************************************************************/
-
-static void send_back_cb(const int32_t* data, size_t n, void* priv) {
-	size_t nbytes = MB_CUR_MAX*(n+1);
-	char tmp[nbytes];
-
-	size_t nwritten;
-
-	str_cps_to_mbs_n(tmp, data, nbytes, n, &nwritten, NULL);
-
-//	str_mbs_hexdump("to pty: ", tmp, nwritten);
-	write(pty_fd, tmp, nwritten);
-}
-
-
-static void term_size_cb(int width, int height, void* priv)  {
-	term_set_window_size(pty_fd, width, height);
-}
-
-/**
- * Called whenever input is received from pty process.
- */
-static void mfd_cb(int mfd, void* unused_priv)
-{
-	ssize_t ret = read(mfd, buf+buffill, (BUFSIZE-buffill)*sizeof(unsigned char));
-	if (ret == -1) {
-		printf("bye from %s:%d\n", __FILE__,__LINE__);
-		// TODO: hello
-		exit(0);
-		//return;
+		main_win->size_range(minw, minh, maxw, maxh, stepw, steph);
 	}
 
-	size_t bytesread = ret;
-//	str_mbs_hexdump("from pty(mbs): ", buf+buffill, bytesread);
+	void event_want_size(int width, int height) {
+		const int dw = Fl::box_dw(main_win->box());
+		const int dh = Fl::box_dh(main_win->box());
 
-	buffill += bytesread;
+		width += dw;
+		height += dh;
 
-	int32_t	cpbuf[1024];
-	size_t cpcount;
+		printf("SH:My size is %d,%d, wanted %d,%d\n", main_win->w(), main_win->h(), width, height);
 
-
-	if (str_mbs_to_cps_n(cpbuf, buf, 1024, buffill, &cpcount, &bytesread) != 0) {
-		//TODO: this happens.. try pilned sedan "å" så skiter det sig nog..
-		buffill = 0;
-		return;
-/*		main_win->hide();
-		abort();*/
-	} else {
-//		str_cps_hexdump("from pty: ", cpbuf, cpcount);
-
-		term->fromChild(cpbuf, cpcount);
-
-		const size_t remaining = buffill-bytesread;
-		memcpy(buf, buf+bytesread, remaining);
-		buffill = remaining;
+		main_win->size(width, height);
+		//main_win->resizable(term);
 	}
-}
+	void event_title(const int32_t* text, int len) {
+		size_t nbytes = MB_CUR_MAX*(len+1);
+		char tmp[nbytes];
 
-/************************************************************************/
-static void upd_term_cb(void *v)
-{
-//	te_update(termBox->_te);
-	Fl::repeat_timeout(0.1, upd_term_cb, v);
-}
-/************************************************************************/
-static void quit_cb(Fl_Button *, void *)
-{
-	char str[] = "exit\n";
-	int count = strlen(str);
-	write(pty_fd, str, count);
+		size_t nwritten;
 
-	usleep(100000); // 100ms
-	main_win->hide();
-}
-
+		str_cps_to_mbs_n(tmp, text, nbytes, len, &nwritten, NULL);
+		tmp[nwritten] = '\0';
+		main_win->copy_label(tmp);
+	}
+};
 
 int main(int argc, char** argv)
 {
 	setlocale(LC_ALL, "");
 	Fl::args(argc, argv);
 
-/*	const uint W = 654;
-	const uint H = 410;*/
+	const uint W = 734;
+	const uint H = 362;
 
-	const uint W = 740;
-	const uint H = 370;
-
-	// create the main window and the terminal widget
-	main_win = new Fl_Double_Window(W, H);
-	main_win->box(FL_NO_BOX);
-	main_win->begin();
-
-	// inner dimensions
-	const int iw = W - Fl::box_dw(main_win->box());
-	const int ih = H - Fl::box_dh(main_win->box());
-
-	int x = 0 + Fl::box_dx(main_win->box());
-	int y = 0 + Fl::box_dy(main_win->box());
-
-	term = new Flx_Terminal(x, y, iw, ih, 0);
-	term->box(FL_DOWN_FRAME);
-
-	main_win->end();
-
-	main_win->resizable(term);
+	Flx::IResizableParent* parenth = new ResizeHandler();
 
 	// Variables to add or replace in environ
 	static const char*const envdata[] = {
@@ -157,16 +87,27 @@ int main(int argc, char** argv)
 	if (pty == NULL) {
 		exit(EXIT_FAILURE);
 	}
-	pty_fd = pty_getfd(pty);
-
-	// add the pty to the fltk fd list, so we can catch any output
-	Fl::add_fd(pty_fd, mfd_cb, NULL);
-	// we want non-blocking reads from pty output
-	fcntl(pty_fd, F_SETFL, O_NONBLOCK);
 
 
-	term->setToChildCB(&send_back_cb, NULL);
-	term->setTermSizeCB(&term_size_cb, NULL);
+	// create the main window and the terminal widget
+	main_win = new Fl_Double_Window(W, H);
+	main_win->box(FL_NO_BOX);
+	main_win->begin();
+
+	// inner dimensions
+	const int iw = W - Fl::box_dw(main_win->box());
+	const int ih = H - Fl::box_dh(main_win->box());
+
+	int x = 0 + Fl::box_dx(main_win->box());
+	int y = 0 + Fl::box_dy(main_win->box());
+
+	Flx::VT::PseudoTerm* term = new Flx::VT::PseudoTerm(parenth, pty, x, y, iw, ih);
+	main_win->resizable(term);
+
+	main_win->end();
+
+	term->init();
+
 
 	// show the windows
 	main_win->show(argc, argv);

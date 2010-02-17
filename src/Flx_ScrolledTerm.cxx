@@ -10,36 +10,44 @@
 #include <FL/Fl_Scrollbar.H>
 
 #include <stdio.h>
+#include <assert.h>
 
-#include "Fl_Term.h"
+#include "Flxi_BasicTerm.hpp"
 
-#include "Flx_Terminal.hpp"
+#include "Flx_ScrolledTerm.hpp"
 
-typedef unsigned int uint;
+namespace Flx {
+namespace VT {
+
 
 #define SCROLLBAR_WIDTH		12
 
-static double dbl_min(double a, double b) {
-	return (a < b) ? a : b;
-}
+typedef unsigned int uint;
 
 static double dbl_max(double a, double b) {
 	return (a > b) ? a : b;
 }
 
-class Flx_Terminal_Impl {
-public:
-	void (*_to_child_cb)(const int32_t* data, size_t size, void* priv);
-	void* _to_child_cb_data;
-	void (*_term_size_cb)(int width, int height, void* priv);
-	void* _term_size_cb_data;
+namespace impl {
 
-	Fl_Term*		term;
+class ScrolledTermPriv : public BasicTerm::IEventHandler {
+public:
+	friend class ScrolledTerm;
+
+	ScrolledTerm* _p;
+
+	IResizableParent* _parenth;
+
+	BasicTerm*		term;
 	Fl_Scrollbar*	scrollbar;
 	bool			scroll_lock;
 
 public:
-	// Called by FLTK widget actions
+
+	ScrolledTermPriv(ScrolledTerm* p) {
+		_p = p;
+	}
+
 	void _widget_cb(Fl_Widget* widget) {
 		if (widget == term) {
 			printf( "term clicked!\n" );
@@ -50,8 +58,14 @@ public:
 		}
 	}
 
-	// Called by libte on scroll positioning
-	void _scroll_cb(int offset, int size) {
+	// Called by FLTK widget actions ('priv' is 'this')
+	static void _widget_cb(Fl_Widget* widget, void* priv) {
+		((ScrolledTermPriv*)priv)->_widget_cb(widget);
+	}
+
+
+private:
+	virtual void event_scrollposition(int offset, int size) {
 		if (size == 0) {
 			scrollbar->minimum(100);
 			scrollbar->maximum(0);
@@ -72,53 +86,46 @@ public:
 		}
 	}
 
-	// Called by Fl_Term on sendback
-	void _send_back_cb(const int32_t* data, int len) {
-		size_t n;
-		for (n = 0; data[n] != 0; n++) {
+	virtual void event_size_range(int minw, int minh, int maxw, int maxh, int stepw, int steph) {
+		const int dw = Fl::box_dw(_p->box()) + SCROLLBAR_WIDTH;
+		const int dh = Fl::box_dh(_p->box());
 
-		}
-		toChild(data, n);
+		minw += dw;
+		maxw += dw;
+		minh += dh;
+		maxh += dh;
+
+		_parenth->event_size_range(minw, minh, maxw, maxh, stepw, steph);
 	}
 
-private:
-	void toChild(const int32_t* data, size_t size) {
-		if (_to_child_cb != 0) {
-			_to_child_cb(data, size, _to_child_cb_data);
-		}
+	virtual void event_want_size(int width, int height) {
+		const int dw = Fl::box_dw(_p->box()) + SCROLLBAR_WIDTH;
+		const int dh = Fl::box_dh(_p->box());
+
+		width += dw;
+		height += dh;
+
+		printf("cock %d bapp: %d\n", height, scrollbar->h());
+		//assert (height >= scrollbar->h());
+
+		_parenth->event_want_size(width, height);
 	}
 
-	void termSize(int width, int height) {
-
+	virtual void event_title(const int32_t* text, int len) {
+		_parenth->event_title(text, len);
 	}
 };
 
-// Called by FLTK widget actions
-static void _widget_cb(Fl_Widget* widget, void* priv) {
-	((Flx_Terminal_Impl*)priv)->_widget_cb(widget);
+
 }
 
-// Called by libte on scroll positioning
-static void _scroll_cb(void* priv, int offset, int size) {
-	((Flx_Terminal_Impl*)priv)->_scroll_cb(offset, size);
-}
-
-// Called by Fl_Term on sendback
-static void _send_back_cb(void* priv, const int32_t* data, int len) {
-	((Flx_Terminal_Impl*)priv)->_send_back_cb(data, len);
-}
-
-// Called by Fl_Term on terminal resize
-static void _term_size_cb(void* priv, int width, int height) {
-	Flx_Terminal_Impl* impl = (Flx_Terminal_Impl*)priv;
-
-	if (impl->_term_size_cb != 0) {
-		impl->_term_size_cb(width, height, impl->_term_size_cb_data);
-	}
-}
-
-Flx_Terminal::Flx_Terminal(int X, int Y, int W, int H, const char* label) : Fl_Group(X,Y,W,H) {
-	_impl = new Flx_Terminal_Impl();
+ScrolledTerm::ScrolledTerm(		IResizableParent* parenth, IChildHandler* childh,
+								int X, int Y, int W, int H
+	)
+// Parent constructors
+	: Fl_Group(X,Y,W,H)
+	, _impl(new impl::ScrolledTermPriv(this))
+{
 
 	// inner dimensions
 	const uint iw = W - Fl::box_dw(box());
@@ -127,34 +134,33 @@ Flx_Terminal::Flx_Terminal(int X, int Y, int W, int H, const char* label) : Fl_G
 	uint x = X + Fl::box_dx(box());
 	uint y = Y + Fl::box_dy(box());
 
+	_impl->_parenth = parenth;
 
-	_impl->term = new Fl_Term(14, x, y, iw-SCROLLBAR_WIDTH, ih);
+	_impl->term = new impl::BasicTerm(14, childh, _impl, x, y, iw-SCROLLBAR_WIDTH, ih);
 	x += iw-SCROLLBAR_WIDTH;
 
 	_impl->scrollbar = new Fl_Scrollbar(x, y, SCROLLBAR_WIDTH, ih);
 	_impl->scrollbar->step(1);
-	_impl->scrollbar->callback(&_widget_cb, _impl);
+	_impl->scrollbar->callback(& (impl::ScrolledTermPriv::_widget_cb), _impl);
 
 	end();
-
-	_impl->term->set_scroll_func(&_scroll_cb, _impl);
-	_impl->term->set_send_back_func(&_send_back_cb, _impl);
-	_impl->term->set_size_func(_term_size_cb, _impl);
-
-	_impl->_scroll_cb(0, 0);
 
 	_impl->scroll_lock = false;
 
 	resizable(_impl->term);
 }
 
-Flx_Terminal::~Flx_Terminal() {
+ScrolledTerm::~ScrolledTerm() {
 	delete _impl->scrollbar;
 	delete _impl->term;
 	delete _impl;
 }
 
-int Flx_Terminal::handle(int event) {
+void ScrolledTerm::init() {
+	_impl->term->init();
+}
+
+int ScrolledTerm::handle(int event) {
 	switch (event) {
 	case FL_FOCUS:
 	case FL_UNFOCUS:
@@ -194,7 +200,7 @@ int Flx_Terminal::handle(int event) {
 		case 'd':
 			if (shift && Fl::event_ctrl()) {
 				printf("forced debug!\n");
-				_impl->term->debug(stdout);
+				_impl->term->printTerminalDebug(stdout);
 				return 1;
 			}
 			break;
@@ -211,44 +217,34 @@ int Flx_Terminal::handle(int event) {
 }
 
 // Scrolling
-void Flx_Terminal::scrollReset(void) {
+void ScrolledTerm::scrollReset(void) {
 	_impl->term->tePosition(0);
 }
 
-void Flx_Terminal::scrollUp(void) {
+void ScrolledTerm::scrollUp(void) {
 	const int h = _impl->term->teGetHeight();
 	_impl->term->tePosition(_impl->scrollbar->value() + (2*h)/3);
 }
 
-void Flx_Terminal::scrollDown(void) {
+void ScrolledTerm::scrollDown(void) {
 	const int h = _impl->term->teGetHeight();
 	_impl->term->tePosition(_impl->scrollbar->value() - (2*h)/3);
 }
 
 // Scroll-locking
-bool Flx_Terminal::getScrollLock() {
+bool ScrolledTerm::getScrollLock() {
 	return _impl->scroll_lock;
 }
 
-void Flx_Terminal::setScrollLock(bool lock) {
+void ScrolledTerm::setScrollLock(bool lock) {
 	_impl->term->teLockScroll(lock);
 }
 
 
-size_t Flx_Terminal::fromChild(const int32_t* data, size_t size) {
+size_t ScrolledTerm::fromChild(const int32_t* data, size_t size) {
 	_impl->term->teProcessInput(data, size);
 	return size;
 }
 
-void Flx_Terminal::setToChildCB(void (*func)(const int32_t* data, size_t size, void* priv), void* priv) {
-	_impl->_to_child_cb = func;
-	_impl->_to_child_cb_data = priv;
-}
-
-void Flx_Terminal::setTermSizeCB(void (*func)(int width, int height, void* priv), void* priv) {
-	_impl->_term_size_cb = func;
-	_impl->_term_size_cb_data = priv;
-	if (func != NULL) {
-		func(_impl->term->teGetWidth(), _impl->term->teGetHeight(), priv);
-	}
-}
+}	// namespace Flx
+}	// namespace Terminal
