@@ -112,7 +112,7 @@ protected:
 	virtual void fe_updated() = 0;
 	virtual void fe_reset() = 0;
 	virtual void fe_bell() = 0;
-	virtual void fe_title(const int32_t* text) = 0;
+	virtual void fe_title(const int32_t* text, int len) = 0;
 	virtual void fe_send_back(const int32_t* data, int len) = 0;
 	virtual void fe_request_resize(int width, int height) = 0;
 	virtual void fe_position(int offset, int size) = 0;
@@ -139,8 +139,8 @@ private:
 	static void _impl_bell (void* priv) {
 		((TE*)priv)->fe_bell();
 	}
-	static void _impl_title (void* priv, const int32_t* text) {
-		((TE*)priv)->fe_title(text);
+	static void _impl_title (void* priv, const int32_t* text, int len) {
+		((TE*)priv)->fe_title(text, len);
 	}
 	static void _impl_send_back (void* priv, const int32_t* data, int len) {
 		((TE*)priv)->fe_send_back(data, len);

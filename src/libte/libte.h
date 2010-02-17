@@ -43,7 +43,7 @@ struct TE_Frontend_ {
 	void (*updated) 	(void* priv);
 	void (*reset)		(void* priv);
 	void (*bell) 		(void* priv);
-	void (*title) 		(void* priv, const int32_t* text);
+	void (*title) 		(void* priv, const int32_t* text, int len);
 	void (*send_back)	(void* priv, const int32_t* data, int len);
 	void (*request_resize) (void* priv, int width, int height);
 	void (*position) (void* priv, int offset, int size);
