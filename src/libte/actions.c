@@ -92,6 +92,8 @@ void ac_save_cursor(TE* te)
 	te->stored.cursor_x = te->cursor_x;
 	te->stored.cursor_y = te->cursor_y;
 	te->stored.autowrap = be_is_mode_flag(te, MODE_AUTOWRAP);
+	te->stored.charset_g0 = te->charset_g0;
+	te->stored.charset_g1 = te->charset_g1;
 }
 
 // Restore Cursor (DECRC)
@@ -103,6 +105,8 @@ void ac_restore_cursor(TE* te)
 	} else {
 		be_clear_mode_flag(te, MODE_AUTOWRAP);
 	}
+	te->charset_g0 = te->stored.charset_g0;
+	te->charset_g1 = te->stored.charset_g1;
 	be_move_cursor(te, te->stored.cursor_x, te->stored.cursor_y);
 }
 

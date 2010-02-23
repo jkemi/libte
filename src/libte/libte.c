@@ -327,18 +327,21 @@ TE* te_new(const TE_Frontend* fe, void* fe_priv, int w, int h)
 
 	be_clear_area(te, 0, 0, te->width, te->height-1);
 
+	te->charset_g0 = chartable_us;
+	te->charset_g1 = chartable_us;
+
 	te->stored.attributes = te->attributes;
 	te->stored.autowrap = true;
 	te->stored.cursor_x = 0;
 	te->stored.cursor_y = 0;
+	te->stored.charset_g0 = chartable_us;
+	te->stored.charset_g1 = chartable_us;
 
 	te->mouse_mode = MOUSE_TRACK_NONE;
 	te->mouse_x = -1;
 	te->mouse_y = -1;
 	te->mouse_buttons = TE_MOUSE_NONE;
 
-	te->charset_g0 = chartable_us;
-	te->charset_g1 = chartable_us;
 
 	return te;
 }

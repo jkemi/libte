@@ -159,6 +159,8 @@ struct TE_Backend_ {
 		int cursor_x, cursor_y;
 		symbol_attributes_t attributes;
 		bool autowrap;
+		const te_chartable_entry_t* charset_g0;
+		const te_chartable_entry_t* charset_g1;
 	} stored;
 
 	int					mouse_x, mouse_y;	// last reported mouse pos.
