@@ -342,6 +342,7 @@ TE* te_new(const TE_Frontend* fe, void* fe_priv, int w, int h)
 	te->mouse_y = -1;
 	te->mouse_buttons = TE_MOUSE_NONE;
 
+	te->selstate = SELSTATE_NONE;
 
 	return te;
 }
@@ -497,8 +498,18 @@ void te_handle_mouse(TE_Backend* te, int mouse_x, int mouse_y, te_mouse_button_t
 	const te_mouse_button_t released = (~mouse_buttons) & buttonchange; 			// bitmask, released buttons
 	te->mouse_buttons = mouse_buttons & (~(TE_MOUSE_WHEEL_DOWN|TE_MOUSE_WHEEL_UP));	// always release wheel
 
-	// Leave early if we're not tracking mouse
-	if (te->mouse_mode == MOUSE_TRACK_NONE) {
+	// Handle as selection if we're not tracking mouse or shift is held down
+	if (te->mouse_mode == MOUSE_TRACK_NONE || modifiers == TE_MOD_SHIFT) {
+
+		if (mouse_buttons & (TE_MOUSE_DOUBLE|TE_MOUSE_TRIPLE)) {
+			if (mouse_buttons & TE_MOUSE_TRIPLE) {
+				DEBUGF("triple click!\n");
+			} else {
+				DEBUGF("double click!\n");
+			}
+		}
+
+
 		return;
 	}
 

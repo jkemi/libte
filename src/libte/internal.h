@@ -167,6 +167,16 @@ struct TE_Backend_ {
 	te_mouse_button_t	mouse_buttons;		// last reported mouse button status.
 	te_mouse_mode_t		mouse_mode;
 
+	enum {
+		SELSTATE_NONE,
+		SELSTATE_MARKING,
+		SELSTATE_MARKED,
+	} selstate;
+
+	int selstart_x, selstart_y;
+	int selend_x, selend_y;
+	int selpos_x, selpos_y;		// used with SELSTATE_MARKING
+
 	struct Parser_* parser;
 	struct Viewport_* viewport;
 };
@@ -207,7 +217,7 @@ static inline void fe_updated		(TE* te)
 	{ te->fe->updated(te->fe_priv); }
 
 static inline void fe_move			(TE* te, int y, int height, int byoffset)
-	{	te->fe->draw_move(te->fe_priv, y, height, byoffset); }
+	{ te->fe->draw_move(te->fe_priv, y, height, byoffset); }
 
 static inline void fe_position		(TE* te, int offset, int size)
 	{ te->fe->position(te->fe_priv, offset, size); }
@@ -222,7 +232,7 @@ static inline void fe_draw_cursor	(TE* te, symbol_color_t fg_color, symbol_color
 	{ te->fe->draw_cursor(te->fe_priv, fg_color, bg_color, attrs, x, y, cp); }
 
 static inline void fe_draw_move		(TE* te, int y, int height, int byoffset)
-	{te->fe->draw_move(te->fe_priv, y, height, byoffset); }
+	{ te->fe->draw_move(te->fe_priv, y, height, byoffset); }
 
 
 

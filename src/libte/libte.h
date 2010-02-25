@@ -30,6 +30,12 @@ extern "C" {
 typedef struct TE_Backend_	TE_Backend;
 typedef struct TE_Frontend_	TE_Frontend;
 
+/// Specifies what clipboard to act on.
+typedef enum _te_selection {
+	TE_CLIPBUF_PRIMARY		= (1<<0),	///< "selected" data in X11 (may be same as clipboard on other systems)
+	TE_CLIPBUF_CLIPBOARD	= (1<<1),	///< clipboard data
+} te_clipbuf_t;
+
 /**
  * This struct defines the callbacks made from terminal backend to frontend
  */
@@ -47,6 +53,10 @@ struct TE_Frontend_ {
 	void (*send_back)	(void* priv, const int32_t* data, int len);
 	void (*request_resize) (void* priv, int width, int height);
 	void (*position) (void* priv, int offset, int size);
+	void (*set_clipboard) (void* priv, te_clipbuf_t clipbuf, const int32_t* text, int len);
+
+	// returns Number of codepoints available.
+	int (*request_clipboard) (void* priv, te_clipbuf_t clipbuf, int32_t* text, int size);
 };
 
 typedef enum _te_key {
@@ -126,8 +136,9 @@ typedef enum _te_mouse_button {
 	TE_MOUSE_RIGHT		= (1<<2),
 	TE_MOUSE_WHEEL_UP	= (1<<3),
 	TE_MOUSE_WHEEL_DOWN	= (1<<4),
+	TE_MOUSE_DOUBLE		= (1<<5),	// Double-click
+	TE_MOUSE_TRIPLE		= (1<<6),	// Triple-click (or more)
 } te_mouse_button_t;
-
 
 DLLEXPORT const char* te_binary_version(void);
 
