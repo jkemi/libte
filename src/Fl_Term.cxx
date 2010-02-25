@@ -556,7 +556,7 @@ void Fl_Term::fe_bell() {
 	fl_beep();
 }
 
-void Fl_Term::fe_title(const int32_t* text) {
+void Fl_Term::fe_title(const int32_t* text, int len) {
 	// TODO: implement
 }
 
