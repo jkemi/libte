@@ -151,6 +151,11 @@ void viewport_request_redraw(TE* te, int x, int y, int w, int h, bool force) {
     		data = row->data;
     		ndata = row->used;
     	}
+/*
+		if (te->selstate == SELSTATE_MARKED) {
+			const int row = rowno-offset;
+			if (te->selsta)
+		}*/
 
 		int dirtstart;
 		int dirtend;
