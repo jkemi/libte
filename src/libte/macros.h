@@ -16,7 +16,7 @@
   #endif
   #define DLLLOCAL
 #else
-  #ifdef HAVE_GCCVISIBILITYPATCH
+  #if (__GNUC__ > 3) || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1)
     #define DLLEXPORT __attribute__ ((visibility("default")))
     #define DLLLOCAL __attribute__ ((visibility("hidden")))
   #else
