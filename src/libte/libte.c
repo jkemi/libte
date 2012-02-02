@@ -363,9 +363,7 @@ void fe_send_back_char(TE* te, const char* data) {
 // Public API below
 //
 
-const char* te_binary_version(void) {
-	return TE_SOURCE_VERSION;
-}
+const char* te_binary_version = TE_SOURCE_VERSION;
 
 TE_Backend* te_create(const TE_Frontend* front, void* priv, int width, int height) {
 	TE* te = te_new(front, priv, width, height);

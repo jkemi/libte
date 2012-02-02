@@ -1,4 +1,4 @@
-#include "libte/libte.h"
+#include "libte.h"
 
 class LibTE {
 private:

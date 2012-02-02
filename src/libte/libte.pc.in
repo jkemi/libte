@@ -1,0 +1,12 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: FLib
+Description: FLib portable ObjC framework
+Version: @FLIB_VERSION_MAJOR@.@FLIB_VERSION_MINOR@
+Requires:
+Libs: -L${libdir} -lobjc -lf
+Libs.private:
+Cflags: -I${includedir}

@@ -140,7 +140,7 @@ typedef enum _te_mouse_button {
 	TE_MOUSE_TRIPLE		= (1<<6),	// Triple-click (or more)
 } te_mouse_button_t;
 
-DLLEXPORT const char* te_binary_version(void);
+DLLEXPORT extern const char* te_binary_version;
 
 DLLEXPORT TE_Backend* te_create(const TE_Frontend* front, void* priv, int width, int height);
 DLLEXPORT void te_destroy(TE_Backend* te);

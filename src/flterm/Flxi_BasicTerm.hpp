@@ -8,7 +8,7 @@
 #include <FL/fl_draw.H>
 #include <FL/fl_ask.H>
 
-#include "LibTE.hpp"
+#include "libte/LibTE.hpp"
 
 #include "Flx_IResizableParent.hpp"
 #include "Flx_IChildHandler.hpp"
