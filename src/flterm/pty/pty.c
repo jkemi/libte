@@ -4,7 +4,7 @@
 #include <sys/stat.h>
 #include <sys/file.h>
 #include <stdio.h>
-#include <unistd.h>
+#include <unistd.h> // should include "environ" symbol (needs _GNU_SOURCE)
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <errno.h>

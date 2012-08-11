@@ -3,10 +3,10 @@ exec_prefix=${prefix}
 libdir=${exec_prefix}/lib
 includedir=${prefix}/include
 
-Name: FLib
-Description: FLib portable ObjC framework
-Version: @FLIB_VERSION_MAJOR@.@FLIB_VERSION_MINOR@
+Name: libTE
+Description: Terminal emulation core library
+Version: @LIBTE_VERSION_STRING@
 Requires:
-Libs: -L${libdir} -lobjc -lf
+Libs: -L${libdir}
 Libs.private:
 Cflags: -I${includedir}
