@@ -157,7 +157,6 @@ static void remove_utmp();
 static void add_utmp(PTY* pty, int);
 
 static int _pts_slave(PTY* pty) {
-	struct stat statbuf;
 	int sfd;
 	if (grantpt(pty->mfd) != 0) {
 		// TODO: handle? (errno set)
@@ -178,6 +177,8 @@ static int _pts_slave(PTY* pty) {
 	strncpy(pty->ptyname, name, 128);
 	pty->ptyname[127] = '\0';
 #else
+	struct stat statbuf;
+	
 	// Linux-specific reentrant version
 	if (ptsname_r(pty->mfd, pty->ptyname, 128) != 0) {
 		// TODO: handle? (errno set)
@@ -205,7 +206,7 @@ PTY* pty_spawn(const char *exe, const char* const* envdata) {
 	if (pid < 0)
 	{
 		fprintf(stderr, "Can't fork\n");
-		return -1;
+		return NULL;
 	}
 
 	sfd = 0; // what to do about the slave pty fd???

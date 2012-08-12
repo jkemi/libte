@@ -125,7 +125,7 @@ struct TE_Backend_ {
 	// Contains the currently set mode flags
 	int mode_flags;
 
-	// An boolean array where true means that there exists a tab-stop at that column
+	// A boolean array where true means that there exists a tab-stop at that column
 	bool* tab_stops;
 
 	const TE_Frontend*	fe;

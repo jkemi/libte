@@ -46,7 +46,7 @@ void viewport_reshape(TE* te, uint w, uint h) {
 
 void viewport_taint (TE* te, uint y, uint x, uint len) {
 	y += te->viewport->offset;
-	if (y >= 0 && y < te->height) {
+	if (y < te->height) {
 		dirty_taint(&te->viewport->dirty, y, x, x+len);
 	}
 }

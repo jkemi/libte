@@ -607,7 +607,7 @@ void ac_clear_tab(TE* te)
 {
 	switch ( parser_get_param(te->parser,0,0) ) {
 	case 3:
-		memset(te->tab_stops, 0, sizeof(te->tab_stops));
+		memset(te->tab_stops, 0, sizeof(bool)*te->width);
 		break;
 	case 0:
 		te->tab_stops[te->cursor_x] = false;

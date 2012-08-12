@@ -47,6 +47,9 @@ public:
 	ScrolledTermPriv(ScrolledTerm* p) {
 		_p = p;
 	}
+	
+	virtual ~ScrolledTermPriv() {
+	}
 
 	void _widget_cb(Fl_Widget* widget) {
 		if (widget == term) {

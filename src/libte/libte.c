@@ -520,7 +520,7 @@ void te_handle_mouse(TE_Backend* te, int mouse_x, int mouse_y, te_mouse_button_t
 	if (buttonchange && te->mouse_mode) {
 		uint8_t b = base;
 		if (pressed & TE_MOUSE_LEFT) {
-			b = b;
+			b = base;
 		} else if (pressed & TE_MOUSE_MIDDLE) {
 			b += 1;
 		} else if (pressed & TE_MOUSE_RIGHT) {
@@ -548,7 +548,7 @@ void te_handle_mouse(TE_Backend* te, int mouse_x, int mouse_y, te_mouse_button_t
 	) {
 		uint8_t b = base + 32;	// motion indicator
 		if (te->mouse_buttons & TE_MOUSE_LEFT) {
-			b = b;
+			b = base;
 		} else if (te->mouse_buttons & TE_MOUSE_MIDDLE) {
 			b += 1;
 		} else if (te->mouse_buttons & TE_MOUSE_RIGHT) {
