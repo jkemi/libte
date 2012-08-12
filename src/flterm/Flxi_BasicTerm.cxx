@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <alloca.h>
 #include <sys/time.h>
+#include <iconv.h>
 
 #include "strutil.h"
 
