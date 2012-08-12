@@ -98,9 +98,13 @@ static uint64_t getCurrentTime_us(void) {
 // Must only be called inside handle()
 static te_modifier_t getTeKeyModifiers() {
 	return (te_modifier_t)(
-		(Fl::event_ctrl()  ? TE_MOD_CTRL  : TE_MOD_NONE) |
-		(Fl::event_alt()   ? TE_MOD_META  : TE_MOD_NONE) |
-		(Fl::event_shift() ? TE_MOD_SHIFT : TE_MOD_NONE)
+		(Fl::event_ctrl()	? TE_MOD_CTRL  : TE_MOD_NONE) |
+// TODO: we need to detect altgr key from fltk somehow, since composed characters
+// shouldn't set MOD_META, disable for now.
+#ifndef __APPLE__
+		(Fl::event_alt()	? TE_MOD_META  : TE_MOD_NONE) |
+#endif
+		(Fl::event_shift()	? TE_MOD_SHIFT : TE_MOD_NONE)
 	);
 }
 
@@ -142,14 +146,15 @@ BasicTerm::BasicTerm (	int fontsize,
 	// TODO: something weird here:
 	// FLTK-1.1 _should_ really return iso8859-1 in event_text() but gives us UTF8 instead
 	// also we don't want UCS-4LE on a big-endian machine...
-#ifdef __APPLE__
+#if (__APPLE__ && FL_MINOR_VERSION < 3)
 	_fltk_to_cp = iconv_open("UCS-4LE", "MACROMAN");
 	_cp_to_fltk = iconv_open("MACROMAN", "UCS-4LE");
 #else
-	_fltk_to_cp = iconv_open("UCS-4LE", "UTF8");
-	_cp_to_fltk = iconv_open("UTF8", "UCS-4LE");
+	_fltk_to_cp = iconv_open("UCS-4LE", "UTF-8");
+	_cp_to_fltk = iconv_open("UTF-8", "UCS-4LE");
 #endif
 	if ((_fltk_to_cp == (iconv_t)-1) || _cp_to_fltk == (iconv_t)-1) {
+		fprintf(stderr, "iconv error");
 		// TODO: handle somehow
 		exit(EXIT_FAILURE);
 	}
@@ -189,7 +194,10 @@ void BasicTerm::init() {
 }
 
 int32_t BasicTerm::_fltkToCP(const char* text, size_t len) {
-	str_mbs_hexdump("in: ", text, len);
+#ifndef NDEBUG
+	printf("fltk->cp\n");
+	str_mbs_hexdump(" in: ", text, len);
+#endif
 
 /*	int deleted;
 	if (Fl::compose(deleted) == false) {
@@ -219,7 +227,7 @@ int32_t BasicTerm::_fltkToCP(const char* text, size_t len) {
 	size_t written = (size_t)((uintptr_t)outbuf - (uintptr_t)&cp);
 
 #ifndef NDEBUG
-	printf ("result: %d %p, %p: %d\n", (int)result, &cp, outbuf, (int)written);
+	printf (" result: %d %p, %p: %d\n", (int)result, &cp, outbuf, (int)written);
 #endif
 
 	if (written > 0) {
@@ -251,7 +259,7 @@ char BasicTerm::_cpToFltk(int32_t cp) {
 	size_t written = (size_t)((uintptr_t)outbuf - (uintptr_t)&c);
 
 #ifndef NDEBUG
-	printf ("result: %d %p, %p: %d\n", (int)result, &c, outbuf, (int)written);
+	printf ("cp->fltk\n result: %d %p, %p: %d\n", (int)result, &c, outbuf, (int)written);
 #endif
 
 	if (written > 0) {
@@ -325,12 +333,12 @@ bool BasicTerm::_handle_keyevent(void) {
 
 		const int32_t cp = _fltkToCP(Fl::event_text(), Fl::event_length());
 
-#ifndef NDEBUG
-		printf("cp was: %d\n", cp);
-#endif
-
 		te_modifier_t mod = getTeKeyModifiers();
 
+#ifndef NDEBUG
+		printf("cp was: %d mod was %d\n", cp, mod);
+#endif
+		
 		if (cp >= 0) {
 			teHandleKeypress(cp, mod);
 			return true;

@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <assert.h>
 
 #include <locale.h>
 #include <string.h>
@@ -50,7 +51,7 @@ public:
 		// add the pty to the fltk fd list, so we can catch any output
 		Fl::add_fd(_fd, FL_READ|FL_EXCEPT, mfd_cb, this);
 		// we want non-blocking reads from pty output
-		fcntl(_fd, F_SETFL, O_NONBLOCK);
+//		fcntl(_fd, F_SETFL, O_NONBLOCK);
 	}
 
 	~PseudoTermPriv() {
@@ -67,8 +68,8 @@ public:
 	// Called whenever input is received from pty process.
 	void got_child_input_cb(int mfd) {
 		ssize_t ret = read(mfd, _buf+_fill, (BUFSIZE-_fill)*sizeof(unsigned char));
-		if (ret == -1) {
-			printf("bye from %s:%d\n", __FILE__,__LINE__);
+		if (ret == -1 || ret == 0) {
+			printf("bye from %s:%d ret: %ld\n", __FILE__, __LINE__, ret);
 			// TODO: hello
 			exit(0);
 			//return;
@@ -123,12 +124,13 @@ PseudoTerm::~PseudoTerm() {
 // IChildHandler interface
 
 void PseudoTerm::child_sendto(const int32_t* data, int len) {
-	size_t nbytes = MB_CUR_MAX*(len+1);
+	const size_t nbytes = MB_CUR_MAX*(len+1);
 	char tmp[nbytes];
 
 	size_t nwritten;
 
-	str_cps_to_mbs_n(tmp, data, nbytes, len, &nwritten, NULL);
+	int ret = str_cps_to_mbs_n(tmp, data, nbytes, len, &nwritten, NULL);
+	assert (ret >= 0);
 
 //	str_mbs_hexdump("to pty: ", tmp, nwritten);
 	write(_impl->_fd, tmp, nwritten);

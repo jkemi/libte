@@ -223,7 +223,8 @@ PTY* pty_spawn(const char *exe, const char* const* envdata) {
 			fprintf(stderr, "big problems...\n");
 			exit(1);
 		}
-		execle(exe, exe, NULL, env);
+		// TODO: make -l (login option to bash etc) configurable
+		execle(exe, exe, "-l", NULL, env);
 		_env_free(env);
 		exit(0);
 	}

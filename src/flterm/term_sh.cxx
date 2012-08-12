@@ -63,7 +63,10 @@ class ResizeHandler : public Flx::IResizableParent {
 
 int main(int argc, char** argv)
 {
-	setlocale(LC_ALL, "");
+	// TODO: make configurable? or use "" for default?
+	if (setlocale(LC_ALL, "en_US.UTF-8") == NULL) {
+		exit(EXIT_FAILURE);
+	}
 	Fl::args(argc, argv);
 
 	const uint W = 734;
