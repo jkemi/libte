@@ -89,9 +89,6 @@ private:
 		int nrows;		// terminal height in chars
 	} gfx;
 
-	iconv_t		_fltk_to_cp;
-	iconv_t		_cp_to_fltk;
-
 	IChildHandler*	_child_handler;
 	IEventHandler*	_event_handler;
 
@@ -100,8 +97,7 @@ private:
 // Private methods
 //
 private:
-	int32_t			_fltkToCP(const char* text, size_t len);
-	char			_cpToFltk(int32_t cp);
+	static int32_t	_s_fltkToCP(const char* text, size_t len);
 	bool		 	_handle_keyevent(void);
 	static void		_s_deferred_update_cb(void* data) { ((BasicTerm*)data)->_deferred_update_cb();}
 	void			_deferred_update_cb();

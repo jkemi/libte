@@ -6,7 +6,6 @@
 #include <errno.h>
 #include <alloca.h>
 #include <sys/time.h>
-#include <iconv.h>
 
 #include "strutil.h"
 
@@ -142,29 +141,9 @@ BasicTerm::BasicTerm (	int fontsize,
 
 	_child_handler = childh;
 	_event_handler = eventh;
-
-
-	// TODO: something weird here:
-	// FLTK-1.1 _should_ really return iso8859-1 in event_text() but gives us UTF8 instead
-	// also we don't want UCS-4LE on a big-endian machine...
-#if (__APPLE__ && FL_MINOR_VERSION < 3)
-	_fltk_to_cp = iconv_open("UCS-4LE", "MACROMAN");
-	_cp_to_fltk = iconv_open("MACROMAN", "UCS-4LE");
-#else
-	_fltk_to_cp = iconv_open("UCS-4LE", "UTF-8");
-	_cp_to_fltk = iconv_open("UTF-8", "UCS-4LE");
-#endif
-	if ((_fltk_to_cp == (iconv_t)-1) || _cp_to_fltk == (iconv_t)-1) {
-		fprintf(stderr, "iconv error");
-		// TODO: handle somehow
-		exit(EXIT_FAILURE);
-	}
 }
 
 BasicTerm::~BasicTerm() {
-	iconv_close(_fltk_to_cp);
-	iconv_close(_cp_to_fltk);
-
 	tr_term();
 
 //	delete _child_handler;
@@ -194,80 +173,20 @@ void BasicTerm::init() {
 	_event_handler->event_size_range(minw, minh, maxw, maxh, font.pixw, font.pixh);
 }
 
-int32_t BasicTerm::_fltkToCP(const char* text, size_t len) {
-#ifndef NDEBUG
-	printf("fltk->cp\n");
-	str_mbs_hexdump(" in: ", text, len);
-#endif
-
-/*	int deleted;
-	if (Fl::compose(deleted) == false) {
-		return -1;
-	}
-
-	printf ("deleted: %d\n", deleted);*/
-
-	char* inbuf = (char*)text;
-	size_t inleft = len;
-
-	int32_t cp = -1;
-	char* outbuf = (char*)&cp;
-	size_t outleft = sizeof(int32_t);
-
-	// reinitialize iconv state
-	iconv(_fltk_to_cp, NULL, NULL, NULL, NULL);
-
-	size_t result = iconv(_fltk_to_cp, &inbuf, &inleft, &outbuf, &outleft);
-
-	if (result == (size_t)-1) {
-		int err = errno;
-		printf("not good: %d %s\n", err, strerror(err));
-		return -1;
-	}
-
-	size_t written = (size_t)((uintptr_t)outbuf - (uintptr_t)&cp);
-
-#ifndef NDEBUG
-	printf (" result: %d %p, %p: %d\n", (int)result, &cp, outbuf, (int)written);
-#endif
-
-	if (written > 0) {
-		return cp;
-	} else {
-		return -1;
-	}
-}
-
-char BasicTerm::_cpToFltk(int32_t cp) {
-	char* inbuf = (char*)&cp;
-	size_t inleft = sizeof(int32_t);
-
-	char c = 0;
-	char* outbuf = &c;
-	size_t outleft = 1;
-
-	// reinitialize iconv state
-	iconv(_cp_to_fltk, NULL, NULL, NULL, NULL);
-
-	size_t result = iconv(_cp_to_fltk, &inbuf, &inleft, &outbuf, &outleft);
-
-	if (result == (size_t)-1) {
-		int err = errno;
-		printf("not good: %d %s\n", err, strerror(err));
-		return -1;
-	}
-
-	size_t written = (size_t)((uintptr_t)outbuf - (uintptr_t)&c);
-
-#ifndef NDEBUG
-	printf ("cp->fltk\n result: %d %p, %p: %d\n", (int)result, &c, outbuf, (int)written);
-#endif
-
-	if (written > 0) {
-		return c;
-	} else {
-		return 0;
-	}
+int32_t BasicTerm::_s_fltkToCP(const char* text, size_t len) {
+	int32_t ret;
+	if (len == 0) {
+		ret = 0xFFFD;				// unicode REPLACEMENT CHARACTER
+	} else if (*text & 0x80) {              // what should be a multibyte encoding
+		int l;
+		ret = fl_utf8decode(text,text+len,&l);
+		if (l<2) {
+			ret = 0xFFFD;   // Turn errors into REPLACEMENT CHARACTER
+		}
+    } else {                      // handle the 1-byte utf8 encoding:
+		ret = *text;
+    }
+	return ret;
 }
 
 bool BasicTerm::_handle_keyevent(void) {
@@ -332,7 +251,7 @@ bool BasicTerm::_handle_keyevent(void) {
 		}
 		*/
 
-		const int32_t cp = _fltkToCP(Fl::event_text(), Fl::event_length());
+		const int32_t cp = _s_fltkToCP(Fl::event_text(), Fl::event_length());
 
 		te_modifier_t mod = getTeKeyModifiers();
 
