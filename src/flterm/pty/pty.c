@@ -195,7 +195,7 @@ static int _pts_slave(PTY* pty) {
 }
 
 PTY* pty_spawn(const char *exe, const char* const* envdata) {
-	int pid, sfd;
+	int pid;
 	PTY* pty = (PTY*)malloc(sizeof(PTY));
 
 #ifdef __APPLE__ /* or other BSD's? */
@@ -209,12 +209,14 @@ PTY* pty_spawn(const char *exe, const char* const* envdata) {
 		return NULL;
 	}
 
-	sfd = 0; // what to do about the slave pty fd???
-
 	if (!pid)
 	{ // slave process
-		setuid(uid);
-		setgid(gid);
+		if (setuid(uid) != 0) {
+			fprintf(stderr, "WARNING: setuid(%d) failed", uid);
+		}
+		if (setgid(gid) != 0) {
+			fprintf(stderr, "WARNING: setgid(%d) failed", gid);
+		}
 
 		// now spawn the shell in the terminal
 
@@ -250,7 +252,7 @@ PTY* pty_spawn(const char *exe, const char* const* envdata) {
 	}
 
 	if (!pid) { // slave process
-		sfd = _pts_slave(pty);
+		int sfd = _pts_slave(pty);
 		close(pty->mfd);
 
 		if (sfd < 0) {

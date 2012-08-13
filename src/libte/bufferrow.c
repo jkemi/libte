@@ -78,10 +78,8 @@ void bufrow_replace(BufferRow* br, uint x, const symbol_t* symbols, uint len) {
 		_bufrow_ensureCapacity(br, x+len);
 	}
 
-	uint ds = x;
 	if (x > br->used) {
 		_bufrow_pad(br, br->used, x-br->used);
-		ds = br->used;
 	}
 
 	memcpy(br->data+x, symbols, sizeof(symbol_t)*len);

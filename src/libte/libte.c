@@ -455,7 +455,7 @@ int te_handle_button(TE_Backend* te, te_key_t key) {
 		};
 
 		for (const keymap* const* t = tables; s == NULL && t != NULL; t++) {
-			for (const keymap* m = *t; s == NULL && m->keysym != TE_KEY_UNDEFINED; m++) {
+			for (const keymap* m = *t; m != NULL && s == NULL && m->keysym != TE_KEY_UNDEFINED; m++) {
 				if (key == m->keysym) {
 					s = m->str;
 				}

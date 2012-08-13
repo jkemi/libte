@@ -76,12 +76,16 @@ static void _load_font(const char* path, FT_Face* face) {
 		_fatal("unable to load font\n");
 	}
 
-	error = FT_Set_Char_Size(
+	// TODO: this was old block, maybe use FT_Set_Pixel_Size()?
+/*	error = FT_Set_Char_Size(
 			*face,		// handle to face object
 			0,			// char_width in 1/64th of points
 			WIDTH*64,	// char_height in 1/64th of points
 			0,			// horizontal device resolution
 			0 );
+	if (error) {
+		_fatal("unable to set char size\n");
+	}*/
 
 	if ( !FT_HAS_FIXED_SIZES((*face)) ) {
 		_fatal("not a fixed-size font\n");
@@ -111,7 +115,7 @@ static void _render_glyph(CacheElem* dest, symbol_t sym) {
 	}
 
 	FT_Face	face;
-	bool	slanted = false;
+	bool	slanted = false;	// italic
 	bool	underlined = false;
 
 	if ((attrs & (SYMBOL_BOLD|SYMBOL_BLINK)) == (SYMBOL_BOLD|SYMBOL_BLINK)) {
