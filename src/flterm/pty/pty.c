@@ -135,12 +135,14 @@ static char** _env_augment(const char* const* envdata) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 
-#include <limits.h>
 
 struct _PTY {
 	int			mfd;
 	char		ptyname[128];
+
+#ifndef __APPLE__
 	struct stat	ttystat;
+#endif
 
 #ifdef __APPLE__
 	struct utmpx	ut_entry;
@@ -153,6 +155,7 @@ int pty_getfd(PTY* pty) {
 	return pty->mfd;
 }
 
+// forward decls
 static void remove_utmp();
 static void add_utmp(PTY* pty, int);
 
@@ -167,29 +170,32 @@ static int _pts_slave(PTY* pty) {
 		return -1;
 	}
 
+	// Get the full pathname of the slave device counterpart to the master
+	// device (pty->mfd).
+
+#ifdef __APPLE__	// TODO: really, if we have ptsname_r
 	// Portable, non-reentrant version
-#ifdef __APPLE__
 	const char* name = ptsname(pty->mfd);
 	if (name == NULL) {
 		// TODO: handle? (errno set)
 		return -1;
 	}
-	strncpy(pty->ptyname, name, 128);
-	pty->ptyname[127] = '\0';
+	strncpy(pty->ptyname, name, sizeof(pty->ptyname));
+	pty->ptyname[sizeof(pty->ptyname)-1] = '\0';
 #else
-	struct stat statbuf;
-	
 	// Linux-specific reentrant version
-	if (ptsname_r(pty->mfd, pty->ptyname, 128) != 0) {
-		// TODO: handle? (errno set)
-		return -1;
-	}
-
-	if (stat(pty->ptyname, &statbuf) != 0) {
+	if (ptsname_r(pty->mfd, pty->ptyname, sizeof(pty->ptyname)) != 0) {
 		// TODO: handle? (errno set)
 		return -1;
 	}
 #endif
+
+	struct stat statbuf;
+	if (stat(pty->ptyname, &statbuf) != 0) {
+		// TODO: handle? (errno set)
+		return -1;
+	}
+	
 	sfd = open(pty->ptyname, O_RDWR);
 	return sfd;
 }
@@ -283,7 +289,7 @@ PTY* pty_spawn(const char *exe, const char* const* envdata) {
 			fprintf(stderr, "big problems...\n");
 			exit(1);
 		}
-		execle(exe, exe, NULL, env);
+		execle(exe, exe, "-l", NULL, env);
 		// FIXME: execle doesn't ever return
 		_env_free(env);
 		exit(0);
@@ -296,46 +302,50 @@ PTY* pty_spawn(const char *exe, const char* const* envdata) {
 }
 
 void pty_restore(PTY* pty) {
+#ifndef __APPLE__
 	chown(pty->ptyname, pty->ttystat.st_uid, pty->ttystat.st_gid);
 	chmod(pty->ptyname, pty->ttystat.st_mode);
+#endif
 
 	remove_utmp();
 
 	free(pty);
 }
 
-/*
+
+/* Linux
 struct utmp {
-	char	ut_line[UT_LINESIZE];
+	char	ut_line[UT_LINESIZE];			// tty name
 	char	ut_name[UT_NAMESIZE];
-	char	ut_host[UT_HOSTSIZE];
+	char	ut_host[UT_HOSTSIZE];			// host name
 	long	ut_time;
 };
 */
 
-#if 0
+/* OSX
 struct utmpx {
-             char ut_user[_UTX_USERSIZE];    /* login name */
-             char ut_id[_UTX_IDSIZE];        /* id */
-             char ut_line[_UTX_LINESIZE];    /* tty name */
-             pid_t ut_pid;                   /* process id creating the entry */
-             short ut_type;                  /* type of this entry */
-             struct timeval ut_tv;           /* time entry was created */
-             char ut_host[_UTX_HOSTSIZE];    /* host name */
-             __uint32_t ut_pad[16];          /* reserved for future use */
+             char ut_user[_UTX_USERSIZE];    // login name
+             char ut_id[_UTX_IDSIZE];        // id
+             char ut_line[_UTX_LINESIZE];    // tty name
+             pid_t ut_pid;                   // process id creating the entry
+             short ut_type;                  // type of this entry
+             struct timeval ut_tv;           // time entry was created
+             char ut_host[_UTX_HOSTSIZE];    // host name
+             __uint32_t ut_pad[16];          // reserved for future use
      };
-#endif
+*/
 
 
 static void add_utmp(PTY* pty, int spid) {
-
+	memset(&pty->ut_entry, 0, sizeof(pty->ut_entry) );
+	
 	pty->ut_entry.ut_type = USER_PROCESS;
 	pty->ut_entry.ut_pid = spid;
 	strcpy(pty->ut_entry.ut_line, pty->ptyname+5);
 	strcpy(pty->ut_entry.ut_id, pty->ptyname+8);
 	strcpy(pty->ut_entry.ut_user, getpwuid(getuid())->pw_name);
 
-//	printf("ut name \"%s\" (%d)\n", ut_entry.ut_user, getuid());
+	// printf("ut name \"%s\" (%d)\n", pty->ut_entry.ut_user, getuid());
 
 #ifdef __APPLE__
 	gettimeofday(&pty->ut_entry.ut_tv, NULL);
