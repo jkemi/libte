@@ -1,5 +1,8 @@
 #include "libte.h"
 
+/**
+ * C++ wrapper of libte
+ */
 class LibTE {
 private:
 	TE_Backend*	_te;
@@ -13,7 +16,10 @@ public:
 		}
 	}
 
-	void teInit(int width, int height) {
+	/**
+	 * Initializes an instance of libte
+	 */
+	bool teInit(int width, int height, void* options, size_t options_size) {
 		const static TE_Frontend _callbacks = {
 				&_impl_draw_text,
 				&_impl_draw_clear,
@@ -30,9 +36,14 @@ public:
 
 				&_impl_set_clipboard,
 				&_impl_request_clipboard,
+				&_impl_request_clipboard_done
 		};
 
-		_te = te_create(&_callbacks, this, width, height);
+		if (_te != NULL) {
+			te_destroy(_te);
+		}
+		_te = te_create(&_callbacks, this, width, height, options, options_size);
+		return _te != NULL;
 	}
 
 	/**
@@ -136,7 +147,8 @@ protected:
 	virtual void fe_request_resize(int width, int height) = 0;
 	virtual void fe_position(int offset, int size) = 0;
 	virtual void fe_set_clipboard (te_clipbuf_t clipbuf, const int32_t* text, int len) = 0;
-	virtual int fe_request_clipboard (te_clipbuf_t clipbuf, int32_t* text, int size) = 0;
+	virtual void* fe_request_clipboard (te_clipbuf_t clipbuf, int32_t* const* text, int* size) = 0;
+	virtual void fe_request_clipboard_done (void* token) = 0;
 
 
 private:
@@ -178,8 +190,12 @@ private:
 		((LibTE*)priv)->fe_set_clipboard(clipbuf, text, len);
 	}
 
-	static int _impl_request_clipboard (void* priv, te_clipbuf_t clipbuf, int32_t* text, int size) {
+	static void* _impl_request_clipboard (void* priv, te_clipbuf_t clipbuf, int32_t* const* text, int* size) {
 		return ((LibTE*)priv)->fe_request_clipboard(clipbuf, text, size);
+	}
+
+	static void _impl_request_clipboard_done (void* priv, void* token) {
+		((LibTE*)priv)->fe_request_clipboard_done(token);
 	}
 
 

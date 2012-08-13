@@ -15,6 +15,8 @@
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_Button.H>
 
+#include <libte/libte.h>
+
 #include "pty/pty.h"
 #include "pty/term.h"
 
@@ -63,6 +65,8 @@ class ResizeHandler : public Flx::IResizableParent {
 
 int main(int argc, char** argv)
 {
+	printf("libte compile version: %s, linked version: %s\n", TE_HEADER_VERSION, te_binary_version);
+	
 	// TODO: make configurable? or use "" for default?
 	if (setlocale(LC_ALL, "en_US.UTF-8") == NULL) {
 		exit(EXIT_FAILURE);

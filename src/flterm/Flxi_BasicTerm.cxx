@@ -151,7 +151,7 @@ BasicTerm::~BasicTerm() {
 }
 
 void BasicTerm::init() {
-	teInit(gfx.ncols, gfx.nrows);
+	teInit(gfx.ncols, gfx.nrows, NULL, 0);
 	_child_handler->child_resize(gfx.ncols, gfx.nrows);
 
 	const int pixwidth = (gfx.ncols*font.pixw)+Fl::box_dw(box());
@@ -537,10 +537,15 @@ void BasicTerm::fe_set_clipboard (te_clipbuf_t clipbuf, const int32_t* text, int
 	Fl::copy(tmp, clipboard);
 }
 
-int BasicTerm::fe_request_clipboard (te_clipbuf_t clipbuf, int32_t* text, int size) {
-	// TODO: implement ?
+void* BasicTerm::fe_request_clipboard (te_clipbuf_t clipbuf, int32_t* const* text, int* size) {
+	// TODO: implement?
 	return 0;
 }
+
+void BasicTerm::fe_request_clipboard_done (void* token) {
+	// TODO: implement?
+}
+
 
 
 }	// namespace impl

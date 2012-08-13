@@ -119,8 +119,8 @@ private:
 
 	void fe_send_back(const int32_t* data, int len);
 	void fe_set_clipboard (te_clipbuf_t clipbuf, const int32_t* text, int len);
-	int fe_request_clipboard (te_clipbuf_t clipbuf, int32_t* text, int size);
-
+	void* fe_request_clipboard (te_clipbuf_t clipbuf, int32_t* const* text, int* size);
+	void fe_request_clipboard_done (void* token);
 };
 
 } // namespace impl

@@ -363,10 +363,14 @@ void fe_send_back_char(TE* te, const char* data) {
 // Public API below
 //
 
-const char* te_binary_version = TE_SOURCE_VERSION;
+const char* te_binary_version = TE_HEADER_VERSION;
+int			te_binary_version_major = TE_HEADER_VERSION_MAJOR;
+int			te_binary_version_minor = TE_HEADER_VERSION_MINOR;
+int			te_binary_version_fix = TE_HEADER_VERSION_FIX;
 
-TE_Backend* te_create(const TE_Frontend* front, void* priv, int width, int height) {
-	TE* te = te_new(front, priv, width, height);
+
+TE_Backend* te_create(const TE_Frontend* front, void* user, int width, int height, const void* options, size_t options_size) {
+	TE* te = te_new(front, user, width, height);
 	return te;
 }
 

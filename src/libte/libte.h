@@ -25,8 +25,12 @@
 extern "C" {
 #endif
 
-#define TE_SOURCE_VERSION	"0.9.0"
-
+// compile time header version
+#define TE_HEADER_VERSION_MAJOR	0
+#define TE_HEADER_VERSION_MINOR	9
+#define TE_HEADER_VERSION_FIX	0
+#define TE_HEADER_VERSION		"0.9.0"
+	
 typedef struct TE_Backend_	TE_Backend;
 typedef struct TE_Frontend_	TE_Frontend;
 
@@ -53,10 +57,37 @@ struct TE_Frontend_ {
 	void (*send_back)	(void* priv, const int32_t* data, int len);
 	void (*request_resize) (void* priv, int width, int height);
 	void (*position) (void* priv, int offset, int size);
+	
+	/**
+	 * Called when terminal application requests copy to clipboard.
+	 *
+	 * \param priv		frontend private user data
+	 * \param clipbuf	requested clipboard
+	 * \param text		data to copy to clipboard
+	 * \param len		size of data to copy
+	 */
 	void (*set_clipboard) (void* priv, te_clipbuf_t clipbuf, const int32_t* text, int len);
 
-	// returns Number of codepoints available.
-	int (*request_clipboard) (void* priv, te_clipbuf_t clipbuf, int32_t* text, int size);
+	/**
+	 * Called when terminal application requests paste from clipboard.
+	 * Once clipboard data is used, request_clipboard_done() will be called.
+	 *
+	 * \param priv		frontend private user data
+	 * \param clipbuf	requested clipboard
+	 * \param text		should be set to pointer to clipboard data
+	 * \param size		should be set to size of clipboard data
+	 * \return token used with request_clipboard_done() callback
+	 */
+	void* (*request_clipboard) (void* priv, te_clipbuf_t clipbuf, int32_t* const* text, int* size);
+	
+	/**
+	 * Called when data from request_clipboard() is no longer needed.
+	 * Should free any data allocated by request_clipboard() callback.
+	 *
+	 * \param priv	frontend private user data
+	 * \param token	token returned from request_clipboard() callback
+	 */
+	void (*request_clipboard_done) (void* priv, void* token);
 };
 
 typedef enum _te_key {
@@ -141,8 +172,11 @@ typedef enum _te_mouse_button {
 } te_mouse_button_t;
 
 DLLEXPORT extern const char* te_binary_version;
+DLLEXPORT extern int		te_binary_version_major;
+DLLEXPORT extern int		te_binary_version_minor;
+DLLEXPORT extern int		te_binary_version_fix;
 
-DLLEXPORT TE_Backend* te_create(const TE_Frontend* front, void* priv, int width, int height);
+DLLEXPORT TE_Backend* te_create(const TE_Frontend* front, void* user, int width, int height, const void* options, size_t options_size);
 DLLEXPORT void te_destroy(TE_Backend* te);
 
 /**
