@@ -724,3 +724,25 @@ void ac_g1_set_us (TE* te) {
 void ac_g1_set_sg (TE* te) {
 	te->charset_g1 = chartable_special;
 }
+
+void ac_osc (TE* te) {
+	size_t size = parser_get_osc_size(te->parser);
+	const int32_t* data = parser_get_osc_data(te->parser);
+	
+	if (size < 2 || data[1] != ';') {
+		WARNF("unknown osc data of len: %ld", size);
+		return;
+	}
+	int32_t osc = data[0];
+	data+=2;
+	size-=2;
+	
+	switch(osc) {
+	case '0':
+	case '2':
+		fe_title(te, data, size);
+		break;
+	default:
+		WARNF("unknown osc code '%c' with data of len: %ld", osc, size);
+	}
+}

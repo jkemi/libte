@@ -181,6 +181,7 @@ static const StateOption state_osc[] = {
 	{ '\a',	&_parser_osc_end,		state_normal },
 	{ 0x9c,	&_parser_osc_end,		state_normal },	// 8-bit ST
 	{ 27, 	&_parser_osc_end,		state_esc	 },
+	
 	{ -1, 	&_parser_osc_put,		state_osc	}
 };
 

@@ -213,6 +213,10 @@ static inline void fe_bell			(TE* te)
 static inline void fe_request_resize	(TE* te, int width, int height)
 	{ te->fe->request_resize(te->fe_priv, width, height); }
 
+static inline void fe_title	(TE* te, const int32_t* text, int len)
+	{ te->fe->title(te->fe_priv, text, len); }
+
+
 static inline void fe_updated		(TE* te)
 	{ te->fe->updated(te->fe_priv); }
 

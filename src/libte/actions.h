@@ -58,6 +58,6 @@ DLLLOCAL void ac_g0_set_sg			(TE* te);	// Set character set G0 to DEC special gr
 DLLLOCAL void ac_g1_set_uk			(TE* te);	// Set character set G1 to UK
 DLLLOCAL void ac_g1_set_us			(TE* te);	// Set character set G1 to US
 DLLLOCAL void ac_g1_set_sg			(TE* te);	// Set character set G1 to DEC special graphics
-
+DLLLOCAL void ac_osc				(TE* te);	// Perform OS control (OSC)
 
 #endif /* ACTIONS_H_ */

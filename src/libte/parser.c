@@ -25,6 +25,10 @@ struct Parser_ {
 	// action parameters
 	int num_params;
 	int params[16];
+	
+	int32_t*	osc_buffer;
+	size_t		osc_size;
+	size_t		osc_capacity;
 
 	unsigned char intermediate_chars[2];
 
@@ -64,6 +68,14 @@ int parser_get_nparams(Parser* parser) {
 
 const int* parser_get_params(Parser* parser) {
 	return parser->params;
+}
+
+size_t parser_get_osc_size(Parser* parser) {
+	return parser->osc_size;
+}
+
+const int32_t* parser_get_osc_data(Parser* parser) {
+	return parser->osc_buffer;
 }
 
 void parser_input(Parser* parser, int len, const int32_t* data, TE* te)
@@ -115,15 +127,38 @@ void _parser_unknown_csi(TE* te) {
 }
 
 void _parser_osc_start(TE* te) {
-
+	te->parser->osc_buffer = malloc(32 * sizeof(int32_t));
+	te->parser->osc_capacity = 32;
+	te->parser->osc_size = 0;
 }
 
+// TODO: for performance, grab all available chars until ST BEL etc?
 void _parser_osc_put(TE* te) {
-
+	if (te->parser->osc_size == te->parser->osc_capacity) {
+		te->parser->osc_capacity *= 2;
+		te->parser->osc_buffer = realloc(te->parser->osc_buffer, te->parser->osc_capacity*sizeof(int32_t));
+	}
+	
+	te->parser->osc_buffer[te->parser->osc_size++] = *te->parser->input_data;
 }
 
 void _parser_osc_end(TE* te) {
-
+#if 0
+	char* tmp = malloc(te->parser->osc_size+1);
+	for (uint i=0; i<te->parser->osc_size; i++) {
+		tmp[i] = te->parser->osc_buffer[i];
+//		printf("got osc put: '%d' '%c'\n", i, tmp[i]);
+	}
+	tmp[te->parser->osc_size] = '\0';
+	printf("got osc data: '%s'\n", tmp);
+	free(tmp);
+#endif
+	ac_osc(te);
+	
+	free(te->parser->osc_buffer);
+	te->parser->osc_capacity = 0;
+	te->parser->osc_size = 0;
+	te->parser->osc_buffer = NULL;
 }
 
 void _parser_dcs_start(TE* te) {
@@ -151,7 +186,7 @@ void _parser_clear_param(TE* te)
 	te->parser->intermediate_chars[1] = 1;
 }
 
-// for performance, this grabs all digits
+// TODO: for performance, grab all available digits?
 void _parser_param_digit(TE* te)
 {
 	if (te->parser->num_params == 0) {
@@ -163,6 +198,7 @@ void _parser_param_digit(TE* te)
 
 void _parser_next_param(TE* te)
 {
+	// TODO: check so that number of params (16) don't overflow..
 	te->parser->num_params++;
 	te->parser->params[te->parser->num_params-1] = 0;
 }
