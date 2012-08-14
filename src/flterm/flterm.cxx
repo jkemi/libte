@@ -12,6 +12,7 @@
 #include <stdint.h>
 
 #include <FL/Fl.H>
+#include <FL/fl_ask.H>
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_Button.H>
 
@@ -22,7 +23,8 @@
 
 #include "strutil.h"
 
-#include "Flx_PseudoTerm.hpp"
+#include "Flx_ScrolledTerm.hpp"
+
 
 static Fl_Window* main_win;
 
@@ -52,13 +54,17 @@ class ResizeHandler : public Flx::IResizableParent {
 		//main_win->resizable(term);
 	}
 	void event_title(const int32_t* text, int len) {
-		size_t nbytes = MB_CUR_MAX*(len+1);
+		size_t nbytes = 6*(len) + 1;
 		char tmp[nbytes];
 
-		size_t nwritten;
-
-		str_cps_to_mbs_n(tmp, text, nbytes, len, &nwritten, NULL);
-		tmp[nwritten] = '\0';
+		char* dest = tmp;
+		for (int i=0; i<len; i++) {
+			int r = fl_utf8encode(text[i], dest);
+			dest += r;
+		}
+		*dest = '\0';
+		
+//		printf("changed title to: %s\n", tmp);
 		main_win->copy_label(tmp);
 	}
 };
@@ -108,7 +114,8 @@ int main(int argc, char** argv)
 	int x = 0 + Fl::box_dx(main_win->box());
 	int y = 0 + Fl::box_dy(main_win->box());
 
-	Flx::VT::PseudoTerm* term = new Flx::VT::PseudoTerm(parenth, pty, x, y, iw, ih);
+	Flx::VT::SlaveIO* ptyio = new Flx::VT::PtyIO( pty_getfd(pty) );
+	Flx::VT::ScrolledTerm* term = new Flx::VT::ScrolledTerm(parenth, ptyio, x, y, iw, ih);
 	main_win->resizable(term);
 
 	main_win->end();

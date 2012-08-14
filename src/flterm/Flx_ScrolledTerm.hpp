@@ -14,7 +14,7 @@
 #include <stddef.h>		// for size_t
 
 #include "Flx_IResizableParent.hpp"
-#include "Flx_IChildHandler.hpp"
+#include "Flx_SlaveIO.hpp"
 
 namespace Flx {
 namespace VT {
@@ -23,11 +23,14 @@ namespace impl {
 	class ScrolledTermPriv;
 }
 
+/**
+ * Composite widget containing a BasicTerm and scrollbars
+ */
 class ScrolledTerm : public Fl_Group {
 private:
 	impl::ScrolledTermPriv* const _impl;
 public:
-	ScrolledTerm(IResizableParent* parenth, IChildHandler* childh, int X, int Y, int W, int H);
+	ScrolledTerm(IResizableParent* parenth, SlaveIO* childh, int X, int Y, int W, int H);
 	virtual ~ScrolledTerm();
 
 	virtual void init();

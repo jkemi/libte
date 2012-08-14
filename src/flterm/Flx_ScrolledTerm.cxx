@@ -108,7 +108,7 @@ private:
 		width += dw;
 		height += dh;
 
-		printf("cock %d bapp: %d\n", height, scrollbar->h());
+		printf("want_size: h: %d scrollbar->h: %d\n", height, scrollbar->h());
 		//assert (height >= scrollbar->h());
 
 		_parenth->event_want_size(width, height);
@@ -122,7 +122,7 @@ private:
 
 }
 
-ScrolledTerm::ScrolledTerm(		IResizableParent* parenth, IChildHandler* childh,
+ScrolledTerm::ScrolledTerm(		IResizableParent* parenth, SlaveIO* childh,
 								int X, int Y, int W, int H
 	)
 // Parent constructors

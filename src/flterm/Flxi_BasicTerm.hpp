@@ -11,7 +11,7 @@
 #include "libte/LibTE.hpp"
 
 #include "Flx_IResizableParent.hpp"
-#include "Flx_IChildHandler.hpp"
+#include "Flx_SlaveIO.hpp"
 
 namespace Flx {
 namespace VT {
@@ -35,6 +35,12 @@ public:
 	// Interface defining event handling for higher GUI functions.
 	class IEventHandler : public IResizableParent {
 	public:
+		/**
+		 * requst setting of horizontal scroll position
+		 *
+		 * \param offset	new scroll position
+		 * \param size		new total size
+		 */
 		virtual void event_scrollposition(int offset, int size) = 0;
 	};
 
@@ -43,7 +49,7 @@ public:
 public:
 	// constructor
 	// childh, eventh must be valid for the entire lifetime of Fl_Term
-	BasicTerm(int fontsize, IChildHandler* childh, IEventHandler* eventh, int X, int Y, int W, int H);
+	BasicTerm(int fontsize, SlaveIO* childh, IEventHandler* eventh, int X, int Y, int W, int H);
 	virtual ~BasicTerm();
 
 	virtual void init();
@@ -89,7 +95,7 @@ private:
 		int nrows;		// terminal height in chars
 	} gfx;
 
-	IChildHandler*	_child_handler;
+	SlaveIO*		_child_handler;
 	IEventHandler*	_event_handler;
 
 
@@ -102,6 +108,9 @@ private:
 	static void		_s_deferred_update_cb(void* data) { ((BasicTerm*)data)->_deferred_update_cb();}
 	void			_deferred_update_cb();
 
+	// SlaveIO::handler_t
+	static void		_s_handle_from_slave(const int32_t* data, size_t len, void* priv) {((BasicTerm*)priv)->_handle_from_slave(data, len);}
+	void			_handle_from_slave(const int32_t* data, size_t len);
 //
 // These are TE_Frontend callback handlers
 //

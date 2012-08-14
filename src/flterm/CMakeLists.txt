@@ -1,5 +1,5 @@
 SET(flte_sources
-	Flx_PseudoTerm.cxx
+	Flx_SlaveIO.cxx
 	Flx_ScrolledTerm.cxx
 	Flxi_BasicTerm.cxx
 	fontrender.c
@@ -37,7 +37,7 @@ ENDIF()
 ADD_LIBRARY(flte STATIC ${flte_sources})
 TARGET_LINK_LIBRARIES(flte te ${FREETYPE_LIBRARIES})
 
-ADD_EXECUTABLE(flterm "term_sh.cxx")
+ADD_EXECUTABLE(flterm "flterm.cxx")
 TARGET_LINK_LIBRARIES( flterm flte ${FLTK_LIBRARIES})
 ADD_DEFINITIONS(-D_GNU_SOURCE)
 

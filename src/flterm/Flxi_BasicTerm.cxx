@@ -112,7 +112,7 @@ static te_modifier_t getTeKeyModifiers() {
 // This is the implementation of the user-facing parts of the widget...
 /************************************************************************/
 BasicTerm::BasicTerm (	int fontsize,
-						IChildHandler* childh, IEventHandler* eventh,
+						SlaveIO* childh, IEventHandler* eventh,
 						int X, int Y, int W, int H)
 // Parent constructors
 	: Fl_Box(X,Y,W,H,0)
@@ -141,6 +141,8 @@ BasicTerm::BasicTerm (	int fontsize,
 
 	_child_handler = childh;
 	_event_handler = eventh;
+	
+	_child_handler->setHandler(&_s_handle_from_slave, this);
 }
 
 BasicTerm::~BasicTerm() {
@@ -152,7 +154,7 @@ BasicTerm::~BasicTerm() {
 
 void BasicTerm::init() {
 	teInit(gfx.ncols, gfx.nrows, NULL, 0);
-	_child_handler->child_resize(gfx.ncols, gfx.nrows);
+	_child_handler->resizeSlave(gfx.ncols, gfx.nrows);
 
 	const int pixwidth = (gfx.ncols*font.pixw)+Fl::box_dw(box());
 	const int pixheight = (gfx.nrows*font.pixh)+Fl::box_dh(box());
@@ -291,6 +293,15 @@ bool BasicTerm::_handle_keyevent(void) {
 void BasicTerm::_deferred_update_cb() {
 	damage(FL_DAMAGE_USER1);
 }
+	
+void BasicTerm::_handle_from_slave(const int32_t *data, size_t len) {
+	// Process exited!
+	if (len == 0) {
+		int exit_status = *data;
+		exit(0);
+	}
+	teProcessInput(data, len);
+}
 
 /************************************************************************/
 // handle keyboard focus etc
@@ -363,7 +374,7 @@ void BasicTerm::resize(int x, int y, int W, int H)
 	gfx.nrows = (h()-Fl::box_dh(box())) / font.pixh;
 
 	if (gfx.ncols != teGetWidth() || gfx.nrows != teGetHeight()) {
-		if (!_child_handler->child_resize(gfx.ncols, gfx.nrows)) {
+		if (!_child_handler->resizeSlave(gfx.ncols, gfx.nrows)) {
 			printf("not able to resize child");
 			return;
 		}
@@ -507,7 +518,7 @@ void BasicTerm::fe_title(const int32_t* text, int len) {
 }
 
 void BasicTerm::fe_send_back(const int32_t* data, int len) {
-	_child_handler->child_sendto(data, len);
+	_child_handler->toSlave(data, len);
 }
 
 void BasicTerm::fe_request_resize(int width, int height) {
