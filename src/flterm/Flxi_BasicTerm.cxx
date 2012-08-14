@@ -363,6 +363,11 @@ void BasicTerm::resize(int x, int y, int W, int H)
 	gfx.nrows = (h()-Fl::box_dh(box())) / font.pixh;
 
 	if (gfx.ncols != teGetWidth() || gfx.nrows != teGetHeight()) {
+		if (!_child_handler->child_resize(gfx.ncols, gfx.nrows)) {
+			printf("not able to resize child");
+			return;
+		}
+		
 		teResize(gfx.ncols, gfx.nrows);
 
 		gfx.ncols = teGetWidth();
@@ -372,7 +377,6 @@ void BasicTerm::resize(int x, int y, int W, int H)
 		gfx.xoff = Fl::box_dx(box()); // ((w()-Fl::box_dw(box())) - gfx.pixw) / 2 + Fl::box_dx(box());
 		gfx.yoff = Fl::box_dy(box()); // ((h()-Fl::box_dh(box())) - gfx.pixh) / 2 + Fl::box_dy(box());
 
-		_child_handler->child_resize(gfx.ncols, gfx.nrows);
 
 		printf("terminal resized to: %d, %d\n", gfx.ncols, gfx.nrows);
 	}

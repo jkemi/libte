@@ -33,7 +33,7 @@ private:
 protected:
 	// IChildHandler interface
 	void child_sendto(const int32_t* data, int len);
-	void child_resize(int width, int height);
+	bool child_resize(int width, int height);
 
 };
 

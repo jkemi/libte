@@ -29,7 +29,7 @@ namespace Flx {
 namespace VT {
 
 namespace impl {
-
+	
 class PseudoTermPriv {
 public:
 	friend class Flx::VT::PseudoTerm;
@@ -136,8 +136,9 @@ void PseudoTerm::child_sendto(const int32_t* data, int len) {
 	write(_impl->_fd, tmp, nwritten);
 }
 
-void PseudoTerm::child_resize(int width, int height) {
+bool PseudoTerm::child_resize(int width, int height) {
 	term_set_window_size(_impl->_fd, width, height);
+	return true;
 }
 
 }	// namespace VT

@@ -55,6 +55,8 @@ struct TE_Frontend_ {
 	void (*bell) 		(void* priv);
 	void (*title) 		(void* priv, const int32_t* text, int len);
 	void (*send_back)	(void* priv, const int32_t* data, int len);
+	
+	/** terminal application requested a new size, honor by resizing frontend window, signalling pty, and call te_resize() */
 	void (*request_resize) (void* priv, int width, int height);
 	void (*position) (void* priv, int offset, int size);
 	
