@@ -139,6 +139,7 @@ static char** _env_augment(const char* const* envdata) {
 struct _PTY {
 	int			mfd;
 	char		ptyname[128];
+	pid_t		childpid;
 
 #ifndef __APPLE__
 	struct stat	ttystat;
@@ -201,7 +202,7 @@ static int _pts_slave(PTY* pty) {
 }
 
 PTY* pty_spawn(const char *exe, const char* const* envdata) {
-	int pid;
+	pid_t pid;
 	PTY* pty = (PTY*)malloc(sizeof(PTY));
 
 #ifdef __APPLE__ /* or other BSD's? */
@@ -236,11 +237,6 @@ PTY* pty_spawn(const char *exe, const char* const* envdata) {
 		_env_free(env);
 		exit(0);
 	}
-	// else master process
-//printf("pty is: %s\n", pty_name);
-	add_utmp(pty, pid);
-
-	return pty;
 #else // non-Apple pty fork
 	pty->mfd = getpt();
 
@@ -294,11 +290,14 @@ PTY* pty_spawn(const char *exe, const char* const* envdata) {
 		_env_free(env);
 		exit(0);
 	} // end of slave process
-// else the master process...
-	add_utmp(pty, pid);
-
-	return pty;
 #endif /* end of "non-Apple" pts fork */
+	
+	// master process
+	
+	pty->childpid = pid;
+	add_utmp(pty, pid);
+	
+	return pty;
 }
 
 void pty_restore(PTY* pty) {
