@@ -1,35 +1,74 @@
-// Copyright Timothy Miller, 1999
+//#include <sys/types.h>
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/file.h>
-#include <stdio.h>
+//#include <sys/file.h>
+//#include <stdio.h>
+
 #include <unistd.h> // should include "environ" symbol (needs _GNU_SOURCE)
+#ifdef __APPLE__
+#	include <crt_externs.h>	// for _NSGetEnviron()
+#endif
+
 #include <fcntl.h>
 #include <sys/ioctl.h>
+#include <termios.h>
 #include <errno.h>
-#include <grp.h>
+//#include <grp.h>
 #include <string.h>
-#include <signal.h>
-#include <time.h>
-#include <sys/time.h>
-#include <pwd.h>
-#include <utmp.h>
+//#include <signal.h>
+//#include <time.h>
+//#include <sys/time.h>
+//#include <pwd.h>
+//#include <utmp.h>
 #ifdef __APPLE__ // maybe other BSD's too?
 #  include <utmpx.h> //imm
 #  include <util.h> //imm
 #endif
 #include <stdlib.h>
-#include <stdint.h>
 
 #include "term.h"
 
 #include "pty.h"
 
-// TODO: gross hack, please remove
-#ifdef __APPLE__ // maybe other BSD's too?
-	char** environ;
+////////////////////////////////////////////////////////////////////////////////////////////
+
+// 0 on success, <0 on error
+int pty_set_window_size(int fd, int width, int height) {
+	struct winsize ws;
+	
+	ws.ws_col = width;
+	ws.ws_row = height;
+	
+	// TODO: these are unused? (seems so in Gnome's libvte and others at least...)
+	ws.ws_xpixel = 0;
+	ws.ws_ypixel = 0;
+#ifndef NDEBUG
+	fprintf(stderr, "Setting ioctl TERM dimensions to %d, %d\n", width, height);
 #endif
+	if (ioctl(fd, TIOCSWINSZ, &ws) == -1) {
+		return -1;
+	}
+	return 0;
+}
+
+static void term_set_utf8(int fd, int utf8) {
+#if defined(IUTF8)
+	struct termios tio;
+	tcflag_t saved_cflag;
+	if (fd != -1) {
+		if (tcgetattr(fd, &tio) != -1) {
+			saved_cflag = tio.c_iflag;
+			tio.c_iflag &= ~IUTF8;
+			if (utf8) {
+				tio.c_iflag |= IUTF8;
+			}
+			if (saved_cflag != tio.c_iflag) {
+				tcsetattr(fd, TCSANOW, &tio);
+			}
+		}
+	}
+#endif
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -64,7 +103,7 @@ static const char* _env_find_value(const char* const* env, const char* needle, s
  * Free memory allocated in _env_augment.
  * \param env	A collection to free.
  */
-static void _env_free(char** env) {
+void pty_env_free(char** env) {
 	for (char** e = env; *e != NULL; e++) {
 		free (*e);
 	}
@@ -77,16 +116,23 @@ static void _env_free(char** env) {
  *
  * Returned data will be that from global environment, environ(7) combined with envdata.
  * Returned data should be freed with _env_free
+ * does not alter global environment
  *
  * \param envdata	A collection of variables to add.
  * \return The newly allocated combined environment.
  */
-static char** _env_augment(const char* const* envdata) {
+char** pty_env_augment(const char* const* envdata) {
 	// Count maximum number of environment variables from both collections
 
+#ifdef __APPLE__
+	const char* const* globalenv = *_NSGetEnviron();
+#else
+	const char* const* globalenv = environ;
+#endif
+	
 	int nvars = 0;
 
-	for (char** e = environ; *e != NULL; e++) {
+	for (const char* const* e = globalenv; *e != NULL; e++) {
 		nvars++;
 	}
 	for (const char* const* e = envdata; *e != NULL; e++) {
@@ -95,18 +141,21 @@ static char** _env_augment(const char* const* envdata) {
 
 	// Allocate and clear return collection
 	char** ret = (char**)malloc(sizeof(char*)*(nvars+1));
+	if (ret == NULL) {
+		return NULL;
+	}
 	memset(ret, 0, sizeof(char*)*(nvars+1));
 
 	int pos = 0;
 
 	// Write all variables found in environ(7), but not in envdata
-	for (char** varp = environ; *varp != NULL; varp++) {
+	for (const char* const* varp = globalenv; *varp != NULL; varp++) {
 		const char* var = *varp;
 
 		// Sanity check environ
 		const char* eqpos = strchr(var, '=');
 		if (eqpos == NULL) {
-			_env_free(ret);
+			pty_env_free(ret);
 			return NULL;
 		}
 
@@ -123,7 +172,7 @@ static char** _env_augment(const char* const* envdata) {
 		// Sanity check envdata
 		const char* eqpos = strchr(var, '=');
 		if (eqpos == NULL) {
-			_env_free(ret);
+			pty_env_free(ret);
 			return NULL;
 		}
 
@@ -133,17 +182,12 @@ static char** _env_augment(const char* const* envdata) {
 	return ret;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////
 
+////////////////////////////////////////////////////////////////////////////////////////////
 
 struct _PTY {
 	int			mfd;
-	char		ptyname[128];
 	pid_t		childpid;
-
-#ifndef __APPLE__
-	struct stat	ttystat;
-#endif
 
 #ifdef __APPLE__
 	struct utmpx	ut_entry;
@@ -160,155 +204,168 @@ int pty_getfd(PTY* pty) {
 static void remove_utmp();
 static void add_utmp(PTY* pty, int);
 
-static int _pts_slave(PTY* pty) {
-	int sfd;
-	if (grantpt(pty->mfd) != 0) {
-		// TODO: handle? (errno set)
-		return -1;
-	}
-	if (unlockpt(pty->mfd) != 0) {
-		// TODO: handle? (errno set)
-		return -1;
-	}
 
-	// Get the full pathname of the slave device counterpart to the master
-	// device (pty->mfd).
-
-#ifdef __APPLE__	// TODO: really, if we have ptsname_r
-	// Portable, non-reentrant version
-	const char* name = ptsname(pty->mfd);
-	if (name == NULL) {
-		// TODO: handle? (errno set)
-		return -1;
-	}
-	strncpy(pty->ptyname, name, sizeof(pty->ptyname));
-	pty->ptyname[sizeof(pty->ptyname)-1] = '\0';
-#else
-	// Linux-specific reentrant version
-	if (ptsname_r(pty->mfd, pty->ptyname, sizeof(pty->ptyname)) != 0) {
-		// TODO: handle? (errno set)
-		return -1;
-	}
-#endif
-
-	struct stat statbuf;
-	if (stat(pty->ptyname, &statbuf) != 0) {
-		// TODO: handle? (errno set)
-		return -1;
+static void _err_errno(const char* message, int errnum, char** err) {
+	if (err == NULL) {
+		return;
 	}
 	
-	sfd = open(pty->ptyname, O_RDWR);
-	return sfd;
+	char buf[256];
+	strerror_r(errnum, buf, sizeof(buf));
+	
+	
+	size_t lm = strlen(message);
+	size_t le = strlen(buf);
+	
+	char* s = malloc(lm+le+1);
+	if (s == NULL) {
+		// not much to do, unable to allocate memory for error message..
+		return;
+	}
+	memcpy(s, message, lm);
+	memcpy(s+lm, buf, le);
+	s[lm+le] = '\0';
+	*err = s;
 }
 
-PTY* pty_spawn(const char *exe, const char* const* envdata) {
+PTY* pty_spawn(const char *exe, const char* const* args, const char* const* env, char** err) {
 	pid_t pid;
+	
+	// create augmented environment
 	PTY* pty = (PTY*)malloc(sizeof(PTY));
-
-#ifdef __APPLE__ /* or other BSD's? */
-	const int uid = getuid();
-	const int gid = getgid();
-
-	pid = forkpty(&pty->mfd, pty->ptyname, NULL, NULL);
-	if (pid < 0)
-	{
-		fprintf(stderr, "Can't fork\n");
+	if (pty == NULL) {
+		_err_errno("unable to allocate memory: ", errno, err);
+		return NULL;
+	}
+	
+// UNIX98 ptys
+	int ptm, pts=-1;	// pty master and slave fd
+	
+	ptm = posix_openpt(O_RDWR);
+	if (ptm == -1) {
+		_err_errno("unable to open pty master: ", errno, err);
+		return NULL;
+	}
+	
+	if (grantpt(ptm)) {
+		_err_errno("unable to set pty slave perms: ", errno, err);
+		return NULL;
+	}
+	
+	if (unlockpt(ptm)) {
+		_err_errno("unable to unlock pty slave: ", errno, err);
+		return NULL;
+	}
+	
+	// open pty slave fd
+	// on linux ptsname_r exists..
+	const char* slavename = ptsname(ptm);
+	if (slavename != NULL) {
+		pts = open(slavename, O_RDWR);
+	}
+	if (pts == -1) {
+		_err_errno("unable to open pty slave: ", errno, err);
 		return NULL;
 	}
 
-	if (!pid)
-	{ // slave process
-		if (setuid(uid) != 0) {
-			fprintf(stderr, "WARNING: setuid(%d) failed", uid);
-		}
-		if (setgid(gid) != 0) {
-			fprintf(stderr, "WARNING: setgid(%d) failed", gid);
-		}
-
-		// now spawn the shell in the terminal
-
-		char** env = _env_augment(envdata);
-		if (env == NULL) {
-			fprintf(stderr, "big problems...\n");
-			exit(1);
-		}
-		// TODO: make -l (login option to bash etc) configurable
-		execle(exe, exe, "-l", NULL, env);
-		_env_free(env);
-		exit(0);
-	}
-#else // non-Apple pty fork
-	pty->mfd = getpt();
-
-	if (pty->mfd < 0) {
-		fprintf(stderr, "Can't open master pty\n");
-		free(pty);
-		return NULL;
-	}
-
+	// fork process
 	pid = fork();
-	if (pid < 0) {
-		fprintf(stderr, "Can't fork\n");
-		free(pty);
+	if (pid == -1) {
+		_err_errno("unable to fork pty child: ", errno, err);
 		return NULL;
 	}
+	
+	if (pid == 0) {		// slave process
+		close(ptm);		// close pty master
 
-	if (!pid) { // slave process
-		int sfd = _pts_slave(pty);
-		close(pty->mfd);
+		// TODO: enable any blocked signals...
+		
+		// SET RAW MODE
+		/*
+		struct termios slave_orig_term_settings; // Saved terminal settings
+		struct termios new_term_settings; // Current terminal settings
+		new_term_settings = slave_orig_term_settings;
+		cfmakeraw (&new_term_settings);
+		tcsetattr (pts, TCSANOW, &new_term_settings);
+		*/
 
-		if (sfd < 0) {
-			fprintf(stderr, "Can't open child (%d)\n", sfd);
-			free(pty);
-			return NULL;
+//		fprintf(stderr, "sid: %d -> %d\n", getsid(getpid()), getpid());
+		
+		// make pty slave stdin,stdout,stderr of new process
+		dup2(pts, STDIN_FILENO);
+		dup2(pts, STDOUT_FILENO);
+		dup2(pts, STDERR_FILENO);
+		if (pts > STDERR_FILENO) {	// fd useless unless already was low fd
+			close(pts);
 		}
+		
+		
+		// Make the current process a new session leader
+		setsid();
+		
+		// As the child is a session leader, set the controlling terminal to be the slave side of the PTY
+		// (Mandatory for programs like the shell to make them manage correctly their outputs)
+		ioctl(0, TIOCSCTTY, 1);
+		
+		// TODO: close all filedescriptors but 0,1,2
+		
+		// set terminal to utf-8 mode
+		term_set_utf8(pts, 1);
+		
+		// TODO: make -l (login option to bash etc) configurable
+		execve(exe, args, env);
+		
+		// we only ever get here if execle failed
+		fprintf(stderr, "unable to exec slave '%s', reason: %s", exe, strerror(errno));
+		exit(1);
+	}
 
-//		setuid(uid);
-//		setgid(gid);
-
-		if (setsid() < 0)
-			fprintf(stderr, "Could not set session leader\n");
-
-//		if (ioctl(sfd, TIOCSCTTY, NULL))
-//			fprintf(stderr, "Could not set controllint tty\n");
-
-		dup2(sfd, STDIN_FILENO);
-		dup2(sfd, STDOUT_FILENO);
-		dup2(sfd, STDERR_FILENO);
-		if (sfd > 2)
-			close(sfd);
-
-		term_set_utf8(sfd, 1);
-
-		char** env = _env_augment(envdata);
-		if (env == NULL) {
-			fprintf(stderr, "big problems...\n");
-			exit(1);
-		}
-		execle(exe, exe, "-l", NULL, env);
-		// FIXME: execle doesn't ever return
-		_env_free(env);
-		exit(0);
-	} // end of slave process
-#endif /* end of "non-Apple" pts fork */
+	
 	
 	// master process
+	close(pts);	// close pty slave
 	
+	fcntl(ptm, F_SETFL, O_NONBLOCK);
+	
+	pty->mfd = ptm;
 	pty->childpid = pid;
 	add_utmp(pty, pid);
 	
 	return pty;
 }
 
-void pty_restore(PTY* pty) {
-#ifndef __APPLE__
-	chown(pty->ptyname, pty->ttystat.st_uid, pty->ttystat.st_gid);
-	chmod(pty->ptyname, pty->ttystat.st_mode);
-#endif
+/**
+ * >=0 for exit status on normal exit
+ * <signum for exit by signal
+ */
+int pty_restore(PTY* pty) {
+	close(pty->mfd);
 
-	remove_utmp();
+	int ret;
+	if (pty->childpid != -1) {
+		int status;
+		pid_t r = waitpid(pty->childpid, &status, WNOHANG);
+		// -1 if already awaited (would be bug in our code)
+		if (r == 0 || WIFSTOPPED(status)) {	// alive..
+			// TODO: what to do??
+			ret = -16;
+		} else {
+			if (WIFEXITED(status)) {	// exited normally
+				ret = WEXITSTATUS(status);
+			} else if (WIFSIGNALED(status)) {
+				ret = -WTERMSIG(status);
+			} else { // WIFSTOPPED
+			}
+		}
+		
+	}
+	
+
+	remove_utmp(pty);
 
 	free(pty);
+	
+	return ret;
 }
 
 
@@ -340,8 +397,8 @@ static void add_utmp(PTY* pty, int spid) {
 	
 	pty->ut_entry.ut_type = USER_PROCESS;
 	pty->ut_entry.ut_pid = spid;
-	strcpy(pty->ut_entry.ut_line, pty->ptyname+5);
-	strcpy(pty->ut_entry.ut_id, pty->ptyname+8);
+//	strcpy(pty->ut_entry.ut_line, pty->ptyname+5);
+//	strcpy(pty->ut_entry.ut_id, pty->ptyname+8);
 	strcpy(pty->ut_entry.ut_user, getpwuid(getuid())->pw_name);
 
 	// printf("ut name \"%s\" (%d)\n", pty->ut_entry.ut_user, getuid());
@@ -388,5 +445,3 @@ static void remove_utmp(PTY* pty)
 	endutent();
 #endif
 }
-
-/* end of file */

@@ -19,7 +19,6 @@
 #include <libte/libte.h>
 
 #include "pty/pty.h"
-#include "pty/term.h"
 
 #include "strutil.h"
 
@@ -85,19 +84,38 @@ int main(int argc, char** argv)
 	Flx::IResizableParent* parenth = new ResizeHandler();
 
 	// Variables to add or replace in environ
-	static const char*const envdata[] = {
+	static const char*const envextra[] = {
 		"TERM=xterm",
 		"LANG=en_US.UTF-8",
 		NULL
 	};
+	
 
 	const char* shell = getenv("SHELL");
 	if (shell == NULL) {
 		shell = "/bin/sh";
 	}
+	
+	const char* args[] = {
+		shell,
+		"-l",
+		NULL
+	};
+	char** env = pty_env_augment(envextra);
+	if (env == NULL) {
+		fprintf(stderr, "unable to augment environment");
+		exit(EXIT_FAILURE);
+	}
 	// spawn shell in pseudo terminal
-	PTY* pty = pty_spawn(shell, envdata);
+	char* err = NULL;
+	PTY* pty = pty_spawn(shell, args, env, &err);
+	pty_env_free(env);
 	if (pty == NULL) {
+		if (err) {
+			fprintf(stderr, "unable to open slave: %s", err);
+		} else {
+			fprintf(stderr, "unable to open slave");
+		}
 		exit(EXIT_FAILURE);
 	}
 

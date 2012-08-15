@@ -15,7 +15,6 @@
 #include <FL/Fl.H>
 
 #include "pty/pty.h"
-#include "pty/term.h"
 #include "strutil.h"
 
 #include "Flx_SlaveIO.hpp"
@@ -34,8 +33,7 @@ PtyIO::~PtyIO() {
 }
 	
 bool PtyIO::resizeSlave(int width, int height) {
-	term_set_window_size(_fd, width, height);
-	return true;
+	return pty_set_window_size(_fd, width, height) == 0;
 }
 
 bool PtyIO::toSlave(const int32_t* data, int len) {

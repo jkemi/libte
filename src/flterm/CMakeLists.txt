@@ -5,7 +5,6 @@ SET(flte_sources
 	fontrender.c
 	strutil.c
 	pty/pty.c
-	pty/term.c
 )
 
 CONCAT (CMAKE_EXE_LINKER_FLAGS "-Wl,-x")
