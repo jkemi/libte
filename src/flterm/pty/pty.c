@@ -1,7 +1,7 @@
 //#include <sys/types.h>
 
 //#include <sys/file.h>
-//#include <stdio.h>
+#include <stdio.h>
 
 #include <unistd.h> // should include "environ" symbol (needs _GNU_SOURCE)
 #ifdef __APPLE__
@@ -18,14 +18,13 @@
 //#include <time.h>
 //#include <sys/time.h>
 //#include <pwd.h>
-//#include <utmp.h>
+#include <utmp.h>
 #ifdef __APPLE__ // maybe other BSD's too?
 #  include <utmpx.h> //imm
 #  include <util.h> //imm
 #endif
 #include <stdlib.h>
-
-#include "term.h"
+#include <stdint.h>
 
 #include "pty.h"
 
@@ -398,12 +397,13 @@ static void add_utmp(PTY* pty, int spid) {
 	pty->ut_entry.ut_type = USER_PROCESS;
 	pty->ut_entry.ut_pid = spid;
 //	strcpy(pty->ut_entry.ut_line, pty->ptyname+5);
-//	strcpy(pty->ut_entry.ut_id, pty->ptyname+8);
-	strcpy(pty->ut_entry.ut_user, getpwuid(getuid())->pw_name);
 
 	// printf("ut name \"%s\" (%d)\n", pty->ut_entry.ut_user, getuid());
 
 #ifdef __APPLE__
+//	strcpy(pty->ut_entry.ut_id, pty->ptyname+8);
+	strcpy(pty->ut_entry.ut_user, getpwuid(getuid())->pw_name);
+
 	gettimeofday(&pty->ut_entry.ut_tv, NULL);
 
 	setutxent();
