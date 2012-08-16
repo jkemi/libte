@@ -3,7 +3,6 @@
  * COPYING for further information.
  *
  * libTE is copyright (c) 2008 by Jakob Kemi.
- * Some parts are copyright (c) 1999 by Timothy Miller.
  */
 
 #ifndef PARSER_STATES_H_
@@ -14,7 +13,7 @@
 typedef void (*StateFunc)(TE* te);
 
 typedef struct StateOption_ {
-	int							cp;			// codepoint value to look for; -1==end/default
+	int32_t							cp;			// codepoint value to look for; -1==end/default
 	StateFunc					action;		// action to execute on this transition
 	const struct StateOption_*	next_state;	// state to transfer to next
 } StateOption;

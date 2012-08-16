@@ -3,7 +3,6 @@
  * COPYING for further information.
  *
  * libTE is copyright (c) 2008 by Jakob Kemi.
- * Some parts are copyright (c) 1999 by Timothy Miller.
  */
 
 #ifndef BUFFERSYMBOL_H_

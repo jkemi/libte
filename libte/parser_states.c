@@ -3,6 +3,7 @@
  * COPYING for further information.
  *
  * libTE is copyright (c) 2008 by Jakob Kemi.
+ *
  * Some parts are copyright (c) 1999 by Timothy Miller.
  */
 
@@ -181,7 +182,7 @@ static const StateOption state_osc[] = {
 	{ '\a',	&_parser_osc_end,		state_normal },
 	{ 0x9c,	&_parser_osc_end,		state_normal },	// 8-bit ST
 	{ 27, 	&_parser_osc_end,		state_esc	 },
-	
+
 	{ -1, 	&_parser_osc_put,		state_osc	}
 };
 

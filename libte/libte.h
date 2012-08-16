@@ -5,7 +5,6 @@
  * libTE is copyright (c) 2008 by Jakob Kemi.
  */
 
-
 #ifndef LIBTE_H_
 #define LIBTE_H_
 
@@ -34,7 +33,7 @@ extern "C" {
 #define TE_HEADER_VERSION_MINOR	8
 #define TE_HEADER_VERSION_FIX	0
 #define TE_HEADER_VERSION		"0.8.0"
-	
+
 typedef struct TE_Backend_	TE_Backend;
 typedef struct TE_Frontend_	TE_Frontend;
 
@@ -59,11 +58,11 @@ struct TE_Frontend_ {
 	void (*bell) 		(void* priv);
 	void (*title) 		(void* priv, const int32_t* text, int len);
 	void (*send_back)	(void* priv, const int32_t* data, int len);
-	
+
 	/** terminal application requested a new size, honor by resizing frontend window, signalling pty, and call te_resize() */
 	void (*request_resize) (void* priv, int width, int height);
 	void (*position) (void* priv, int offset, int size);
-	
+
 	/**
 	 * Called when terminal application requests copy to clipboard.
 	 *
@@ -85,7 +84,7 @@ struct TE_Frontend_ {
 	 * \return token used with request_clipboard_done() callback
 	 */
 	void* (*request_clipboard) (void* priv, te_clipbuf_t clipbuf, int32_t* const* text, int* size);
-	
+
 	/**
 	 * Called when data from request_clipboard() is no longer needed.
 	 * Should free any data allocated by request_clipboard() callback.

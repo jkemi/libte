@@ -1,3 +1,10 @@
+/*
+ * This file is part of libTE, please consult the files README and
+ * COPYING for further information.
+ *
+ * libTE is copyright (c) 2008 by Jakob Kemi.
+ */
+
 #include "charsets.h"
 
 // 0 - US ASCII
