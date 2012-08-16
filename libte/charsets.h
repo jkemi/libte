@@ -2,7 +2,7 @@
  * This file is part of libTE, please consult the files README and
  * COPYING for further information.
  *
- * libTE is copyright (c) 2008,2010 by Jakob Kemi.
+ * libTE is copyright (c) 2008 by Jakob Kemi.
  */
 
 #ifndef CHARSETS_H_

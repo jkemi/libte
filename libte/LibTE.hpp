@@ -15,6 +15,14 @@ private:
 	TE_Backend*	_te;
 public:
 
+	static const char*		binary_version_string() {return te_binary_version_string;}
+	
+	/**
+	 * \return {major,minor,fix}
+	 */
+	static const int*		binary_version() {return te_binary_version;}
+
+
 	LibTE() {_te = NULL;}
 	LibTE(const LibTE&);	// Intentionally not defined.
 	virtual ~LibTE() {

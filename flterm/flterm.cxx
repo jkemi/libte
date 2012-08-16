@@ -16,10 +16,9 @@
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_Button.H>
 
-#include <libte/libte.h>
-
 #include "flte/Flx_ScrolledTerm.hpp"
 
+#include "libte/LibTE.hpp"
 
 static Fl_Window* main_win;
 

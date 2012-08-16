@@ -8,6 +8,7 @@
 #ifndef PARSER_STATES_H_
 #define PARSER_STATES_H_
 
+#include <stdint.h>
 #include "typedef.h"
 
 typedef void (*StateFunc)(TE* te);
