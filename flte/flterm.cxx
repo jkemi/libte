@@ -18,8 +18,6 @@
 
 #include <libte/libte.h>
 
-#include "pty/pty.h"
-
 #include "strutil.h"
 
 #include "Flx_ScrolledTerm.hpp"
@@ -62,7 +60,7 @@ class ResizeHandler : public Flx::IResizableParent {
 			dest += r;
 		}
 		*dest = '\0';
-		
+
 //		printf("changed title to: %s\n", tmp);
 		main_win->copy_label(tmp);
 	}
@@ -71,7 +69,7 @@ class ResizeHandler : public Flx::IResizableParent {
 int main(int argc, char** argv)
 {
 	printf("libte compile version: %s, linked version: %s\n", TE_HEADER_VERSION, te_binary_version);
-	
+
 	// TODO: make configurable? or use "" for default?
 	if (setlocale(LC_ALL, "en_US.UTF-8") == NULL) {
 		exit(EXIT_FAILURE);
@@ -89,27 +87,27 @@ int main(int argc, char** argv)
 		"LANG=en_US.UTF-8",
 		NULL
 	};
-	
+
 
 	const char* shell = getenv("SHELL");
 	if (shell == NULL) {
 		shell = "/bin/sh";
 	}
-	
+
 	const char* args[] = {
 		shell,
 		"-l",
 		NULL
 	};
-	char** env = pty_env_augment(envextra);
+	char** env = te_pty_env_augment(envextra);
 	if (env == NULL) {
 		fprintf(stderr, "unable to augment environment");
 		exit(EXIT_FAILURE);
 	}
 	// spawn shell in pseudo terminal
 	char* err = NULL;
-	PTY* pty = pty_spawn(shell, args, env, &err);
-	pty_env_free(env);
+	PTY* pty = te_pty_spawn(shell, args, env, &err);
+	te_pty_env_free(env);
 	if (pty == NULL) {
 		if (err) {
 			fprintf(stderr, "unable to open slave: %s", err);
@@ -132,7 +130,7 @@ int main(int argc, char** argv)
 	int x = 0 + Fl::box_dx(main_win->box());
 	int y = 0 + Fl::box_dy(main_win->box());
 
-	Flx::VT::SlaveIO* ptyio = new Flx::VT::PtyIO( pty_getfd(pty) );
+	Flx::VT::SlaveIO* ptyio = new Flx::VT::PtyIO( te_pty_getfd(pty) );
 	Flx::VT::ScrolledTerm* term = new Flx::VT::ScrolledTerm(parenth, ptyio, x, y, iw, ih);
 	main_win->resizable(term);
 
@@ -146,7 +144,7 @@ int main(int argc, char** argv)
 
 	int exit_res = Fl::run();
 
-	pty_restore(pty);
+	te_pty_restore(pty);
 
 
 	printf("Exited cleanly with status: %d\n", exit_res);

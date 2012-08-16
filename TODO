@@ -6,23 +6,33 @@ libte:
  * limit row-buffer dynamic growth to screen width (done?)
  * c-ify remaining files (done)
  * versioning (done)
- * create actual library
+ * create actual library (done)
  * copyright texts
  * dynamic scroll history size
- * xterm set title, via osc
+ * xterm set title, via osc (done)
  * mouse handling
- * cut-n-paste ?
+ * cut-n-paste
+ * some bugs still remain (identify and fix)
+ * remove debug printouts
+ * implement pty in library (done)
 
 flterm:
 
  * implement rate-limited redraws (done)
- * cleanup and join Fl_Term and Flx_Terminal ?
- * nice abstraction for standard pty-based terminal I/O
+ * cleanup and join Fl_Term and Flx_Terminal (done)
+ * nice abstraction for standard pty-based terminal I/O (done)
  * augment process environment (done)
- * correct line drawing
- * use libppty from rxvt?
- * sane encoding support
+ * correct line drawing (done)
+ * -use libppty from rxvt-
+ * sane encoding support (done?)
  * add menu and about-box
- * multiple tabs
  * parse some common command-line options
+ * remove debug printouts
+
+
+=== Later release ===
+
+flterm:
+
  * limit font cache size
+ * multiple tabs

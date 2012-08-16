@@ -83,8 +83,8 @@ static const uint8_t col_palette[] = {
 
 };
 
-#define _DEFER_DRAWING_US	20000
-#define _DEFERRED_DRAWING_DELAY	0.02
+#define _DEFER_DRAWING_US	20000		// if drawing occured within this time from last draw, reset draw timer to _DEFERRED_DRAWING_DELAY
+#define _DEFERRED_DRAWING_DELAY	0.02	// delay (in seconds) until we perform actual drawing (if _DEFER_DRAWING_US matched)
 
 static uint64_t getCurrentTime_us(void) {
 	struct timeval tv;
@@ -141,7 +141,7 @@ BasicTerm::BasicTerm (	int fontsize,
 
 	_child_handler = childh;
 	_event_handler = eventh;
-	
+
 	_child_handler->setHandler(&_s_handle_from_slave, this);
 }
 
@@ -260,7 +260,7 @@ bool BasicTerm::_handle_keyevent(void) {
 #ifndef NDEBUG
 		printf("cp was: %d mod was %d\n", cp, mod);
 #endif
-		
+
 		if (cp >= 0) {
 			teHandleKeypress(cp, mod);
 			return true;
@@ -293,7 +293,7 @@ bool BasicTerm::_handle_keyevent(void) {
 void BasicTerm::_deferred_update_cb() {
 	damage(FL_DAMAGE_USER1);
 }
-	
+
 void BasicTerm::_handle_from_slave(const int32_t *data, size_t len) {
 	// Process exited!
 	if (len == 0) {
@@ -378,7 +378,7 @@ void BasicTerm::resize(int x, int y, int W, int H)
 			printf("not able to resize child");
 			return;
 		}
-		
+
 		teResize(gfx.ncols, gfx.nrows);
 
 		gfx.ncols = teGetWidth();

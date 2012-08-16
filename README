@@ -1,16 +1,32 @@
 Copyrights
 ==========
 
-libTE is copyright (c) 2008 by Jakob Kemi <jakob.kemi@gmail.com>
-Some parts of libTE is based on GTerm (with permission)
-which is Copyright (c) 1999 Timothy Miller. 
+libTE is copyright (c) 2008-2012 by Jakob Kemi <jakob.kemi@gmail.com>
+
+Some parts of libTE were originally based on GTerm (with permission)
+which is Copyright (c) 1999 Timothy Miller.
 
 
 General Information
 ===================
 
-This is libTE version 0.9. libTE is a terminal emulation library that
-aims to provide xterm emulation backend as a separate library.
+libTE is a terminal emulation library that aims to provide
+xterm emulation backend as a clena, modern separate library.
+The only requirements are C99 support and Posix+UNIX98 for pty features.
+
+API/ABI
+=======
+libTE follows the conventional method of versioning: MAJOR.MINOR.FIX
+Where a change in MAJOR number means ABI/API breakage. MINOR versions are ABI backward compatible
+but may introduce new features. FIX versions only contain fixes and improvements that does
+not affect ABI or API issues.
+
+The only files part of source API are
+From C the only include should be libte/libte.h
+C++ wrapper is provided as libte/libTE.hpp
+
+libTE can be compiled with additional helpers for pty support which are compile time detectable by
+the feature macro TE_ENABLE_PTY.
 
 
 License information

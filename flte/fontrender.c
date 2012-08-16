@@ -115,18 +115,19 @@ static void _render_glyph(CacheElem* dest, symbol_t sym) {
 	}
 
 	FT_Face	face;
-	bool	slanted = false;	// italic
+	// TODO: handle slanted (italic)
+	//bool	slanted = false;	// italic
 	bool	underlined = false;
 
 	if ((attrs & (SYMBOL_BOLD|SYMBOL_BLINK)) == (SYMBOL_BOLD|SYMBOL_BLINK)) {
 		face = _bold;
-		slanted = true;
+		//slanted = true;
 		underlined = true;
 	} else if (attrs & SYMBOL_BOLD) {
 		face = _bold;
 	} else if (attrs & SYMBOL_BLINK) {
 		face = _normal;
-		slanted = true;
+		//slanted = true;
 		underlined = true;
 	} else {
 		face = _normal;

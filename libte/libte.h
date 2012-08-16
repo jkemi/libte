@@ -18,8 +18,12 @@
 #endif
 
 #include "symbol.h"
-
 #include "macros.h"
+
+#include "config.h"
+#ifdef TE_ENABLE_PTY
+#	include "pty.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -27,9 +31,9 @@ extern "C" {
 
 // compile time header version
 #define TE_HEADER_VERSION_MAJOR	0
-#define TE_HEADER_VERSION_MINOR	9
+#define TE_HEADER_VERSION_MINOR	8
 #define TE_HEADER_VERSION_FIX	0
-#define TE_HEADER_VERSION		"0.9.0"
+#define TE_HEADER_VERSION		"0.8.0"
 	
 typedef struct TE_Backend_	TE_Backend;
 typedef struct TE_Frontend_	TE_Frontend;
@@ -173,10 +177,8 @@ typedef enum _te_mouse_button {
 	TE_MOUSE_TRIPLE		= (1<<6),	// Triple-click (or more)
 } te_mouse_button_t;
 
-DLLEXPORT extern const char* te_binary_version;
-DLLEXPORT extern int		te_binary_version_major;
-DLLEXPORT extern int		te_binary_version_minor;
-DLLEXPORT extern int		te_binary_version_fix;
+DLLEXPORT extern const char*	te_binary_version_string;
+DLLEXPORT extern const int		te_binary_version[3];
 
 DLLEXPORT TE_Backend* te_create(const TE_Frontend* front, void* user, int width, int height, const void* options, size_t options_size);
 DLLEXPORT void te_destroy(TE_Backend* te);

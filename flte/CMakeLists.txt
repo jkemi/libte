@@ -4,7 +4,6 @@ SET(flte_sources
 	Flxi_BasicTerm.cxx
 	fontrender.c
 	strutil.c
-	pty/pty.c
 )
 
 CONCAT (CMAKE_EXE_LINKER_FLAGS "-Wl,-x")
@@ -14,6 +13,7 @@ CONCAT (CMAKE_C_CREATE_SHARED_LIBRARY "-Wl,-x")
 #CONCAT (CMAKE_C_CREATE_SHARED_LIBRARY "-Xlinker --no-export-dynamic")
 
 INCLUDE_DIRECTORIES( ".." )
+INCLUDE_DIRECTORIES( "${LIBTE_BINARY_DIR}/libte" )
 
 # Add freetype
 FIND_PACKAGE( Freetype REQUIRED )
@@ -36,23 +36,16 @@ ENDIF()
 ADD_LIBRARY(flte STATIC ${flte_sources})
 TARGET_LINK_LIBRARIES(flte te ${FREETYPE_LIBRARIES})
 
-ADD_EXECUTABLE(flterm "flterm.cxx")
-TARGET_LINK_LIBRARIES( flterm flte ${FLTK_LIBRARIES})
-ADD_DEFINITIONS(-D_GNU_SOURCE)
+FOREACH(ii Flxi_BasicTerm.hpp Flx_ScrolledTerm.hpp Flx_IResizableParent.hpp Flx_SlaveIO.hpp)
+	LIST(APPEND apiheaders ${CMAKE_CURRENT_SOURCE_DIR}/${ii} )
+ENDFOREACH()
 
-#FOREACH(ii libte.h symbols.h LibTE.hpp)
-#	LIST(APPEND apiheaders ${CMAKE_CURRENT_SOURCE_DIR}/${ii} )
-#ENDFOREACH()
-#
 INSTALL (TARGETS flte
 	LIBRARY DESTINATION lib
 	ARCHIVE DESTINATION lib)
 
-INSTALL (TARGETS flterm
-	RUNTIME DESTINATION bin)
-
-#INSTALL (FILES ${apiheaders}
-#	DESTINATION include)
+INSTALL (FILES ${apiheaders}
+	DESTINATION include/flte)
 
 #
 # Generate libflte.pc file for use with pkg-config

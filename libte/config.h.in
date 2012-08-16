@@ -1,0 +1,6 @@
+#ifndef CONFIG_H__
+#define CONFIG_H__
+
+#cmakedefine TE_ENABLE_PTY	1
+
+#endif // CONFIG_H__

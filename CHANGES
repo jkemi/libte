@@ -1,0 +1,5 @@
+0.8.0:
+	* first public release
+	* implemented OSC title support
+	* added unix98 pty helpers
+	* converted into CMAKE build system
