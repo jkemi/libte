@@ -15,7 +15,7 @@
 #include <sys/types.h>
 #include <unistd.h> 	// environ, execve, fcntl. Should include "environ" symbol (needs _GNU_SOURCE)
 #include <fcntl.h>		// open, fcntl
-#include <wait.h> 		// waitpid
+#include <sys/wait.h> 	// waitpid
 
 // Usage of 'environ' is not possible directly from shared libs on OSX
 #ifdef __APPLE__
