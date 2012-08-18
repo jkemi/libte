@@ -13,6 +13,9 @@
 #include "Flx_IResizableParent.hpp"
 #include "Flx_SlaveIO.hpp"
 
+//#define FLTE_ENABLE_FT
+#undef FLTE_ENABLE_FT
+
 namespace Flx {
 namespace VT {
 namespace impl {
@@ -68,9 +71,9 @@ public:
 	void resize(int x, int y, int w, int h);
 
 
-	#ifndef NDEBUG
+#ifndef NDEBUG
 	void printTerminalDebug(FILE* where);
-	#endif
+#endif
 
 
 //
@@ -83,6 +86,10 @@ private:
 	struct {
 		int pixw;		// width of each font cell in pixels
 		int pixh;		// height of each font cell in pixels
+#ifndef FLTE_ENABLE_FT
+		int xoff;		// fixed offset within cell in pixels
+		int yoff;		// fixed offset within cell in pixels
+#endif
 	} font;
 
 	// draw stuff

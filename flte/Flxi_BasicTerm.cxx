@@ -9,9 +9,12 @@
 
 #include "strutil.h"
 
-#include "fontrender.h"
-
 #include "Flxi_BasicTerm.hpp"
+
+#ifndef FLTE_ENABLE_FT
+#	include "fontrender.h"
+#endif
+
 
 namespace Flx {
 namespace VT {
@@ -85,6 +88,10 @@ static const uint8_t col_palette[] = {
 
 #define _DEFER_DRAWING_US	20000		// if drawing occured within this time from last draw, reset draw timer to _DEFERRED_DRAWING_DELAY
 #define _DEFERRED_DRAWING_DELAY	0.02	// delay (in seconds) until we perform actual drawing (if _DEFER_DRAWING_US matched)
+	
+#ifndef FLTE_ENABLE_FT
+#	define FONT_SIZE 14
+#endif
 
 static uint64_t getCurrentTime_us(void) {
 	struct timeval tv;
@@ -121,12 +128,21 @@ BasicTerm::BasicTerm (	int fontsize,
 {
 	box(FL_THIN_DOWN_FRAME);
 
-	tr_init(col_palette);
 
 	// Size of cell in pixels
+#ifdef FLTE_ENABLE_FT
+	tr_init(col_palette);
 	font.pixw = tr_width();
 	font.pixh = tr_height();
-
+#else
+	fl_font(FL_COURIER, FONT_SIZE);
+	font.pixw = (fl_width("MHW#i1l")/7.0f + 0.5f);
+	font.pixh = fl_height();
+	font.xoff = 0;
+	font.yoff = fl_height()-fl_descent();
+#endif
+	
+	
 	// Size of graphics area in cells
 	gfx.ncols = (w()-Fl::box_dw(box())) / font.pixw;
 	gfx.nrows = (h()-Fl::box_dh(box())) / font.pixh;
@@ -136,8 +152,8 @@ BasicTerm::BasicTerm (	int fontsize,
 	gfx.pixh = gfx.nrows*font.pixh;
 
 	// Start of graphics area, relative widget
-	gfx.xoff = Fl::box_dx(box()); // ((w()-Fl::box_dw(box())) - gfx.pixw) / 2 + Fl::box_dx(box());
-	gfx.yoff = Fl::box_dy(box()); // ((h()-Fl::box_dh(box())) - gfx.pixh) / 2 + Fl::box_dy(box());
+	gfx.xoff = Fl::box_dx(box()); // for center: ((w()-Fl::box_dw(box())) - gfx.pixw) / 2 + Fl::box_dx(box());
+	gfx.yoff = Fl::box_dy(box()); // for center: ((h()-Fl::box_dh(box())) - gfx.pixh) / 2 + Fl::box_dy(box());
 
 	_child_handler = childh;
 	_event_handler = eventh;
@@ -146,7 +162,9 @@ BasicTerm::BasicTerm (	int fontsize,
 }
 
 BasicTerm::~BasicTerm() {
+#ifdef FLTE_ENABLE_FT
 	tr_term();
+#endif
 
 //	delete _child_handler;
 //	delete _event_handler;
@@ -311,7 +329,7 @@ int BasicTerm::handle(int event)
 	case FL_FOCUS:
 	case FL_UNFOCUS:
 		return 1;
-	case FL_KEYBOARD:
+	case FL_KEYDOWN:
 		if (_handle_keyevent()) {
 			return 1;
 		}
@@ -434,9 +452,11 @@ void BasicTerm::fe_draw_text(int xpos, int ypos, const symbol_t* symbols, int le
 	const int xo = x() + gfx.xoff;
 	const int yo = y() + gfx.yoff;
 
-	if (len > 10) {
+#ifndef NDEBUG
+	if (len > 4) {
 		//printf("DrawText(): %d, %d (%d))\n", xpos, ypos, len);
 	}
+#endif
 
 	int xp = xo + xpos*font.pixw;
 	const int yp = yo + ypos*font.pixh;
@@ -444,21 +464,64 @@ void BasicTerm::fe_draw_text(int xpos, int ypos, const symbol_t* symbols, int le
 	for (int i = 0; i < len; i++) {
 		const symbol_t sym = symbols[i];
 		const int cp = symbol_get_codepoint(sym);
+
+#ifdef FLTE_ENABLE_FT
+		
 		if (cp == ' ') {
 			const symbol_attributes_t attrs = symbol_get_attributes(sym);
 			symbol_color_t bg_color = symbol_get_bg(sym);
 			if (attrs & SYMBOL_INVERSE) {
 				bg_color = symbol_get_fg(sym);
 			}
-
+			
 			Fl_Color bg = col_table[bg_color];
 			fl_color(bg);
 			fl_rectf(xp, yp, font.pixw, font.pixh);
 		} else {
+			const symbol_attributes_t attrs = symbol_get_attributes(sym);
+			symbol_color_t fg_color = symbol_get_fg(sym);
+			if (attrs & SYMBOL_INVERSE) {
+				fg_color = symbol_get_bg(sym);
+			}
+			
 			const uint8_t* fontdata = tr_get(sym);
 			fl_draw_image(fontdata, xp, yp, font.pixw, font.pixh, 3);
 		}
+#else
+		const symbol_attributes_t attrs = symbol_get_attributes(sym);
+		symbol_color_t bg_color = symbol_get_bg(sym);
+		symbol_color_t fg_color = symbol_get_fg(sym);
+		if (attrs & SYMBOL_INVERSE) {
+			symbol_color_t tmp = fg_color;
+			fg_color = bg_color;
+			bg_color = tmp;
+		}
 
+		Fl_Color bg = col_table[bg_color];
+		fl_color(bg);
+		fl_rectf(xp, yp, font.pixw, font.pixh);
+		
+		if (cp != ' ') {
+			Fl_Color fg = col_table[fg_color];
+			char buf[6];
+			const int l = fl_utf8encode(cp, buf);
+			buf[l] = '\0';
+			fl_color(fg);
+			
+			// BOLD and BLINK
+			if ((attrs & (SYMBOL_BOLD|SYMBOL_BLINK)) == (SYMBOL_BOLD|SYMBOL_BLINK)) {
+				fl_font(FL_COURIER_BOLD_ITALIC, FONT_SIZE);
+			} else if (attrs & SYMBOL_BOLD) {
+				fl_font(FL_COURIER_BOLD, FONT_SIZE);
+			} else if (attrs & SYMBOL_BLINK) {
+				fl_font(FL_COURIER_ITALIC, FONT_SIZE);
+			} else {
+				fl_font(FL_COURIER, FONT_SIZE);
+			}
+			
+			fl_draw(buf, l, xp+font.xoff, yp+font.yoff);
+		}
+#endif
 		xp += font.pixw;
 	}
 }

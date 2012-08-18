@@ -1,8 +1,12 @@
+OPTION (FLTE_ENABLE_FREETYPE
+	"enable freetype font rendering"
+	ON
+)
+
 SET(flte_sources
 	Flx_SlaveIO.cxx
 	Flx_ScrolledTerm.cxx
 	Flxi_BasicTerm.cxx
-	fontrender.c
 	strutil.c
 )
 
@@ -15,9 +19,13 @@ CONCAT (CMAKE_C_CREATE_SHARED_LIBRARY "-Wl,-x")
 INCLUDE_DIRECTORIES( ".." )
 INCLUDE_DIRECTORIES( "${LIBTE_BINARY_DIR}/libte" )
 
-# Add freetype
-FIND_PACKAGE( Freetype REQUIRED )
-INCLUDE_DIRECTORIES( ${FREETYPE_INCLUDE_DIRS} )
+IF (FLTE_ENABLE_FREETYPE)
+	LIST(APPEND flte_sources "fontrender.c")
+
+	# Add freetype
+	FIND_PACKAGE( Freetype REQUIRED )
+	INCLUDE_DIRECTORIES( ${FREETYPE_INCLUDE_DIRS} )
+ENDIF (FLTE_ENABLE_FREETYPE)
 
 # Add FLTK (currently broken on wheezy?)
 IF (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
