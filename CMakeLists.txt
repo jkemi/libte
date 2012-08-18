@@ -47,6 +47,11 @@ IF (NOT ${CMAKE_BUILD_TYPE} STREQUAL "Debug")
 		CONCAT (CMAKE_EXE_LINKER_FLAGS "-s")
 		CONCAT (CMAKE_EXE_LINKER_FLAGS "-Xlinker --no-export-dynamic")
 		CONCAT (CMAKE_EXE_LINKER_FLAGS_MINSIZEREL "-Xlinker --strip-all")
+
+		CONCAT (CMAKE_C_FLAGS_MINSIZEREL -flto -flto-partition=none -fomit-frame-pointer -ffast-math -mfpmath=sse)
+		CONCAT (CMAKE_CXX_FLAGS_MINSIZEREL -flto -flto-partition=none -fomit-frame-pointer -ffast-math -mfpmath=sse)
+		CONCAT (CMAKE_EXE_LINKER_FLAGS_MINSIZEREL -Xlinker --strip-all)
+
 	ENDIF (CMAKE_COMPILER_IS_GNUCC AND NOT APPLE)
 ENDIF ()
 

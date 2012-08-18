@@ -1,6 +1,6 @@
 OPTION (FLTE_ENABLE_FREETYPE
 	"enable freetype font rendering"
-	ON
+	OFF
 )
 
 SET(flte_sources
