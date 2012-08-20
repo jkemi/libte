@@ -54,9 +54,8 @@ int te_pty_set_window_size(int fd, int width, int height) {
 	// TODO: these are unused? (seems so in Gnome's libvte and others at least...)
 	ws.ws_xpixel = 0;
 	ws.ws_ypixel = 0;
-#ifndef NDEBUG
-	fprintf(stderr, "Setting ioctl TERM dimensions to %d, %d\n", width, height);
-#endif
+	
+	DEBUGF("Setting ioctl TERM dimensions to %d, %d\n", width, height);
 	if (ioctl(fd, TIOCSWINSZ, &ws) == -1) {
 		return -1;
 	}
@@ -138,7 +137,7 @@ char** te_pty_env_augment(const char* const* envdata) {
 	// Count maximum number of environment variables from both collections
 
 #ifdef __APPLE__
-	const char* const* globalenv = *_NSGetEnviron();
+	const char* const* globalenv = (const char**)*_NSGetEnviron();
 #else
 	const char* const* globalenv = (const char* const*)environ;
 #endif

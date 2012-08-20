@@ -23,7 +23,7 @@ flterm:
  * nice abstraction for standard pty-based terminal I/O (done)
  * augment process environment (done)
  * correct line drawing (done)
- * -use libppty from rxvt-
+ * -use libppty from rxvt- (scrapped)
  * sane encoding support (done?)
  * add menu and about-box
  * parse some common command-line options
