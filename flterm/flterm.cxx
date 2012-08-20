@@ -105,7 +105,7 @@ public:
 #ifdef __APPLE__
 				if (Fl::event_command()) {
 #else
-				if (Fl::event_control() && Fl::event_shift()) {
+				if (Fl::event_ctrl() && Fl::event_shift()) {
 #endif	// __APPLE__
 					switch(Fl::event_key()) {
 					case 't':	_spawnTerm_cb(this, NULL);	return 1;
@@ -246,7 +246,7 @@ static int _globalEventHandler(int event) {
 #ifdef __APPLE__
 			if (Fl::event_command()) {
 #else
-			if (Fl::event_control() && Fl::event_shift()) {
+			if (Fl::event_ctrl() && Fl::event_shift()) {
 #endif
 				switch(Fl::event_key()) {
 					case 't':	_spawnTerm_cb(NULL, NULL);	return 1;
