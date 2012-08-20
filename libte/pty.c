@@ -256,17 +256,17 @@ PTY* te_pty_spawn(const char *exe, const char* const* args, const char* const* e
 	ptm = posix_openpt(O_RDWR);
 	if (ptm == -1) {
 		_err_errno("unable to open pty master: ", errno, err);
-		return NULL;
+		goto fail;
 	}
 
 	if (grantpt(ptm)) {
 		_err_errno("unable to set pty slave perms: ", errno, err);
-		return NULL;
+		goto fail;
 	}
 
 	if (unlockpt(ptm)) {
 		_err_errno("unable to unlock pty slave: ", errno, err);
-		return NULL;
+		goto fail;
 	}
 
 	// open pty slave fd
@@ -277,14 +277,14 @@ PTY* te_pty_spawn(const char *exe, const char* const* args, const char* const* e
 	}
 	if (pts == -1) {
 		_err_errno("unable to open pty slave: ", errno, err);
-		return NULL;
+		goto fail;
 	}
 
 	// fork process
 	pid = fork();
 	if (pid == -1) {
 		_err_errno("unable to fork pty child: ", errno, err);
-		return NULL;
+		goto fail;
 	}
 
 	if (pid == 0) {		// slave process
@@ -359,16 +359,29 @@ PTY* te_pty_spawn(const char *exe, const char* const* args, const char* const* e
 	_add_utmp(pty, pid);
 
 	return pty;
+
+fail:
+	if (pts != -1) {
+		close(pts);
+	}
+	if (ptm != -1) {
+		close(ptm);
+	}
+	if (pty != NULL) {
+		free(pty);
+	}
+	return NULL;
 }
 
 /**
  * >=0 for exit status on normal exit
  * <signum for exit by signal
+ * -100 for logic error
  */
 int te_pty_restore(PTY* pty) {
 	close(pty->mfd);
 
-	int ret;
+	int ret = -100;
 	if (pty->childpid != -1) {
 		int status;
 		pid_t r = waitpid(pty->childpid, &status, WNOHANG);
@@ -389,9 +402,7 @@ int te_pty_restore(PTY* pty) {
 
 
 	_remove_utmp(pty);
-
 	free(pty);
-
 	return ret;
 }
 

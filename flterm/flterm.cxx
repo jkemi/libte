@@ -108,6 +108,7 @@ int main(int argc, char** argv)
 	if (pty == NULL) {
 		if (err) {
 			fprintf(stderr, "unable to open slave: %s", err);
+			free(err);
 		} else {
 			fprintf(stderr, "unable to open slave");
 		}
