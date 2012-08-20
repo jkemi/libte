@@ -48,7 +48,7 @@ INCLUDE_DIRECTORIES(${FLTK_INCLUDE_DIRS})
 ADD_LIBRARY(flte STATIC ${flte_sources})
 TARGET_LINK_LIBRARIES(flte te ${FREETYPE_LIBRARIES})
 
-FOREACH(ii Flxi_BasicTerm.hpp Flx_ScrolledTerm.hpp Flx_IResizableParent.hpp Flx_SlaveIO.hpp)
+FOREACH(ii Flx_ScrolledTerm.hpp Flx_IResizableParent.hpp Flx_SlaveIO.hpp)
 	LIST(APPEND apiheaders ${CMAKE_CURRENT_SOURCE_DIR}/${ii} )
 ENDFOREACH()
 

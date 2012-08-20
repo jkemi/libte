@@ -20,7 +20,6 @@ OPTION (OPTION_DOC
 	"Generate documentation"
 	OFF
 )
-ADD_DEFINITIONS(-Wall)
 
 # Macro for joining strings with space separator
 MACRO(CONCAT varname)
