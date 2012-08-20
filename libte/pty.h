@@ -15,10 +15,10 @@ extern "C" {
 #endif
 
 /** opaque handle to encapsulation of pty and child process logic */
-typedef struct _te_pty	PTY;
+typedef struct TE_Pty_	TE_Pty;
 
-DLLEXPORT char** te_pty_env_augment(const char* const* envdata);
-DLLEXPORT void te_pty_env_free(char** env);
+TE_EXPORT char** te_pty_env_augment(const char* const* envdata);
+TE_EXPORT void te_pty_env_free(char** env);
 
 /**
  * Spawns program 'exe' in a new pseudo-terminal
@@ -31,7 +31,7 @@ DLLEXPORT void te_pty_env_free(char** env);
  *
  * \return NULL on failure	err might be set if not NULL, in which case it should be freed by free(2)
  */
-DLLEXPORT PTY* te_pty_spawn(const char* exe, const char* const* args, const char* const* envdata, char** err);
+TE_EXPORT TE_Pty* te_pty_spawn(const char* exe, const char* const* args, const char* const* envdata, char** err);
 
 /**
  * Restores resources used by pty_spawn()
@@ -42,7 +42,7 @@ DLLEXPORT PTY* te_pty_spawn(const char* exe, const char* const* args, const char
  * \return	>=0	means status code on normal child process exit
  *			<0	means -signum if killed by signal signum
  */
-DLLEXPORT int te_pty_restore(PTY* pty);
+TE_EXPORT int te_pty_restore(TE_Pty* pty);
 
 /**
  * Get file descriptor to use for communication.
@@ -50,10 +50,10 @@ DLLEXPORT int te_pty_restore(PTY* pty);
  * \param slave handle
  * \return file descriptor
  */
-DLLEXPORT int te_pty_getfd(PTY* pty);
+TE_EXPORT int te_pty_getfd(TE_Pty* pty);
 
 // 0 on success
-DLLEXPORT int te_pty_set_window_size(int fd, int width, int height);
+TE_EXPORT int te_pty_set_window_size(int fd, int width, int height);
 
 #ifdef __cplusplus
 }

@@ -103,7 +103,7 @@ int main(int argc, char** argv)
 	}
 	// spawn shell in pseudo terminal
 	char* err = NULL;
-	PTY* pty = te_pty_spawn(shell, args, env, &err);
+	TE_Pty* pty = te_pty_spawn(shell, args, env, &err);
 	te_pty_env_free(env);
 	if (pty == NULL) {
 		if (err) {

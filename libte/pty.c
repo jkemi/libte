@@ -197,7 +197,7 @@ char** te_pty_env_augment(const char* const* envdata) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 
-struct _te_pty {
+struct TE_Pty_ {
 	int			mfd;
 	pid_t		childpid;
 
@@ -208,13 +208,13 @@ struct _te_pty {
 #endif
 };
 
-int te_pty_getfd(PTY* pty) {
+int te_pty_getfd(TE_Pty* pty) {
 	return pty->mfd;
 }
 
 // forward decls
 static void _remove_utmp();
-static void _add_utmp(PTY* pty, int);
+static void _add_utmp(TE_Pty* pty, int);
 
 
 static void _err_errno(const char* message, int errnum, char** err) {
@@ -240,11 +240,11 @@ static void _err_errno(const char* message, int errnum, char** err) {
 	*err = s;
 }
 
-PTY* te_pty_spawn(const char *exe, const char* const* args, const char* const* env, char** err) {
+TE_Pty* te_pty_spawn(const char *exe, const char* const* args, const char* const* env, char** err) {
 	pid_t pid;
 
 	// create augmented environment
-	PTY* pty = (PTY*)malloc(sizeof(PTY));
+	TE_Pty* pty = (TE_Pty*)malloc(sizeof(TE_Pty));
 	if (pty == NULL) {
 		_err_errno("unable to allocate memory: ", errno, err);
 		return NULL;
@@ -378,7 +378,7 @@ fail:
  * <signum for exit by signal
  * -100 for logic error
  */
-int te_pty_restore(PTY* pty) {
+int te_pty_restore(TE_Pty* pty) {
 	close(pty->mfd);
 
 	int ret = -100;
@@ -430,7 +430,7 @@ struct utmpx {
 */
 
 
-static void _add_utmp(PTY* pty, int spid) {
+static void _add_utmp(TE_Pty* pty, int spid) {
 	memset(&pty->ut_entry, 0, sizeof(pty->ut_entry) );
 
 #if 0
@@ -465,7 +465,7 @@ static void _add_utmp(PTY* pty, int spid) {
 #endif
 }
 
-static void _remove_utmp(PTY* pty)
+static void _remove_utmp(TE_Pty* pty)
 {
 	pty->ut_entry.ut_type = DEAD_PROCESS;
 #ifdef __APPLE__

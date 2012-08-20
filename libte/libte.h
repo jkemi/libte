@@ -176,59 +176,59 @@ typedef enum _te_mouse_button {
 	TE_MOUSE_TRIPLE		= (1<<6),	// Triple-click (or more)
 } te_mouse_button_t;
 
-DLLEXPORT extern const char*	te_binary_version_string;
-DLLEXPORT extern const int		te_binary_version[3];
+TE_EXPORT extern const char*	te_binary_version_string;
+TE_EXPORT extern const int		te_binary_version[3];
 
-DLLEXPORT TE_Backend* te_create(const TE_Frontend* front, void* user, int width, int height, const void* options, size_t options_size);
-DLLEXPORT void te_destroy(TE_Backend* te);
+TE_EXPORT TE_Backend* te_create(const TE_Frontend* front, void* user, int width, int height, const void* options, size_t options_size);
+TE_EXPORT void te_destroy(TE_Backend* te);
 
 /**
  * Resize terminal
  */
-DLLEXPORT void te_resize(TE_Backend* te, int width, int height);
+TE_EXPORT void te_resize(TE_Backend* te, int width, int height);
 
 /**
  * Returns current width of terminal
  */
-DLLEXPORT int te_get_width(TE_Backend* te);
+TE_EXPORT int te_get_width(TE_Backend* te);
 
 /**
  * Returns current height of terminal
  */
-DLLEXPORT int te_get_height(TE_Backend* te);
+TE_EXPORT int te_get_height(TE_Backend* te);
 
 /**
  * Sent from GUI to terminal to request a redraw.
  * This might trigger multiple calls to DrawText etc..
  */
-DLLEXPORT void te_request_redraw(TE_Backend* te, int x, int y, int w, int h, int force);
+TE_EXPORT void te_request_redraw(TE_Backend* te, int x, int y, int w, int h, int force);
 
 /**
  * Send data from client here
  */
-DLLEXPORT void te_process_input(TE_Backend* te, const int32_t* data, size_t len);
+TE_EXPORT void te_process_input(TE_Backend* te, const int32_t* data, size_t len);
 
 /**
  * Handles host special key presses
  * @returns non-zero if handled
  */
-DLLEXPORT int te_handle_button(TE_Backend* te, te_key_t key);
+TE_EXPORT int te_handle_button(TE_Backend* te, te_key_t key);
 
 /**
  * Handles ordinary letters/numbers key presses
  */
-DLLEXPORT void te_handle_keypress(TE_Backend* te, int32_t cp, te_modifier_t modifiers);
+TE_EXPORT void te_handle_keypress(TE_Backend* te, int32_t cp, te_modifier_t modifiers);
 
-DLLEXPORT void te_handle_mouse(TE_Backend* te, int mouse_x, int mouse_y, te_mouse_button_t mouse_buttons, te_modifier_t modifiers);
+TE_EXPORT void te_handle_mouse(TE_Backend* te, int mouse_x, int mouse_y, te_mouse_button_t mouse_buttons, te_modifier_t modifiers);
 
-DLLEXPORT void te_paste_text(TE_Backend* te, const int32_t* data, size_t len);
+TE_EXPORT void te_paste_text(TE_Backend* te, const int32_t* data, size_t len);
 
-DLLEXPORT void te_position(TE_Backend* te, int offset);
+TE_EXPORT void te_position(TE_Backend* te, int offset);
 
-DLLEXPORT void te_lock_scroll(TE_Backend* te, int scroll_lock);
+TE_EXPORT void te_lock_scroll(TE_Backend* te, int scroll_lock);
 
 #ifndef NDEBUG
-DLLEXPORT void te_debug(TE_Backend* te, FILE* where);
+TE_EXPORT void te_debug(TE_Backend* te, FILE* where);
 #endif
 
 #ifdef __cplusplus

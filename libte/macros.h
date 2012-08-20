@@ -10,18 +10,18 @@
 
 #ifdef _MSC_VER
   #ifdef BUILDING_DLL
-    #define DLLEXPORT __declspec(dllexport)
+    #define TE_EXPORT __declspec(dllexport)
   #else
-    #define DLLEXPORT __declspec(dllimport)
+    #define TE_EXPORT __declspec(dllimport)
   #endif
-  #define DLLLOCAL
+  #define TE_LOCAL
 #else
   #if (__GNUC__ > 3) || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1)
-    #define DLLEXPORT __attribute__ ((visibility("default")))
-    #define DLLLOCAL __attribute__ ((visibility("hidden")))
+    #define TE_EXPORT __attribute__ ((visibility("default")))
+    #define TE_LOCAL __attribute__ ((visibility("hidden")))
   #else
-    #define DLLEXPORT
-    #define DLLLOCAL
+    #define TE_EXPORT
+    #define TE_LOCAL
   #endif
 #endif
 
