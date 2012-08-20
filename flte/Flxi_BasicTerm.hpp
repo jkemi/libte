@@ -45,6 +45,8 @@ public:
 		 * \param size		new total size
 		 */
 		virtual void event_scrollposition(int offset, int size) = 0;
+		
+		virtual void event_childexit(int status) = 0;
 	};
 
 

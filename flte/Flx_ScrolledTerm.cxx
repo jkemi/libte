@@ -47,7 +47,7 @@ public:
 	ScrolledTermPriv(ScrolledTerm* p) {
 		_p = p;
 	}
-	
+
 	virtual ~ScrolledTermPriv() {
 	}
 
@@ -87,6 +87,10 @@ private:
 
 			scrollbar->redraw();
 		}
+	}
+	
+	virtual void event_childexit(int status) {
+		_parenth->event_childexit(status);
 	}
 
 	virtual void event_size_range(int minw, int minh, int maxw, int maxh, int stepw, int steph) {
@@ -209,7 +213,9 @@ int ScrolledTerm::handle(int event) {
 			break;
 #endif
 		}
-		return _impl->term->handle(event);
+		if (_impl->term->handle(event)) {
+			return 1;
+		}
 		break;
 	}
 	default:

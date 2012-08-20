@@ -23,20 +23,34 @@
 namespace Flx {
 namespace VT {
 
-PtyIO::PtyIO(int fd) : _fd(fd) {
+PtyIO::PtyIO(TE_Pty* pty) {
+	_pty = pty;
+	_fd = te_pty_getfd(pty);
 	_fill = 0;
 	Fl::add_fd(_fd, FL_READ|FL_EXCEPT, _s_fd_cb, this);
 }
 
 PtyIO::~PtyIO() {
 	Fl::remove_fd(_fd);
+
+	if (_pty != NULL) {
+		te_pty_restore(_pty);
+	}
 }
 
 bool PtyIO::resizeSlave(int width, int height) {
+	if (_pty == NULL) {
+		return false;
+	}
+
 	return te_pty_set_window_size(_fd, width, height) == 0;
 }
 
 bool PtyIO::toSlave(const int32_t* data, int len) {
+	if (_pty == NULL) {
+		return false;
+	}
+
 	const size_t nbytes = MB_CUR_MAX*(len+1);
 	char tmp[nbytes];
 
@@ -62,11 +76,20 @@ bool PtyIO::toSlave(const int32_t* data, int len) {
 
 // Called by FLTK whenever input is received on filedes
 void PtyIO::_fromSlave(int fd) {
+	if (_pty == NULL) {
+		SlaveIO::fromSlave(&_exit_status, 0);
+		return;
+	}
+
 	ssize_t ret = read(fd, _buf+_fill, (_BUFSIZE-_fill)*sizeof(unsigned char));
 	if (ret == -1 || ret == 0) {
 		printf("bye from %s:%d ret: %ld\n", __FILE__, __LINE__, ret);
-		// TODO: fixup exit status join() ? blah blah
-		int32_t exit_status = 0;
+
+		Fl::remove_fd(_fd);
+		_exit_status = te_pty_restore(_pty);
+		_pty = NULL;
+
+		int32_t exit_status = _exit_status;
 		SlaveIO::fromSlave(&exit_status, 0);
 		return;
 	}

@@ -1,3 +1,6 @@
+#ifndef TE_LIBTE_HPP_
+#define TE_LIBTE_HPP_
+
 /*
  * This file is part of libTE, please consult the files README and
  * COPYING for further information.
@@ -16,7 +19,7 @@ private:
 public:
 
 	static const char*		binary_version_string() {return te_binary_version_string;}
-	
+
 	/**
 	 * \return {major,minor,fix}
 	 */
@@ -215,3 +218,5 @@ private:
 
 
 };
+
+#endif // TE_LIBTE_HPP_

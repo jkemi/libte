@@ -54,41 +54,48 @@ static const Fl_Color col_table[] = {
 };
 
 static const uint8_t col_palette[] = {
-/*		0,0,0,			// BLACK
-		255,0,0,		// RED
-		0,255,0,		// GREEN
-		255,255,0,		// YELLOW
-		0,0,255,		// BLUE
-		255,0,255,		// MAGENTA
-		0,255,255,		// CYAN
-		255,255,255,	// WHITE
-		0,0,128,		// DARK BLUE
-		128,128,128,	// DARK CYAN
-		128,0,0,		// DARK RED
-		128,128,0,		// DARK YELLOW
-		0,128,0,		// DARK GREEN
-		128,0,128,		// DARK MAGENTA*/
-
-		0,0,0,			// BLACK
-		139,0,0,		// RED
-		0,139,0,		// GREEN
-		139,139,0,		// YELLOW
-		0,0,139,		// BLUE
-		139,0,139,		// MAGENTA
-		0,139,139,		// CYAN
-		167,167,167,	// WHITE
-		0,0,128,		// DARK BLUE
-		128,128,128,	// DARK CYAN
-		128,0,0,		// DARK RED
-		128,128,0,		// DARK YELLOW
-		0,128,0,		// DARK GREEN
-		128,0,128,		// DARK MAGENTA
-
+/*
+	0,0,0,			// BLACK
+	255,0,0,		// RED
+	0,255,0,		// GREEN
+	255,255,0,		// YELLOW
+	0,0,255,		// BLUE
+	255,0,255,		// MAGENTA
+	0,255,255,		// CYAN
+	255,255,255,	// WHITE
+	0,0,128,		// DARK BLUE
+	128,128,128,	// DARK CYAN
+	128,0,0,		// DARK RED
+	128,128,0,		// DARK YELLOW
+	0,128,0,		// DARK GREEN
+	128,0,128,		// DARK MAGENTA
+*/
+	0,0,0,			// BLACK
+	139,0,0,		// RED
+	0,139,0,		// GREEN
+	139,139,0,		// YELLOW
+	0,0,139,		// BLUE
+	139,0,139,		// MAGENTA
+	0,139,139,		// CYAN
+	167,167,167,	// WHITE
+	0,0,128,		// DARK BLUE
+	128,128,128,	// DARK CYAN
+	128,0,0,		// DARK RED
+	128,128,0,		// DARK YELLOW
+	0,128,0,		// DARK GREEN
+	128,0,128,		// DARK MAGENTA
 };
 
+/*
 #define _DEFER_DRAWING_US	20000		// if drawing occured within this time from last draw, reset draw timer to _DEFERRED_DRAWING_DELAY
 #define _DEFERRED_DRAWING_DELAY	0.02	// delay (in seconds) until we perform actual drawing (if _DEFER_DRAWING_US matched)
-	
+*/
+
+// TODO: this basically disables first param
+#define _DEFER_DRAWING_US	2000000000		// if drawing occured within this time from last draw, reset draw timer to _DEFERRED_DRAWING_DELAY
+#define _DEFERRED_DRAWING_DELAY	0.03	// delay (in seconds) until we perform actual drawing (if _DEFER_DRAWING_US matched)
+
+
 #ifndef FLTE_ENABLE_FT
 #	define FONT_SIZE 14
 #endif
@@ -141,8 +148,8 @@ BasicTerm::BasicTerm (	int fontsize,
 	font.xoff = 0;
 	font.yoff = fl_height()-fl_descent();
 #endif
-	
-	
+
+
 	// Size of graphics area in cells
 	gfx.ncols = (w()-Fl::box_dw(box())) / font.pixw;
 	gfx.nrows = (h()-Fl::box_dh(box())) / font.pixh;
@@ -316,7 +323,8 @@ void BasicTerm::_handle_from_slave(const int32_t *data, size_t len) {
 	// Process exited!
 	if (len == 0) {
 		int exit_status = *data;
-		exit(0);
+		_event_handler->event_childexit(exit_status);
+		return;
 	}
 	teProcessInput(data, len);
 }
@@ -379,8 +387,8 @@ int BasicTerm::handle(int event)
 	default:
 		break;
 	}
-
-	return 0;
+	
+	return Fl_Box::handle(event);
 }
 
 /************************************************************************/
@@ -466,14 +474,14 @@ void BasicTerm::fe_draw_text(int xpos, int ypos, const symbol_t* symbols, int le
 		const int cp = symbol_get_codepoint(sym);
 
 #ifdef FLTE_ENABLE_FT
-		
+
 		if (cp == ' ') {
 			const symbol_attributes_t attrs = symbol_get_attributes(sym);
 			symbol_color_t bg_color = symbol_get_bg(sym);
 			if (attrs & SYMBOL_INVERSE) {
 				bg_color = symbol_get_fg(sym);
 			}
-			
+
 			Fl_Color bg = col_table[bg_color];
 			fl_color(bg);
 			fl_rectf(xp, yp, font.pixw, font.pixh);
@@ -483,7 +491,7 @@ void BasicTerm::fe_draw_text(int xpos, int ypos, const symbol_t* symbols, int le
 			if (attrs & SYMBOL_INVERSE) {
 				fg_color = symbol_get_bg(sym);
 			}
-			
+
 			const uint8_t* fontdata = tr_get(sym);
 			fl_draw_image(fontdata, xp, yp, font.pixw, font.pixh, 3);
 		}
@@ -500,14 +508,14 @@ void BasicTerm::fe_draw_text(int xpos, int ypos, const symbol_t* symbols, int le
 		Fl_Color bg = col_table[bg_color];
 		fl_color(bg);
 		fl_rectf(xp, yp, font.pixw, font.pixh);
-		
+
 		if (cp != ' ') {
 			Fl_Color fg = col_table[fg_color];
 			char buf[6];
 			const int l = fl_utf8encode(cp, buf);
 			buf[l] = '\0';
 			fl_color(fg);
-			
+
 			// BOLD and BLINK
 			if ((attrs & (SYMBOL_BOLD|SYMBOL_BLINK)) == (SYMBOL_BOLD|SYMBOL_BLINK)) {
 				fl_font(FL_COURIER_BOLD_ITALIC, FONT_SIZE);
@@ -518,7 +526,7 @@ void BasicTerm::fe_draw_text(int xpos, int ypos, const symbol_t* symbols, int le
 			} else {
 				fl_font(FL_COURIER, FONT_SIZE);
 			}
-			
+
 			fl_draw(buf, l, xp+font.xoff, yp+font.yoff);
 		}
 #endif

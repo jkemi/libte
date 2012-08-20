@@ -8,6 +8,8 @@
 #ifndef FLX_SLAVEIO_HPP_
 #define FLX_SLAVEIO_HPP_
 
+#include <libte/LibTE.hpp>
+
 namespace Flx {
 namespace VT {
 
@@ -37,6 +39,7 @@ public:
 		_handler = NULL;
 		_handler_priv = NULL;
 	}
+	virtual ~SlaveIO() {};
 	
 	/**
 	 * Assign handler callback of data sent from slave.
@@ -48,7 +51,7 @@ public:
 		_handler = handler;
 		_handler_priv = handler_priv;
 	}
-	
+
 	/**
 	 * Request resize of slave.
 	 *
@@ -57,7 +60,7 @@ public:
 	 * \return true if slave could be resized
 	 */
 	virtual bool resizeSlave(int width, int height) = 0;
-	
+
 	/**
 	 * Send data to slave.
 	 *
@@ -66,9 +69,9 @@ public:
 	 * \return false on I/O failure
 	 */
 	virtual bool toSlave(const int32_t* data, int len) = 0;
-	
+
 protected:
-	
+
 	/**
 	 * Subclasses should use this method to pass data to assigned handler
 	 */
@@ -85,24 +88,30 @@ protected:
 class PtyIO : public SlaveIO {
 private:
 	static const size_t _BUFSIZE = 1024;
-	
+
 private:
-	
-	const int 	_fd;
+
+	TE_Pty*		_pty;
+	int		 	_fd;
+	int			_exit_status;
 	char		_buf[_BUFSIZE];
 	size_t		_fill;
-	
+
 	// Called by FLTK whenever input is received on filedes
 	static void _s_fd_cb(int fd, void* priv) {
 		((PtyIO*)priv)->_fromSlave(fd);
 	}
-	
+
 public:
-	PtyIO(int fd);
+	/**
+	 * claims ownership of pty
+	 */
+	PtyIO(TE_Pty* pty);
 	~PtyIO();
-	bool resizeSlave(int width, int height);
+
+	bool resizeSlave(int cols, int rows);
 	bool toSlave(const int32_t* data, int len);
-	
+
 private:
 	// Called by FLTK whenever input is received on filedes
 	void _fromSlave(int fd);

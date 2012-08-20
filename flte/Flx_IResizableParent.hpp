@@ -38,6 +38,8 @@ namespace Flx {
 		 * request a new title for this widget (TODO: should probably go into ScrolledTerm or such)
 		 */
 		virtual void event_title(const int32_t* text, int len) = 0;
+		
+		virtual void event_childexit(int exit_status) = 0;
 	};
 
 }	// namespace Flx
