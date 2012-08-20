@@ -13,9 +13,10 @@
 
 
 #include <sys/types.h>
-#include <unistd.h> 	// environ, execve, fcntl. Should include "environ" symbol (needs _GNU_SOURCE)
-#include <fcntl.h>		// open, fcntl
-#include <sys/wait.h> 	// waitpid
+#include <unistd.h>			// environ, execve, fcntl. Should include "environ" symbol (needs _GNU_SOURCE)
+#include <fcntl.h>			// open, fcntl
+#include <sys/wait.h>		// waitpid
+#include <sys/resource.h>	// getrlimit
 
 // Usage of 'environ' is not possible directly from shared libs on OSX
 #ifdef __APPLE__
@@ -37,6 +38,8 @@
 #  include <util.h> //imm
 #endif
 
+
+#include "misc.h"
 #include "pty.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -309,15 +312,30 @@ PTY* te_pty_spawn(const char *exe, const char* const* args, const char* const* e
 			close(pts);
 		}
 
+		// Close all filedescriptionrs but 0,1,2
+		long maxfd=sysconf(_SC_OPEN_MAX);
+		struct rlimit rl;
+		if (getrlimit(RLIMIT_NOFILE, &rl) == 0) {
+			if (maxfd == -1 || rl.rlim_max < maxfd) {
+				maxfd = rl.rlim_max;
+			}
+		}
+		if (maxfd == -1) {
+			maxfd = 9999;
+		}
+		for(long fd=3; fd<maxfd; fd++) {
+			if (close(fd) == 0) {
+//				DEBUGF("closed filedes: %ld\n", fd);
+			}
+		}
 
+		
 		// Make the current process a new session leader
 		setsid();
 
 		// As the child is a session leader, set the controlling terminal to be the slave side of the PTY
 		// (Mandatory for programs like the shell to make them manage correctly their outputs)
 		ioctl(0, TIOCSCTTY, 1);
-
-		// TODO: close all filedescriptors but 0,1,2
 
 		// set terminal to utf-8 mode
 		term_set_utf8(pts, 1);
