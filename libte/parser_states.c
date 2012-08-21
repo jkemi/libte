@@ -36,8 +36,8 @@ const StateOption state_normal[] = {
     { '\v', &ac_lf,		state_normal },	// VT 	- 11	(xterm spec says same as LF)
     { '\f', &ac_lf,		state_normal },	// FF	- 12	(xterm spec says same as LF)
     { '\r', &ac_cr,		state_normal },	// CR	- 13
-    { 14, NULL,			state_normal }, // SO	- 016 SHIFT OUT ( invoke G0 charset, as designated by SCS )
-    { 15, NULL,			state_normal }, // SI	- 017 SHIFT IN ( invoke G1 charset, as selected by <ESC>( )
+    { 14, &ac_g0_set_sg,			state_normal }, // SO	- 016 SHIFT OUT ( invoke G0 charset, as designated by SCS )
+    { 15, &ac_g0_set_us,			state_normal }, // SI	- 017 SHIFT IN ( invoke G1 charset, as selected by <ESC>( )
     { 24, NULL,			state_normal }, // CAN  - 030 if sent during a control-seq, it's ignored and displays error character
     { 26, NULL,			state_normal }, // SUB  - 032 same as CAN
 	{ 27, NULL,			state_esc },	// ESC	- 033
