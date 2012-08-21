@@ -11,7 +11,7 @@
 
 #include "Flxi_BasicTerm.hpp"
 
-#ifndef FLTE_ENABLE_FT
+#ifdef FLTE_ENABLE_FT
 #	include "fontrender.h"
 #endif
 
@@ -92,8 +92,8 @@ static const uint8_t col_palette[] = {
 */
 
 // TODO: this basically disables first param
-#define _DEFER_DRAWING_US	2000000000		// if drawing occured within this time from last draw, reset draw timer to _DEFERRED_DRAWING_DELAY
-#define _DEFERRED_DRAWING_DELAY	0.03	// delay (in seconds) until we perform actual drawing (if _DEFER_DRAWING_US matched)
+#define _DEFER_DRAWING_US	2000000		// if drawing occured within this time from last draw, reset draw timer to _DEFERRED_DRAWING_DELAY
+#define _DEFERRED_DRAWING_DELAY	0.005	// delay (in seconds) until we perform actual drawing (if _DEFER_DRAWING_US matched)
 
 
 #ifndef FLTE_ENABLE_FT
