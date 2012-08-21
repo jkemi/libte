@@ -155,7 +155,7 @@ public:
 protected:
 	virtual void fe_draw_text(int x, int y, const symbol_t* symbols, int len) = 0;
 	virtual void fe_draw_clear(int x, int y, const symbol_color_t bg_color, int len) = 0;
-	virtual void fe_draw_cursor(symbol_color_t fg_color, symbol_color_t bg_color, symbol_attributes_t attrs, int x, int y, int32_t cp) = 0;
+	virtual void fe_draw_cursor(int x, int y, symbol_t symbol) = 0;
 	virtual void fe_draw_move(int y, int height, int byoffset) = 0;
 	virtual void fe_updated() = 0;
 	virtual void fe_reset() = 0;
@@ -176,8 +176,8 @@ private:
 	static void _impl_draw_clear (void* priv, int x, int y, const symbol_color_t bg_color, int len) {
 		((LibTE*)priv)->fe_draw_clear(x, y, bg_color, len);
 	}
-	static void _impl_draw_cursor (void* priv, symbol_color_t fg_color, symbol_color_t bg_color, symbol_attributes_t attrs, int x, int y, int32_t cp) {
-		((LibTE*)priv)->fe_draw_cursor(fg_color, bg_color, attrs, x, y, cp);
+	static void _impl_draw_cursor (void* priv, int x, int y, symbol_t symbol) {
+		((LibTE*)priv)->fe_draw_cursor(x, y, symbol);
 	}
 	static void _impl_draw_move (void* priv, int y, int height, int byoffset) {
 		((LibTE*)priv)->fe_draw_move(y, height, byoffset);

@@ -21,12 +21,30 @@
 // 9 bits (32 - 23) are used for additional information here
 typedef uint32_t symbol_t;
 
+// layout
+// aaaa fffb bbcc cccc cccc cccc cccc cccc
+//  a = attributes
+//  f = foreground
+//  b = background
+//  c = codepoint
+#define SYMBOL_ATTRIBUTES_SHIFTS	(28)
+#define SYMBOL_ATTRIBUTES_MASK		(0xf<<SYMBOL_ATTRIBUTES_SHIFTS)
+#define SYMBOL_FG_SHIFTS			(22)
+#define SYMBOL_FG_MASK				(0x7<<SYMBOL_FG_SHIFTS)
+#define SYMBOL_BG_SHIFTS			(25)
+#define SYMBOL_BG_MASK				(0x7<<SYMBOL_BG_SHIFTS)
+#define SYMBOL_CP_SHIFTS			(0)
+#define SYMBOL_CP_MASK				(0x3fffff<<SYMBOL_CP_SHIFTS)
+
+
+
 // additional data layout:
 // bits     987654321
 // fg-color       xxx
 // bg-color    xxx
 typedef uint_fast16_t symbol_data_t;
 typedef uint_fast8_t symbol_color_t;
+
 
 // these are the colors:
 //   0 - Black
@@ -47,46 +65,39 @@ typedef uint_fast8_t symbol_color_t;
 #define SYMBOL_INVERSE		(1<<2)
 #define SYMBOL_UNDERLINE	(1<<3)
 
+
 typedef uint_fast8_t symbol_attributes_t;
 
-static inline symbol_data_t symbol_get_data(symbol_t sym) {
-	return sym >> 22;
-}
-
 static inline int symbol_get_codepoint(symbol_t sym) {
-	return (sym & 0x3fffff);
-}
-
-static inline symbol_t symbol_set_data(symbol_t sym, symbol_data_t data) {
-	return (sym & 0x3fffff) | (data<<22);
-}
-
-static inline symbol_t symbol_get_style (symbol_t sym) {
-	return (sym & ~0x3fffff);
+	return (sym & SYMBOL_CP_MASK)>>SYMBOL_CP_SHIFTS;
 }
 
 static inline symbol_color_t symbol_get_fg(symbol_t sym) {
-	return symbol_get_data(sym) & 0x7;
+	return (sym & SYMBOL_FG_MASK) >> SYMBOL_FG_SHIFTS;
 }
 
 static inline symbol_color_t symbol_get_bg(symbol_t sym) {
-	return (symbol_get_data(sym) & 0x38) >> 3;
+	return (sym & SYMBOL_BG_MASK) >> SYMBOL_BG_SHIFTS;
 }
 
 static inline symbol_attributes_t symbol_get_attributes(symbol_t sym) {
-	return (symbol_get_data(sym)&0x1c0) >> 6;
+	return (sym & SYMBOL_ATTRIBUTES_MASK) >> SYMBOL_ATTRIBUTES_SHIFTS;
+}
+
+static inline symbol_t symbol_set_attributes(symbol_t sym, symbol_attributes_t attrs) {
+	return (sym & ~SYMBOL_ATTRIBUTES_MASK) | ( ((symbol_t)attrs << SYMBOL_ATTRIBUTES_SHIFTS) & SYMBOL_ATTRIBUTES_MASK );
 }
 
 static inline symbol_t symbol_set_fg(symbol_t sym, symbol_color_t col) {
-	return sym | ((symbol_t)col << 22);
+	return sym | ((symbol_t)col << SYMBOL_FG_SHIFTS);
 }
 
 static inline symbol_t symbol_set_bg(symbol_t sym, symbol_color_t col) {
-	return sym | ((symbol_t)col << 25);
+	return sym | ((symbol_t)col << SYMBOL_BG_SHIFTS);
 }
 
 static inline symbol_t symbol_make_style(symbol_color_t fg, symbol_color_t bg, symbol_attributes_t attributes) {
-	return ((symbol_t)bg)<<25 | ((symbol_t)fg)<<22 | ((symbol_t)attributes)<<28;
+	return ((symbol_t)bg)<<SYMBOL_BG_SHIFTS | ((symbol_t)fg)<<SYMBOL_FG_SHIFTS | ((symbol_t)attributes)<<SYMBOL_ATTRIBUTES_SHIFTS;
 }
 
 #endif	// TE_SYMBOL_H_

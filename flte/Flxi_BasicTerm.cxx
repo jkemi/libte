@@ -433,7 +433,7 @@ void BasicTerm::draw(void)
 	const int yo = y() + Fl::box_dy(this->box());
 	const int wd = w() - Fl::box_dw(this->box());
 	const int ht = h() - Fl::box_dh(this->box());
-
+	
 	Fl_Box::draw();
 	fl_push_clip(xo, yo, wd, ht);
 
@@ -550,16 +550,30 @@ void BasicTerm::fe_draw_clear(int xpos, int ypos, const symbol_color_t bg_color,
 	fl_rectf(xp, yp, font.pixw*len, font.pixh);
 }
 
-void BasicTerm::fe_draw_cursor(symbol_color_t fg_color, symbol_color_t bg_color, symbol_attributes_t attrs, int xpos, int ypos, int32_t cp) {
+void BasicTerm::fe_draw_cursor(int xpos, int ypos, symbol_t symbol) {
+	symbol_attributes_t attrs = symbol_get_attributes(symbol) ^ SYMBOL_INVERSE;
+	symbol = symbol_set_attributes(symbol, attrs);
+	fe_draw_text(xpos, ypos, &symbol, 1);
+	return;
+	
+	/*
 	const int xp = x() + gfx.xoff + font.pixw * xpos;
 	const int yp = y() + gfx.yoff + font.pixh * ypos;
 
 	assert (fg_color >= 0 && fg_color <= 7);
+
+	if (attrs & SYMBOL_INVERSE) {
+		symbol_color_t tmp = fg_color;
+		fg_color = bg_color;
+		bg_color = tmp;
+	}
+	
 	const Fl_Color fg = col_table[fg_color];
 
 	// now draw a simple box cursor
 	fl_color(fg);
 	fl_rectf(xp, yp, font.pixw, font.pixh);
+	 */
 }
 
 void BasicTerm::fe_draw_move(int y, int height, int byoffset) {

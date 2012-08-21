@@ -232,8 +232,8 @@ static inline void fe_draw_text		(TE* te, int x, int y, const symbol_t* symbols,
 static inline void fe_draw_clear	(TE* te, int x, int y, const symbol_color_t bg_color, int len)
 	{ te->fe->draw_clear(te->fe_priv, x, y, bg_color, len); }
 
-static inline void fe_draw_cursor	(TE* te, symbol_color_t fg_color, symbol_color_t bg_color, symbol_attributes_t attrs, int x, int y, int32_t cp)
-	{ te->fe->draw_cursor(te->fe_priv, fg_color, bg_color, attrs, x, y, cp); }
+static inline void fe_draw_cursor	(TE* te, int x, int y, symbol_t symbol)
+	{ te->fe->draw_cursor(te->fe_priv, x, y, symbol); }
 
 static inline void fe_draw_move		(TE* te, int y, int height, int byoffset)
 	{ te->fe->draw_move(te->fe_priv, y, height, byoffset); }

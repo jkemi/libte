@@ -125,7 +125,7 @@ private:
 //
 	void fe_draw_text(int x, int y, const symbol_t* data, int len);
 	void fe_draw_clear(int x, int y, const symbol_color_t bg_color, int len);
-	void fe_draw_cursor(symbol_color_t fg_color, symbol_color_t bg_color, symbol_attributes_t attrs, int x, int y, int32_t cp);
+	void fe_draw_cursor(int x, int y, symbol_t symbol);
 	void fe_draw_move(int y, int height, int byoffset);
 
 	void fe_updated();
