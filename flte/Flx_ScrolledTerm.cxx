@@ -174,6 +174,11 @@ int ScrolledTerm::handle(int event) {
 		return 1;
 	case FL_KEYBOARD: {
 		const bool shift = (Fl::event_shift() != 0);
+#ifdef __APPLE__
+		const bool shortcut = (Fl::event_command() != 0);
+#else
+		const bool shortcut = (Fl::event_shift() != 0 && Fl::event_ctrl() != 0);
+#endif
 		switch (Fl::event_key()) {
 		case FL_Page_Up:
 			if (shift) {
@@ -197,7 +202,7 @@ int ScrolledTerm::handle(int event) {
 			break;
 		}
 		case 'r':
-			if (shift && Fl::event_ctrl()) {
+			if (shortcut) {
 				printf("forced redraw!\n");
 				_impl->term->redraw();
 				return 1;
@@ -205,7 +210,7 @@ int ScrolledTerm::handle(int event) {
 			break;
 #ifndef NDEBUG
 		case 'd':
-			if (shift && Fl::event_ctrl()) {
+			if (shortcut) {
 				printf("forced debug!\n");
 				_impl->term->printTerminalDebug(stdout);
 				return 1;
@@ -213,7 +218,7 @@ int ScrolledTerm::handle(int event) {
 			break;
 #endif
 		case 'v':
-			if (shift && Fl::event_command()) {
+			if (shortcut) {
 				printf("paste!\n");
 				Fl::paste(*_impl->term, 1);
 				return 1;
