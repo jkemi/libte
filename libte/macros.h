@@ -5,8 +5,8 @@
  * libTE is copyright (c) 2008 by Jakob Kemi.
  */
 
-#ifndef MACROS_H_
-#define MACROS_H_
+#ifndef TE_MACROS_H_
+#define TE_MACROS_H_
 
 #ifdef _MSC_VER
   #ifdef BUILDING_DLL
@@ -25,4 +25,4 @@
   #endif
 #endif
 
-#endif /* MACROS_H_ */
+#endif /* TE_MACROS_H_ */

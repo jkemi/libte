@@ -5,8 +5,8 @@
  * libTE is copyright (c) 2008 by Jakob Kemi.
  */
 
-#ifndef BUFFERSYMBOL_H_
-#define BUFFERSYMBOL_H_
+#ifndef TE_SYMBOL_H_
+#define TE_SYMBOL_H_
 
 #include <stdint.h>
 
@@ -89,4 +89,4 @@ static inline symbol_t symbol_make_style(symbol_color_t fg, symbol_color_t bg, s
 	return ((symbol_t)bg)<<25 | ((symbol_t)fg)<<22 | ((symbol_t)attributes)<<28;
 }
 
-#endif
+#endif	// TE_SYMBOL_H_

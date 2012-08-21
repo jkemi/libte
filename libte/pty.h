@@ -5,8 +5,8 @@
  * libTE is copyright (c) 2008 by Jakob Kemi.
  */
 
-#ifndef PTY_H_
-#define PTY_H_
+#ifndef TE_PTY_H_
+#define TE_PTY_H_
 
 #include "macros.h"
 
@@ -60,4 +60,4 @@ TE_EXPORT int te_pty_set_window_size(int fd, int width, int height);
 #endif
 
 
-#endif
+#endif	// TE_PTY_H_
