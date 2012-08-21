@@ -191,7 +191,7 @@ void viewport_request_redraw(TE* te, int x, int y, int w, int h, bool force) {
 			const symbol_t sym = row->data[xpos];
 
 			const symbol_color_t fg = symbol_get_fg(sym);
-			const symbol_color_t bg = symbol_get_fg(sym);
+			const symbol_color_t bg = symbol_get_bg(sym);
 			const symbol_attributes_t attrs = symbol_get_attributes(sym);
 			const unsigned int cp = symbol_get_codepoint(sym);
 
