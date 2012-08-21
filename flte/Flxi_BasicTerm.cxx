@@ -215,6 +215,40 @@ int32_t BasicTerm::_s_fltkToCP(const char* text, size_t len) {
     }
 	return ret;
 }
+	
+int32_t* BasicTerm::_s_fltkToCPs(const char* text, size_t bytes, size_t* cplen) {
+	// TODO: size
+	int32_t* cps = (int32_t*)malloc(sizeof(int32_t)*Fl::event_length());
+	if (cps == NULL) {
+		*cplen = 0;
+		return NULL;
+	}
+	
+	const char* src = text;
+	int32_t* dest = cps;
+	size_t len = 0;
+	
+	while (bytes > 0) {
+		if (*src & 0x80) {              // what should be a multibyte encoding
+			int l;
+			*dest = fl_utf8decode(src,src+bytes,&l);
+			if (l<2) {
+				*dest = 0xFFFD;   // Turn errors into REPLACEMENT CHARACTER
+			}
+			bytes-=l;
+			src+=l;
+		} else {                      // handle the 1-byte utf8 encoding:
+			*dest = *src;
+			bytes--;
+			src++;
+		}
+		dest++;
+		len++;
+	}
+
+	*cplen = len;
+	return cps;
+}
 
 bool BasicTerm::_handle_keyevent(void) {
 	const int keysym = Fl::event_key();
@@ -293,26 +327,19 @@ bool BasicTerm::_handle_keyevent(void) {
 	}
 
 	return false;
-/*
-	const int keylen = Fl::event_length();
+}
+	
+bool BasicTerm::_handle_pasteevent(void) {
+	fprintf(stderr, "got paste");
 
-	if (el) {
-		key_c = Fl::event_text()[0]; // probably a dodgy assumption...
+	size_t len;
+	int32_t* cps = _s_fltkToCPs(Fl::event_text(), Fl::event_length(), &len);
+	if (cps != NULL) {
+		tePasteText(cps, len);
+		free(cps);
+		return true;
 	}
-	if((key >= ' ') && (key <= '~')) { // simple ASCII
-		if ((key >= 'a') && (key <= 'z')) {
-			if (Fl::event_ctrl()) { // ctrl-key
-				key_c = key - 0x60;
-			}
-		// Also need to do something about ALT and META at this point...
-		}
-		txt[0] = key_c & 0x7F;
-		te->SendBack(txt);
-		return 1;
-	}
-	return 1; // return 1 for FL_KEYBOARD even if we don't know what they key is for!
-	*/
-
+	return false;
 }
 
 void BasicTerm::_deferred_update_cb() {
@@ -339,6 +366,12 @@ int BasicTerm::handle(int event)
 		return 1;
 	case FL_KEYDOWN:
 		if (_handle_keyevent()) {
+			return 1;
+		}
+		break;
+	
+	case FL_PASTE:
+		if (_handle_pasteevent()) {
 			return 1;
 		}
 		break;

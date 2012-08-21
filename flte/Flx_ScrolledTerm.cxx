@@ -212,7 +212,16 @@ int ScrolledTerm::handle(int event) {
 			}
 			break;
 #endif
+		case 'v':
+			if (shift && Fl::event_command()) {
+				printf("paste!\n");
+				Fl::paste(*_impl->term, 1);
+				return 1;
+			}
+			break;
+
 		}
+
 		if (_impl->term->handle(event)) {
 			return 1;
 		}

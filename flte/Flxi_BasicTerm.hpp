@@ -112,8 +112,10 @@ private:
 // Private methods
 //
 private:
+	static int32_t*	_s_fltkToCPs(const char* text, size_t len, size_t* cplen);
 	static int32_t	_s_fltkToCP(const char* text, size_t len);
 	bool		 	_handle_keyevent(void);
+	bool		 	_handle_pasteevent(void);
 	static void		_s_deferred_update_cb(void* data) { ((BasicTerm*)data)->_deferred_update_cb();}
 	void			_deferred_update_cb();
 
