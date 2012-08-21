@@ -96,6 +96,13 @@ static inline symbol_t symbol_set_bg(symbol_t sym, symbol_color_t col) {
 	return sym | ((symbol_t)col << SYMBOL_BG_SHIFTS);
 }
 
+static inline symbol_t symbol_make(symbol_color_t fg, symbol_color_t bg, symbol_attributes_t attributes, uint32_t cp) {
+	return	((symbol_t)bg)<<SYMBOL_BG_SHIFTS |
+			((symbol_t)fg)<<SYMBOL_FG_SHIFTS |
+			((symbol_t)attributes)<<SYMBOL_ATTRIBUTES_SHIFTS |
+			cp<<SYMBOL_CP_SHIFTS;
+}
+
 static inline symbol_t symbol_make_style(symbol_color_t fg, symbol_color_t bg, symbol_attributes_t attributes) {
 	return ((symbol_t)bg)<<SYMBOL_BG_SHIFTS | ((symbol_t)fg)<<SYMBOL_FG_SHIFTS | ((symbol_t)attributes)<<SYMBOL_ATTRIBUTES_SHIFTS;
 }

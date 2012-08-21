@@ -623,7 +623,7 @@ void ac_insert_char(TE* te)
 
 	BufferRow* row = buffer_get_row(te->buffer, te->cursor_y);
 	// TODO: spec. says blank character, "with the normal character attributes" what are those?
-	symbol_t fillsym = symbol_make_style(te->fg_color, te->bg_color, te->attributes) | ' ';
+	symbol_t fillsym = symbol_make(te->fg_color, te->bg_color, te->attributes, ' ');
 
 	if (n >= mx) {
 		bufrow_fill(row, te->cursor_x, fillsym, mx);

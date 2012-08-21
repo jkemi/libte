@@ -186,9 +186,14 @@ void viewport_request_redraw(TE* te, int x, int y, int w, int h, bool force) {
 
 		// draw cursor if force or inside rectangle
 		if ( force || (xpos >= x && xpos < x+w && ypos >= y && ypos < y+h) ) {
-			// TODO: check row->used, row->capacity here!
 			const BufferRow* row = buffer_get_row(te->buffer, te->cursor_y);
-			const symbol_t sym = row->data[xpos];
+			symbol_t sym;
+			
+			if (xpos < row->used) {
+				sym = row->data[xpos];
+			} else {	// cursor beyond existing data
+				sym = symbol_make(te->fg_color, te->bg_color, te->attributes, ' ');
+			}
 
 			fe_draw_cursor(te, xpos, ypos, sym);
 		}
