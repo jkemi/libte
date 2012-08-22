@@ -15,6 +15,21 @@
 #	include "fontrender.h"
 #endif
 
+/*
+ #define _DEFER_DRAWING_US	20000		// if drawing occured within this time from last draw, reset draw timer to _DEFERRED_DRAWING_DELAY
+ #define _DEFERRED_DRAWING_DELAY	0.02	// delay (in seconds) until we perform actual drawing (if _DEFER_DRAWING_US matched)
+ */
+
+// TODO: this basically disables first param
+#define _DEFER_DRAWING_US	2000000		// if drawing occured within this time from last draw, reset draw timer to _DEFERRED_DRAWING_DELAY
+#define _DEFERRED_DRAWING_DELAY	(1.0/100)	// delay (in seconds) until we perform actual drawing (if _DEFER_DRAWING_US matched)
+
+
+#ifndef FLTE_ENABLE_FT
+#	define FONT_SIZE 14
+#endif
+
+
 
 namespace Flx {
 namespace VT {
@@ -22,7 +37,18 @@ namespace impl {
 
 // VT100 color table - map Colors to FL-colors:
 static const Fl_Color col_table[] = {
-/*	FL_BLACK,
+	// NORMAL
+	FL_BLACK,			// 0 BLACK
+	FL_DARK_RED,		// 1 RED
+	FL_DARK_GREEN,		// 2 GREEN
+	FL_DARK_YELLOW,		// 3 YELLOW
+	FL_DARK_BLUE,		// 4 BLUE
+	FL_DARK_MAGENTA,	// 5 MAGENTA
+	FL_DARK_CYAN,		// 6 CYAN
+	FL_WHITE,			// 7 WHITE
+
+	// "Bright"
+	FL_GRAY0,
 	FL_RED,
 	FL_GREEN,
 	FL_YELLOW,
@@ -30,13 +56,8 @@ static const Fl_Color col_table[] = {
 	FL_MAGENTA,
 	FL_CYAN,
 	FL_WHITE,
-	FL_DARK_BLUE,
-	FL_DARK_CYAN,
-	FL_DARK_RED,
-	FL_DARK_YELLOW,
-	FL_DARK_GREEN,
-	FL_DARK_MAGENTA,*/
 
+	/*
 	FL_BLACK,
 	fl_rgb_color(139, 0, 0),		// RED
 	fl_rgb_color(0, 139, 0),		// GREEN
@@ -50,11 +71,40 @@ static const Fl_Color col_table[] = {
 	FL_DARK_RED,
 	FL_DARK_YELLOW,
 	FL_DARK_GREEN,
-	FL_DARK_MAGENTA,
+	FL_DARK_MAGENTA,*/
+/*
+	fl_rgb_color(0,0,0),		// DARK BLACK
+	fl_rgb_color(133,0,11),		// DARK RED
+	fl_rgb_color(39,152,5),		// DARK GREEN
+	fl_rgb_color(136,136,4),	// DARK YELLOW
+	fl_rgb_color(0,14,170),		// DARK BLUE
+	fl_rgb_color(155,0,169),	// DARK MAGENTA
+	fl_rgb_color(32,149,165),	// DARK CYAN
+	fl_rgb_color(178,178,178),	// DARK WHITE
+
+	fl_rgb_color(102,102,102),	// BLACK
+	fl_rgb_color(216,0,6),		// RED
+	fl_rgb_color(55,213,6),		// GREEN
+	fl_rgb_color(225,226,9),	// YELLOW
+	fl_rgb_color(0,20,255),		// BLUE
+	fl_rgb_color(211,0,234),	// MAGENTA
+	fl_rgb_color(0,224,255),	// CYAN
+	fl_rgb_color(223,233,255),	// WHITE
+*/
 };
 
 static const uint8_t col_palette[] = {
-/*
+	// Normal
+	0,0,0,			// BLACK
+	128,0,0,		// RED
+	0,128,0,		// GREEN
+	128,128,0,		// YELLOW
+	0,0,128,		// BLUE
+	128,0,128,		// MAGENTA
+	0,128,128,		// CYAN
+	128,128,128,	// WHITE
+
+	// Bright
 	0,0,0,			// BLACK
 	255,0,0,		// RED
 	0,255,0,		// GREEN
@@ -63,13 +113,8 @@ static const uint8_t col_palette[] = {
 	255,0,255,		// MAGENTA
 	0,255,255,		// CYAN
 	255,255,255,	// WHITE
-	0,0,128,		// DARK BLUE
-	128,128,128,	// DARK CYAN
-	128,0,0,		// DARK RED
-	128,128,0,		// DARK YELLOW
-	0,128,0,		// DARK GREEN
-	128,0,128,		// DARK MAGENTA
-*/
+
+/*
 	0,0,0,			// BLACK
 	139,0,0,		// RED
 	0,139,0,		// GREEN
@@ -84,21 +129,28 @@ static const uint8_t col_palette[] = {
 	128,128,0,		// DARK YELLOW
 	0,128,0,		// DARK GREEN
 	128,0,128,		// DARK MAGENTA
-};
-
-/*
-#define _DEFER_DRAWING_US	20000		// if drawing occured within this time from last draw, reset draw timer to _DEFERRED_DRAWING_DELAY
-#define _DEFERRED_DRAWING_DELAY	0.02	// delay (in seconds) until we perform actual drawing (if _DEFER_DRAWING_US matched)
 */
 
-// TODO: this basically disables first param
-#define _DEFER_DRAWING_US	2000000		// if drawing occured within this time from last draw, reset draw timer to _DEFERRED_DRAWING_DELAY
-#define _DEFERRED_DRAWING_DELAY	0.005	// delay (in seconds) until we perform actual drawing (if _DEFER_DRAWING_US matched)
+/*
+	0,0,0,			// DARK BLACK
+	133,0,11,		// DARK RED
+	39,152,5,		// DARK GREEN
+	136,136,4,		// DARK YELLOW
+	0,14,140,		// DARK BLUE
+	155,0,169,		// DARK MAGENTA
+	32,149,165,		// DARK CYAN
+	178,178,178,	// DARK WHITE
+	102,102,102,	// BLACK
+	216,0,6,		// RED
+	55,213,6,		// GREEN
+	225,226,9,		// YELLOW
+	0,20,255,		// BLUE
+	211,0,234,		// MAGENTA
+	225,224,255,	// CYAN
+	223,233,255,	// WHITE
+*/
+};
 
-
-#ifndef FLTE_ENABLE_FT
-#	define FONT_SIZE 14
-#endif
 
 static uint64_t getCurrentTime_us(void) {
 	struct timeval tv;
