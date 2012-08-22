@@ -738,10 +738,11 @@ void ac_osc (TE* te) {
 	size-=2;
 	
 	switch(osc) {
-	case '0':
-	case '2':
+	case '0':	// icon name and window title
+	case '2':	// window title
 		fe_title(te, data, size);
 		break;
+	case '1':	// icon name
 	default:
 		WARNF("unknown osc code '%c' with data of len: %ld", osc, size);
 	}
