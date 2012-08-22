@@ -17,6 +17,7 @@
 #include <fcntl.h>			// open, fcntl
 #include <sys/wait.h>		// waitpid
 #include <sys/resource.h>	// getrlimit
+#include <signal.h>			// sigemptyset, sigprocmask
 
 // Usage of 'environ' is not possible directly from shared libs on OSX
 #ifdef __APPLE__
@@ -290,7 +291,11 @@ TE_Pty* te_pty_spawn(const char *exe, const char* const* args, const char* const
 	if (pid == 0) {		// slave process
 		close(ptm);		// close pty master
 
-		// TODO: enable any blocked signals...
+		sigset_t sigset;
+		sigemptyset(&sigset);
+		if (sigprocmask(SIG_SETMASK, &sigset, NULL)) {
+			fprintf(stderr, "cannot reset blocked signals, reason: %s", strerror(errno));
+		}
 
 		// SET RAW MODE
 		/*
