@@ -584,8 +584,6 @@ void BasicTerm::fe_draw_clear(int xpos, int ypos, const symbol_color_t bg_color,
 }
 
 void BasicTerm::fe_draw_cursor(int xpos, int ypos, symbol_t symbol) {
-	symbol_attributes_t attrs = symbol_get_attributes(symbol) ^ SYMBOL_INVERSE;
-	symbol = symbol_set_attributes(symbol, attrs);
 	fe_draw_text(xpos, ypos, &symbol, 1);
 	return;
 	

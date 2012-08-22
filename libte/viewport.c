@@ -191,8 +191,10 @@ void viewport_request_redraw(TE* te, int x, int y, int w, int h, bool force) {
 			
 			if (xpos < row->used) {
 				sym = row->data[xpos];
+				symbol_attributes_t attrs = symbol_get_attributes(sym) ^ SYMBOL_INVERSE;
+				sym = symbol_set_attributes(sym, attrs);
 			} else {	// cursor beyond existing data
-				sym = symbol_make(te->fg_color, te->bg_color, te->attributes, ' ');
+				sym = symbol_make(te->bg_color, te->fg_color, te->attributes, ' ');
 			}
 
 			fe_draw_cursor(te, xpos, ypos, sym);
