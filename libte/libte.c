@@ -143,8 +143,16 @@ void be_input(TE* te, const int32_t* text, size_t len) {
 			const size_t n = uint_min(len, te->width-te->cursor_x);
 			for (size_t i = 0; i < n; i++) {
 				int32_t cp = text[i];
+
+				const te_chartable_entry_t* charset;
+
+				if (te->charset == 0) {
+					charset = te->charset_g0;
+				} else {
+					charset = te->charset_g1;
+				}
 				// Find replacement in selected charset
-				for (const te_chartable_entry_t* ce = te->charset_g0; ce->from != '\0'; ce++) {
+				for (const te_chartable_entry_t* ce = charset; ce->from != '\0'; ce++) {
 					if (ce->from == cp) {
 						cp = ce->to;
 						break;
@@ -327,6 +335,7 @@ TE* te_new(const TE_Frontend* fe, void* fe_priv, int w, int h)
 
 	be_clear_area(te, 0, 0, te->width, te->height-1);
 
+	te->charset = 0;
 	te->charset_g0 = chartable_us;
 	te->charset_g1 = chartable_us;
 
@@ -334,6 +343,7 @@ TE* te_new(const TE_Frontend* fe, void* fe_priv, int w, int h)
 	te->stored.autowrap = true;
 	te->stored.cursor_x = 0;
 	te->stored.cursor_y = 0;
+	te->stored.charset = 0;
 	te->stored.charset_g0 = chartable_us;
 	te->stored.charset_g1 = chartable_us;
 
@@ -586,6 +596,9 @@ void te_debug(TE_Backend* te, FILE* where) {
 	fprintf(where, "Cursor Keys Mode:        %s\n", be_is_mode_set(te, MODE_CURSORAPP) ? "on" : "off");
 	fprintf(where, "Application Keypad Mode: %s\n", be_is_mode_set(te, MODE_KEYAPP) ? "on" : "off");
 	fprintf(where, "dimensions WxH = %dx%d\n", te->width, te->height);
+	fprintf(where, "current charset (GR) %d\n", te->charset);
+	fprintf(where, "charset g0 us %d uk %d dec %d\n", te->charset_g0==chartable_us, te->charset_g0==chartable_uk, te->charset_g0==chartable_special);
+	fprintf(where, "charset g1 us %d uk %d dec %d\n", te->charset_g1==chartable_us, te->charset_g1==chartable_uk, te->charset_g1==chartable_special);
 	fprintf(where, "cursor     X,Y = %d,%d\n", te->cursor_x, te->cursor_y);
 	fprintf(where, "margins    TOP,BOTTOM = %d,%d\n", te->scroll_top, te->scroll_bot);
 	fprintf(where, "buffer: %s\n", (te->buffer == &te->norm_buffer) ? "normal" : "alternative");

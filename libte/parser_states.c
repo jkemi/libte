@@ -36,8 +36,8 @@ const StateOption state_normal[] = {
     { '\v', &ac_lf,		state_normal },	// VT 	- 11	(xterm spec says same as LF)
     { '\f', &ac_lf,		state_normal },	// FF	- 12	(xterm spec says same as LF)
     { '\r', &ac_cr,		state_normal },	// CR	- 13
-    { 14, &ac_g0_set_sg,			state_normal }, // SO	- 016 SHIFT OUT ( invoke G0 charset, as designated by SCS )
-    { 15, &ac_g0_set_us,			state_normal }, // SI	- 017 SHIFT IN ( invoke G1 charset, as selected by <ESC>( )
+    { 14, &ac_ls_g1,			state_normal }, // SO	- 016 SHIFT OUT ( invoke G0 charset, as designated by SCS )
+    { 15, &ac_ls_g0,			state_normal }, // SI	- 017 SHIFT IN ( invoke G1 charset, as selected by <ESC>( )
     { 24, NULL,			state_normal }, // CAN  - 030 if sent during a control-seq, it's ignored and displays error character
     { 26, NULL,			state_normal }, // SUB  - 032 same as CAN
 	{ 27, NULL,			state_esc },	// ESC	- 033
@@ -79,6 +79,8 @@ static const StateOption state_esc[] = {
 	{ '(', NULL,					state_cset_shiftin },
 	{ ')', NULL,					state_cset_shiftout },
 	{ '#', NULL,					state_hash },
+//	{ '*', NULL,					state_asterisk },		vt220
+//	{ '+', NULL,					state_plus },			vt220
 
 	{ '^', NULL, state_ignore_to_st },		// Privacy Message (PM)
 	{ '_', NULL, state_ignore_to_st },		// Application Program Command (APC)
@@ -96,30 +98,68 @@ static const StateOption state_esc[] = {
     { -1, &_parser_unknown_esc,		state_normal}
 };
 
+/* charset names:
+	4 -> Dutch.
+	C or 5 -> Finnish.
+	R -> French.
+	Q -> French Canadian.
+	K -> German.
+	Y -> Italian.
+	E or 6 -> Norwegian/Danish.
+	Z -> Spanish.
+	H or 7 -> Swedish.
+	= -> Swiss.
+*/
+
+
+// set SHIFT-IN charset (g0)
 static const StateOption state_cset_shiftin[] = {
 	{ 'A',	&ac_g0_set_uk,	state_normal },	// UK
 	{ 'B',	&ac_g0_set_us,	state_normal },	// US-ASCII
 	{ '0',	&ac_g0_set_sg,	state_normal },	// DEC Special Character and Line Drawing Set
-	{ '1',	NULL,			state_normal },	// Alternate Character ROM Standard Character Set
-	{ '2',	NULL,			state_normal },	// Alternate Character ROM Special Graphics
+//	{ '1',	NULL,			state_normal },	// Alternate Character ROM Standard Character Set
+//	{ '2',	NULL,			state_normal },	// Alternate Character ROM Special Graphics
 
-	{ -1,	NULL,			state_normal },	// default to ASCII
+	{ -1,	&ac_g0_set_us,			state_normal },	// default to ASCII
 };
 
+// set SHIFT-OUT charset (g1)
 static const StateOption state_cset_shiftout[] = {
 	{ 'A',	&ac_g1_set_uk,	state_normal },	// UK
 	{ 'B',	&ac_g1_set_us,	state_normal },	// US-ASCII
 	{ '0',	&ac_g1_set_sg,	state_normal },	// DEC Special Character and Line Drawing Set
-	{ '1',	NULL,	state_normal },	// Alternate Character ROM Standard Character Set
-	{ '2',	NULL,	state_normal },	// Alternate Character ROM Special Graphics
+//	{ '1',	NULL,	state_normal },	// Alternate Character ROM Standard Character Set
+//	{ '2',	NULL,	state_normal },	// Alternate Character ROM Special Graphics
 
-	{ -1,	NULL,	state_normal },	// default to ASCII
+	{ -1,	&ac_g1_set_us,	state_normal },	// default to ASCII
 };
 
 static const StateOption state_hash[] = {
     { '8',	&ac_screen_align,   state_normal },
 	{ -1,	NULL,				state_normal}
 };
+
+// set g2 vt220
+// ESC # <charset>
+/*static const StateOption state_asterisk[] = {
+	{ 'A',	&ac_g2_set_uk,	state_normal },	// UK
+	{ 'B',	&ac_g2_set_us,	state_normal },	// US-ASCII
+	{ '0',	&ac_g2_set_sg,	state_normal },	// DEC Special Character and Line Drawing Set
+
+	{ -1,	NULL,			state_normal}
+};
+*/
+
+// set g3 vt220
+// ESC + <charset>
+/*
+static const StateOption state_plus[] = {
+	{ 'A',	&ac_g2_set_uk,	state_normal },	// UK
+	{ 'B',	&ac_g2_set_us,	state_normal },	// US-ASCII
+	{ '0',	&ac_g2_set_sg,	state_normal },	// DEC Special Character and Line Drawing Set
+	{ -1,	NULL,			state_normal}
+};
+*/
 
 static const StateOption state_csi[] = {
     { '?', &_parser_set_intermediate,	state_csi },

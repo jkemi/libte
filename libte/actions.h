@@ -52,6 +52,8 @@ TE_LOCAL void ac_screen_align		(TE* te);	// DEC Screen Alignment Test (DECALN)
 TE_LOCAL void ac_erase_char			(TE* te);	// Erase P s Character(s) (default = 1) (ECH)
 TE_LOCAL void ac_scroll_up			(TE* te);	// Scroll up Ps lines (default = 1) (SU)
 TE_LOCAL void ac_scroll_down		(TE* te);	// Scroll up Ps lines (default = 1) (SD)
+TE_LOCAL void ac_ls_g0				(TE* te);	// Locking Shift  g0
+TE_LOCAL void ac_ls_g1				(TE* te);	// Shift in g1
 TE_LOCAL void ac_g0_set_uk			(TE* te);	// Set character set G0 to UK
 TE_LOCAL void ac_g0_set_us			(TE* te);	// Set character set G0 to US
 TE_LOCAL void ac_g0_set_sg			(TE* te);	// Set character set G0 to DEC special graphics

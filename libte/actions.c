@@ -92,6 +92,7 @@ void ac_save_cursor(TE* te)
 	te->stored.cursor_x = te->cursor_x;
 	te->stored.cursor_y = te->cursor_y;
 	te->stored.autowrap = be_is_mode_flag(te, MODE_AUTOWRAP);
+	te->stored.charset = te->charset;
 	te->stored.charset_g0 = te->charset_g0;
 	te->stored.charset_g1 = te->charset_g1;
 }
@@ -105,6 +106,7 @@ void ac_restore_cursor(TE* te)
 	} else {
 		be_clear_mode_flag(te, MODE_AUTOWRAP);
 	}
+	te->charset = te->stored.charset;
 	te->charset_g0 = te->stored.charset_g0;
 	te->charset_g1 = te->stored.charset_g1;
 	be_move_cursor(te, te->stored.cursor_x, te->stored.cursor_y);
@@ -694,6 +696,17 @@ void ac_scroll_down (TE* te) {
 
 	be_scroll_region(te, te->scroll_top, te->scroll_bot, -n);
 }
+
+// Shift in g0
+void ac_ls_g0 (TE* te) {
+	te->charset = 0;
+}
+
+// Shift in g1
+void ac_ls_g1 (TE* te) {
+	te->charset = 1;
+}
+
 
 // Set character set G0 to UK
 void ac_g0_set_uk (TE* te) {

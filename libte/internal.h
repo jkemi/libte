@@ -151,6 +151,7 @@ struct TE_Backend_ {
 	symbol_color_t bg_color;
 	symbol_attributes_t	attributes;
 
+	int charset;			// (GL)
 	const te_chartable_entry_t* charset_g0;
 	const te_chartable_entry_t* charset_g1;
 
@@ -159,6 +160,7 @@ struct TE_Backend_ {
 		int cursor_x, cursor_y;
 		symbol_attributes_t attributes;
 		bool autowrap;
+		int charset;
 		const te_chartable_entry_t* charset_g0;
 		const te_chartable_entry_t* charset_g1;
 	} stored;
