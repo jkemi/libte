@@ -102,12 +102,12 @@ void bufrow_fill(BufferRow* br, uint x, const symbol_t value, uint len) {
 	br->used = uint_max(x+len, br->used);
 }
 
-void bufrow_remove(BufferRow* br, uint x, uint len) {
+void bufrow_remove(BufferRow* br, uint x, uint len, uint width) {
 	if (x >= br->used) {
 		return;
 	}
 
-	const int trail = br->used-(x+len);
+	const int trail = uint_min(br->used, width)-(x+len);
 	if (trail > 0) {
 		memmove(br->data+x, br->data+x+len, sizeof(symbol_t)*trail);
 		br->used = x+trail;

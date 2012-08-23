@@ -281,7 +281,7 @@ void ac_delete_char(TE* te)
 		be_clear_area(te, te->cursor_x, te->cursor_y, mx, 1);
 	} else {
 		BufferRow* row = buffer_get_row(te->buffer, te->cursor_y);
-		bufrow_remove(row,te->cursor_x,n);
+		bufrow_remove(row,te->cursor_x,n, te->width);
 		viewport_taint(te, te->cursor_y, te->cursor_x, mx);
 	}
 }
@@ -636,7 +636,7 @@ void ac_insert_char(TE* te)
 		int trail = (te->cursor_x+n) - te->width;
 
 		if (trail > 0) {
-			bufrow_remove(row, te->cursor_x+n, trail);
+			bufrow_remove(row, te->cursor_x+n, trail, te->width);
 		}
 
 		// TODO: remove this buffer
@@ -741,10 +741,12 @@ void ac_g1_set_sg (TE* te) {
 	te->charset_g1 = chartable_special;
 }
 
+
+
 void ac_osc (TE* te) {
 	size_t size = parser_get_osc_size(te->parser);
 	const int32_t* data = parser_get_osc_data(te->parser);
-	
+
 	if (size < 2 || data[1] != ';') {
 		WARNF("unknown osc data of len: %ld", size);
 		return;
@@ -752,7 +754,7 @@ void ac_osc (TE* te) {
 	int32_t osc = data[0];
 	data+=2;
 	size-=2;
-	
+
 	switch(osc) {
 	case '0':	// icon name and window title
 	case '2':	// window title

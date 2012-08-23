@@ -165,7 +165,7 @@ void be_input(TE* te, const int32_t* text, size_t len) {
 			if (be_is_mode_set(te, MODE_INSERT)) {
 				int trail = (te->cursor_x+n)-te->width;
 				if (trail > 0) {
-					bufrow_remove(row, te->cursor_x+n, trail);
+					bufrow_remove(row, te->cursor_x+n, trail, te->width);
 				}
 
 				bufrow_insert(row, te->cursor_x, syms, n);

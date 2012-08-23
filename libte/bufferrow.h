@@ -25,7 +25,7 @@ void bufrow_clear(BufferRow* br);
 void bufrow_insert(BufferRow* br, uint x, const symbol_t* symbols, uint len);
 void bufrow_replace(BufferRow* br, uint x, const symbol_t* symbols, uint len);
 void bufrow_fill(BufferRow* br, uint x, const symbol_t value, uint len);
-void bufrow_remove(BufferRow* br, uint x, uint len);
+void bufrow_remove(BufferRow* br, uint x, uint len, uint width);
 
 
 /*
