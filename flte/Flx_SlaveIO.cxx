@@ -19,13 +19,19 @@
 
 #include "Flx_SlaveIO.hpp"
 
+//#define DEBUG_TPIPE
+#undef DEBUG_TPIPE
 
 namespace Flx {
 namespace VT {
 
 PtyIO::PtyIO(TE_Pty* pty) {
 	_pty = pty;
+#ifdef DEBUG_TPIPE
+	_fd = open("test/tpipe", O_RDWR);
+#else
 	_fd = te_pty_getfd(pty);
+#endif
 	_fill = 0;
 	Fl::add_fd(_fd, FL_READ|FL_EXCEPT, _s_fd_cb, this);
 }
@@ -43,7 +49,11 @@ bool PtyIO::resizeSlave(int width, int height) {
 		return false;
 	}
 
+#ifdef DEBUG_TPIPE
+	return true;
+#else
 	return te_pty_set_window_size(_fd, width, height) == 0;
+#endif
 }
 
 bool PtyIO::toSlave(const int32_t* data, int len) {
