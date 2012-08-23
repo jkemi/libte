@@ -1,5 +1,84 @@
-0.8.0:
-	* first public release
-	* implemented OSC title support
-	* added unix98 pty helpers
-	* converted into CMAKE build system
+0.8.0 - 2012-08-24+ ()
+	* libte: API: minor changes to symbol helpers.
+	* libte: API: draw_cursor() changed, color are now supplied by libte
+	* libte: API: handle_button() changed to include keyboard modifier
+	* libte: add keyboard handling of CTRL+SPACE and CTRL+`
+	* libte: change handling of BACKSPACE to be compatible with xterm
+	* libte: fixed selection of special charsets from G1
+	* libte: fix cursor colors
+	* libte: fix cursor when beyond written text on row
+	* libte: rewrote symbol bitmasks
+	* libte: unblock child signals on exec
+	* flterm: altered deferred drawing logic a bit
+	* flterm: added paste support
+	* flterm: updated shortcuts for osx
+
+0.7.1 - 2012-08-21 (28 commits) (21)
+	* libte: fixed some minor issues found using xcode analyze
+	* libte: improved api versioning (nearing public release now)
+	* libte: implemented first OSC control (set title)
+	* libte: new clean pty handling (now based on unix98) included in libte
+	* flterm: drop pty code, use libte functions instead
+	* flterm: drop iconv dependency (now using FLTK1.3 functions)
+	* flterm: added FLTK1.3 font rendering, which makes freetype rendering optional again
+	* flterm: restructured widget hierarchy
+
+0.7 - 2012-08-12 "resurrection" (9 commits)
+	* oops, project silently "died" again, resumed after 30 months of suspension
+	* added cmake build system
+	* fix some warnings
+	* flterm: converted from FLTK1.2+hacks to FLTK1.3 (which finally offers UTF-8 support!)
+
+0.6 - 2010-02-17 (30 commits)
+	* added secret "debug" shortcut
+	* fixes and some xterm codes
+	* added mouse tracking
+	* api cleanups
+	* flterm object hierarchy changes
+	* enable freetype font rendering
+	* experimenting with mouse selection
+
+0.5 - 2010-02-02 "revival" (32 commits)
+	* libte is back from the dead! Resumed project after 16 months of hiatus.
+	* cleanups
+	* pty fixes
+	* env fixes
+	* osx fixes
+	* don't export private symbols in shared library
+	* added alternate buffer (ctrl-o in mc)
+	* lots and lots of fixes for various escape commands
+	* some programs work really well now, much better than osx terminal at least
+
+0.4 - 2008-09-22: (52 commits)
+	* added more xterm compatible special keys
+	* final conversion C++ -> C conversion
+	* added C++ thin header wrapper
+	* augment child process environment
+	* enable resize initiated from child
+	* basic functionality under OSX (no unicode yet)
+	* fix some dirty tracking drawing issues
+	* added "force redraw" shortcut
+	* created optional freetype font rendering implementation
+	* lot's of hacks for converting FLTK1.2 input into UTF-8
+	* split off backend into separate library (libte)
+
+0.3 - 2008-08-26: (132 commits!!)
+	* handle multibyte input (UTF-8)
+	* rewrote parser (twice)
+	* removed all of vt52 handling (nobody uses or implements it anyway)
+	* margins
+	* insertions
+	* lots and lots of bugfixes + new control codes
+	* keyboard handling
+	* begun conversion from C++ to C
+	* separate history from visible rows
+	* keep track of dirty cells
+	* terminal resize support
+
+0.2 - 2008-07-10: (34 commits)
+	* splitted parser from actions
+	* splitted terminal emulation backend from fltk frontend
+	* added history, scrolling
+
+0.1 - 2008-07-04: (no source version control)
+	* crude and dirty flterm, but with basic functionality

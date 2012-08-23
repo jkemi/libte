@@ -1,23 +1,37 @@
-=== Needed for release ===
+==== REMAINING ====
 
 libte:
+ + copyright texts
+ + mouse handling
+ + cut-n-paste
+ + remove debug printouts
+ + add color api
+ + extend symbol to handle more colors and features
+ + fix light background mode
+ - rename handle_button into something better
+ - generate documentation
+ - dynamic scroll history size
 
+flterm:
+ + remove debug printouts
+ - add menu and about-box
+ - font seletction
+ - limit freetype font cache size
+ - multiple tabs
+
+
+==== FINISHED ====
+
+libte:
  * alternate screen buffer (done)
  * limit row-buffer dynamic growth to screen width (done?)
  * c-ify remaining files (done)
  * versioning (done)
  * create actual library (done)
- * copyright texts
- * dynamic scroll history size
  * xterm set title, via osc (done)
- * mouse handling
- * cut-n-paste
- * some bugs still remain (identify and fix)
- * remove debug printouts
  * implement pty in library (done)
 
 flterm:
-
  * implement rate-limited redraws (done)
  * cleanup and join Fl_Term and Flx_Terminal (done)
  * nice abstraction for standard pty-based terminal I/O (done)
@@ -25,14 +39,3 @@ flterm:
  * correct line drawing (done)
  * -use libppty from rxvt- (scrapped)
  * sane encoding support (done?)
- * add menu and about-box
- * parse some common command-line options
- * remove debug printouts
-
-
-=== Later release ===
-
-flterm:
-
- * limit font cache size
- * multiple tabs

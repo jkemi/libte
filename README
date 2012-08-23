@@ -2,16 +2,14 @@ Copyrights
 ==========
 
 libTE is copyright (c) 2008-2012 by Jakob Kemi <jakob.kemi@gmail.com>
-
-Some parts of libTE were originally based on GTerm (with permission)
-which is Copyright (c) 1999 Timothy Miller.
-
-
 General Information
 ===================
 
-libTE is a terminal emulation library that aims to provide
-xterm emulation backend as a clena, modern separate library.
+Currently there's no lack of terminal emulators, however they all seem to offer no clean separation between
+drawing toolkit and terminal emulation.
+libTE is a terminal emulation library that aims to fill this gap of terminal emulation as a library.
+The aim is to provide the commonly used parts of DEC vt102 and xterm functionality as a clean, modern
+separate library.
 The only requirements are C99 support and Posix+UNIX98 for pty features.
 
 API/ABI
@@ -19,17 +17,22 @@ API/ABI
 libTE follows the conventional method of versioning: MAJOR.MINOR.FIX
 Where a change in MAJOR number means ABI/API breakage. MINOR versions are ABI backward compatible
 but may introduce new features. FIX versions only contain fixes and improvements that does
-not affect ABI or API issues.
+not affect ABI or API issues. Code compiled against X.Y.Z should be safe to run with
+any version x.y.z, where x==X and y>=Y.
 
-The only files part of source API are
-From C the only include should be libte/libte.h
-C++ wrapper is provided as libte/libTE.hpp
+The only headers files that are part of the API these:
+ From C include only the file libte/libte.h
+ C++ wrapper is provided as libte/libTE.hpp
 
 libTE can be compiled with additional helpers for pty support which are compile time detectable by
 the feature macro TE_ENABLE_PTY.
 
+Thanks
+======
+ * Paul Williams (of vt100.net) for providing scanned manuals of various DEC terminal emulators.
+ * Timothy Miller for giving me permission to use the state machine from GTerm.
 
 License information
 ===================
-
+libTE is licensed under the the terms of the Lesser GNU Public License, LGPL.
 See the file "COPYING" for information terms & conditions for usage of this software.
