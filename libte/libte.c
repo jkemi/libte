@@ -397,6 +397,7 @@ void te_resize(TE_Backend* te, int width, int height) {
 		memset(newtabs+te->width, 0, sizeof(bool)*(width-te->width));
 	}
 	memcpy(newtabs, te->tab_stops, sizeof(bool)*int_min(te->width,width));
+	free(te->tab_stops);
 	te->tab_stops = newtabs;
 
 /*	clear_area(int_min(width,w), 0, int_max(width,w)-1, h-1);
