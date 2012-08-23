@@ -487,7 +487,7 @@ void BasicTerm::resize(int x, int y, int W, int H)
 
 	if (gfx.ncols != teGetWidth() || gfx.nrows != teGetHeight()) {
 		if (!_child_handler->resizeSlave(gfx.ncols, gfx.nrows)) {
-			printf("not able to resize child");
+			printf("not able to resize child\n");
 			return;
 		}
 
@@ -694,7 +694,9 @@ void BasicTerm::fe_request_resize(int width, int height) {
 	int pixwidth = (width*font.pixw)+Fl::box_dw(box());
 	int pixheight = (height*font.pixh)+Fl::box_dh(box());
 
-	_event_handler->event_want_size(pixwidth, pixheight);
+	if (w() != pixwidth || h() != pixheight) {
+		_event_handler->event_want_size(pixwidth, pixheight);
+	}
 }
 
 void BasicTerm::fe_position(int offset, int size) {
