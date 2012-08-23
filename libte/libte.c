@@ -482,8 +482,27 @@ int te_handle_button(TE_Backend* te, te_key_t key) {
 		return 0;
 	}
 }
-
 void te_handle_keypress(TE_Backend* te, int32_t cp, te_modifier_t modifiers) {
+	if (modifiers & TE_MOD_CTRL) {
+		int32_t c;
+		switch (cp) {
+		case ' ':
+		case '@':
+			c = '\0';	// NUL
+			break;
+		case '^':
+		case '~':
+		case '`':
+			c = '\036';	// RS
+			break;
+		default:
+			c = -1;
+		}
+		if (c >= 0) {
+			fe_send_back(te, &c, 1);
+			return;
+		}
+	}
 	if (modifiers & TE_MOD_META) {
 		int32_t buf[] = {'\033', cp, '\0'};
 		fe_send_back(te, buf, 2);
