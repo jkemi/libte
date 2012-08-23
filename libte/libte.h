@@ -212,7 +212,7 @@ TE_EXPORT void te_process_input(TE_Backend* te, const int32_t* data, size_t len)
  * Handles host special key presses
  * @returns non-zero if handled
  */
-TE_EXPORT int te_handle_button(TE_Backend* te, te_key_t key);
+TE_EXPORT int te_handle_button(TE_Backend* te, te_key_t key, te_modifier_t modifiers);
 
 /**
  * Handles ordinary letters/numbers key presses

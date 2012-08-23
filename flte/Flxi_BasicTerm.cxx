@@ -351,7 +351,8 @@ bool BasicTerm::_handle_keyevent(void) {
 	}
 
 	if (tekey != TE_KEY_UNDEFINED) {
-		return teHandleButton(tekey) != 0;
+		te_modifier_t mod = getTeKeyModifiers();
+		return teHandleButton(tekey, mod) != 0;
 	}
 
 	if (Fl::event_length() > 0) {

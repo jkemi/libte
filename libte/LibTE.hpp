@@ -104,8 +104,8 @@ public:
 	 * Handles host special key presses
 	 * @returns non-zero if handled
 	 */
-	int teHandleButton(te_key_t key) {
-		return te_handle_button(_te, key);
+	int teHandleButton(te_key_t key, te_modifier_t modifiers) {
+		return te_handle_button(_te, key, modifiers);
 	}
 
 	/**

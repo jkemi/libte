@@ -443,15 +443,23 @@ void te_process_input(TE_Backend* te, const int32_t* data, size_t len) {
 	fe_updated(te);
 }
 
-int te_handle_button(TE_Backend* te, te_key_t key) {
+int te_handle_button(TE_Backend* te, te_key_t key, te_modifier_t modifiers) {
+	// TODO: handle modifier + F_* keys
 	const char* s = NULL;
 
 	switch (key) {
 	case TE_KEY_ENTER:
 		if (be_is_mode_flag(te, MODE_NEWLINE)) {
-			s = "\r\n";	//	CRLF
+			s = "\r\n";	// CRLF
 		} else {
 			s = "\r";	// ^M (CR)
+		}
+		break;
+	case TE_KEY_BACKSPACE:
+		// in order to be compat with xterm etc, make backspace into delete
+		// backspace->delete, shift+backspace->backspace
+		if ((modifiers & TE_MOD_SHIFT) == 0) {
+			s = "\177";	// DEL
 		}
 		break;
 	default:
