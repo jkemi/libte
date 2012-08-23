@@ -439,6 +439,12 @@ void ac_request_param(TE* te)
 }
 
 // Set Scrolling Region [top;bottom] (default = full size of window) (DECSTBM)
+// This control function sets the top and bottom margins for the current page. You cannot perform scrolling outside the margins.
+// Default: Margins are at the page limits.
+//
+// The value of the top margin (Pt) must be less than the bottom margin (Pb).
+// The maximum size of the scrolling region is the page size.
+// DECSTBM moves the cursor to column 1, line 1 of the page.
 void ac_set_margins(TE* te)
 {
 	int t, b;

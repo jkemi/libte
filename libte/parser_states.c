@@ -74,7 +74,7 @@ static const StateOption state_esc[] = {
     { 'H', &ac_set_tab,				state_normal },
     { 'D', &ac_index_down,			state_normal },	// Index (IND)
     { 'M', &ac_index_up,			state_normal }, // Reverse Index (RI)
-    { 'E', &ac_next_line,			state_normal },
+    { 'E', &ac_next_line,			state_normal }, // Next Line (NEL)
     { 'c', &ac_reset,				state_normal },
 	{ '(', NULL,					state_cset_shiftin },
 	{ ')', NULL,					state_cset_shiftout },
@@ -135,7 +135,7 @@ static const StateOption state_cset_shiftout[] = {
 };
 
 static const StateOption state_hash[] = {
-    { '8',	&ac_screen_align,   state_normal },
+    { '8',	&ac_screen_align,   state_normal },	// (DECALN)
 	{ -1,	NULL,				state_normal}
 };
 
