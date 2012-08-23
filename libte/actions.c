@@ -302,20 +302,38 @@ void ac_set_mode(TE* te)  // h
 		case 3:													// 132 Column Mode (DECCOLM)
 			fe_request_resize(te, 132, te->height);
 			be_clear_area(te, 0, 0, te->width, te->height);
+			// TODO: these are if frontend doesn't honor resize.
+			// what about tab-stops?? should we perhaps force te_resize() instead
+			te->scroll_top = 0;
+			te->scroll_bot = te->height-1;
+			be_move_cursor(te, 0, 0);
 			break;
-//		case 4:													// Scrolling (DECSCLM)
+		case 4:	break;											// Scrolling (DECSCLM)
 		case 5: be_set_mode_flag(te, MODE_SCREEN);		break;	// Screen mode (DECSCNM)
-		case 6: be_set_mode_flag(te, MODE_ORIGIN);		break;	// Origin mode (DECOM)
+		case 6:													// Origin mode (DECOM)
+			be_set_mode_flag(te, MODE_ORIGIN);
+			be_move_cursor(te, 0, te->scroll_top);
+			break;
 		case 7:	be_set_mode_flag(te, MODE_AUTOWRAP);	break;	// Wraparound Mode (DECAWM)
-//		case 8:													// Auto repeating (DECARM)
+		case 8:	break;											// Auto repeating (DECARM)
 //		case 9:													// X10 mouse mode
 		case 25:												// Hide Cursor (DECTCEM)
 			be_clear_mode_flag(te, MODE_CURSORINVISIBLE);
 			be_move_cursor(te, te->cursor_x, te->cursor_y);
 			break;
+//		case 38:	// -- tektronix mode
+		case 40:	// -- allow 80 <-> 132 mode
+		case 41:	// -- curses(5) fix
+		case 42:	// disable DECNRCM (national character replacement
+		case 44:	// -- turn on margin bell
+//		case 45:	// -- reverse-wraparound mode (can be backspaced into previous line??)
+		case 46:	// -- start logging
+			break;
+
 		case 47:
 			be_switch_buffer(te, true, false);
 			break;
+//		case 48: // reverse status line
 		case 1000:	te->mouse_mode = MOUSE_TRACK_BUTTON;		break;	// Send X & Y on button press and release.
 //		case 1001:	// mouse hilight tracking
 		case 1002:	te->mouse_mode = MOUSE_TRACK_BUTTONMOTION;	break;	// Track motion when button is pressed
@@ -365,18 +383,33 @@ void ac_clear_mode(TE* te)  // l
 		case 3:
 			fe_request_resize(te, 80, te->height);					// 132 Column Mode (DECCOLM)
 			be_clear_area(te, 0, 0, te->width, te->height);
+			
+			// TODO: these are if frontend doesn't honor resize.
+			// what about tab-stops?? should we perhaps force te_resize() instead
+			te->scroll_top = 0;
+			te->scroll_bot = te->height-1;
+			be_move_cursor(te, 0, 0);
 			break;
-//		case 4:															// Scrolling (DECSCLM)
+		case 4: break;												// Scrolling (DECSCLM)
 		case 5: be_clear_mode_flag(te, MODE_SCREEN);			break;	// Screen mode (DECSCNM)
-		case 6: be_clear_mode_flag(te, MODE_ORIGIN);			break;	// Origin mode (DECOM)
+		case 6:														// Origin mode (DECOM)
+				be_clear_mode_flag(te, MODE_ORIGIN);
+				be_move_cursor(te, 0, 1);
+				break;
 		case 7:	be_clear_mode_flag(te, MODE_AUTOWRAP);			break;	// Wraparound Mode (DECAWM)
-//		case 8:															// Auto repeating (DECARM)
+		case 8: break;													// Auto repeating (DECARM)
 //		case 9:															// X10 mouse mode
 		case 25:														// Hide Cursor (DECTCEM)
 			be_set_mode_flag(te, MODE_CURSORINVISIBLE);	break;
 			be_move_cursor(te, te->cursor_x, te->cursor_y);
 			break;
+		case 38:	// -- tektronix mode
+		case 40:	// -- allow 80 <-> 132 mode
+		case 41:	// -- curses(5) fix
 		case 42:	// disable DECNRCM (national character replacement
+		case 44:	// -- turn on margin bell
+		case 45:	// -- reverse-wraparound mode (can be backspaced into previous line??)
+		case 46:	// -- start logging
 			break;
 		case 47:	// Use Normal Screen Buffer
 			be_switch_buffer(te, false, false);
