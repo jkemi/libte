@@ -690,8 +690,14 @@ void ac_insert_char(TE* te)
 }
 
 // DEC Screen Alignment Test (DECALN)
+//DECALN—Screen Alignment Pattern
+//This control function fills the complete screen area with a test pattern used for adjusting screen alignment.
+//Normally, only manufacturing and service personnel would use DECALN.
+//DECALN sets the margins to the extremes of the page, and moves the cursor to the home position.
 void ac_screen_align(TE* te)
 {
+	te->scroll_top=0;
+	te->scroll_bot=te->height-1;
 	const symbol_t style = symbol_make_style(7,0,0);
 	const symbol_t sym = 'E' | style;
 
@@ -706,6 +712,8 @@ void ac_screen_align(TE* te)
 		viewport_taint(te, y, 0, te->width);
 		bufrow_replace(row, 0, syms, te->width);
 	}
+	
+	be_move_cursor(te, 0, 0);
 }
 
 // Erase P s Character(s) (default = 1) (ECH)
