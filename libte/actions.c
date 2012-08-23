@@ -485,18 +485,14 @@ void ac_set_margins(TE* te)
 	t = int_clamp(parser_get_param(te->parser,0,1), 1, te->height);
 	b = int_clamp(parser_get_param(te->parser,1,te->height), 1, te->height);
 
-	if (b-t > 0) {
-		DEBUGF("scrolling region set to: %d,%d\n", t,b);
-		te->scroll_top = t-1;
-		te->scroll_bot = b-1;
+	DEBUGF("scrolling region set to: %d,%d\n", t,b);
+	te->scroll_top = t-1;
+	te->scroll_bot = b-1;
 
-		if (be_is_mode_flag(te, MODE_ORIGIN)) {
-			be_move_cursor(te, 0, te->scroll_top);
-		} else {
-			be_move_cursor(te, 0, 0);
-		}
+	if (be_is_mode_flag(te, MODE_ORIGIN)) {
+		be_move_cursor(te, 0, te->scroll_top);
 	} else {
-		DEBUGF("scrolling region %d,%d invalid, ignoring.\n", t,b);
+		be_move_cursor(te, 0, 0);
 	}
 }
 
