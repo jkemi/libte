@@ -376,8 +376,11 @@ void ac_clear_mode(TE* te)  // l
 			be_set_mode_flag(te, MODE_CURSORINVISIBLE);	break;
 			be_move_cursor(te, te->cursor_x, te->cursor_y);
 			break;
+		case 42:	// disable DECNRCM (national character replacement
+			break;
 		case 47:	// Use Normal Screen Buffer
 			be_switch_buffer(te, false, false);
+			break;
 		case 1000:										// Send X & Y on button press and release.
 //		case 1001:										// mouse hilight tracking
 		case 1002:										// Track motion when button is pressed
