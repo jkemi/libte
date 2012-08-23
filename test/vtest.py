@@ -12,6 +12,9 @@ class T(object):
 	def write(self, data):
 		self.t.write(data)
 		self.t.flush()
+	
+	def println(self, text):
+		self.write(text+'\r\n')
 
 	def csi(self, command, params=[], intermediate=''):
 		self.write('\033[' + intermediate + ';'.join([str(p) for p in params if p!=None]) +command )
@@ -73,12 +76,34 @@ class T(object):
 			1049 - Save cursor as in DECSC and use Alternate Screen Buffer
 		"""
 		self.csi('h', [code], intermediate='?')
-
+	
 	def RM(self, code):
 		"""
 		RESET_MODE
 		"""
 		self.csi('l', [code])
+
+	def decom(self, enabled):
+		"""6 - Origin Mode"""
+		if enabled:
+			self.DECSET(6);
+		else:
+			self.DECRST(6)
+
+	def decawm(self, enabled):
+		"""7 - Wraparound Mode"""
+		if enabled:
+			self.DECSET(7);
+		else:
+			self.DECRST(7)
+
+	def deccolm(self, enabled):
+		"""3 - 132 Column Mode"""
+		if enabled:
+			self.DECSET(3);
+		else:
+			self.DECRST(3)
+
 
 	def DECRST(self, code):
 		"""
@@ -123,11 +148,29 @@ class T(object):
 		"""
 		self.csi('B', [n])
 
+	def CUB(self, n=None):
+		"""
+		CURSOR_BACKWARD [#cols=1]
+		"""
+		self.csi('D', [n])
+
+	def CUF(self, n=None):
+		"""
+		CURSOR_FORWARD [#cols=1]
+		"""
+		self.csi('C', [n])
+
 	def CUP(self, lineno=None, colno=None):
 		"""
 		CURSOR_POSITION [lineno=1] [colno=1]
 		"""
 		self.csi('H', params=[lineno, colno])
+
+	def HVP(self, lineno=None, colno=None):
+		"""
+		CURSOR_POSITION [lineno=1] [colno=1]
+		"""
+		self.csi('f', params=[lineno, colno])
 
 	def RI(self):
 		"""
@@ -152,6 +195,12 @@ class T(object):
 		DELETE_CHARACTERS [#nchars=1]
 		"""
 		self.csi('P', params=[nchars])
+	
+	def DECALN(self):
+		"""
+		DECALN—Screen Alignment Pattern
+		"""
+		self.write('\033#8')
 
 	def VPA(self, lineno=None):
 		"""
@@ -170,12 +219,26 @@ class T(object):
 		REVERSE-INDEX
 		"""
 		self.csi('M')
+	
+	def EL(self, section=0):
+		"""
+		EL - Erase in Line
+			0 (default)	From the cursor through the end of the line
+			1	From the beginning of the line through the cursor
+			2	The complete line
+		"""
+		self.csi('K', params=[section])
 
+	def NEL(self):
+		"""
+		NEL-Next Line
+		"""
+		self.write('\033E')
 
-	def holdit(self,silent=False):
+	def holdit(self,silent=False, message=''):
 		if not silent:
 			self.write('Push <RETURN>')
-		print 'Waiting forever... (hit CTRL-C)'
+		print 'Waiting forever... (hit CTRL-C) ' + message
 		try:
 			while True:
 				time.sleep(3)
@@ -306,4 +369,157 @@ class T(object):
 		self.CUP(1,2)
 		self.DCH(78)
 		self.CUP(2,1)
+		self.holdit()
+
+	def tst_movements(self):
+		# TODO: this is still buggy somehow.. drawn box doesn't work
+		# works fine in original vttest though
+		self.RIS()
+
+		self.deccolm(False)
+		width = self.w;
+		
+		# Compute left/right columns for a 60-column box centered in 'width'
+		inner_l = (width-60)/2
+		inner_r = 61+inner_l
+		hlfxtra = (width-80)/2
+		
+		self.DECALN()
+		self.CUP(9, inner_l)
+		self.ED(1)
+		self.CUP(18,60+hlfxtra)
+		self.ED(0)
+		self.EL(1)
+		self.CUP(9,inner_r)
+		self.EL(0)
+		
+		# 132: 36..97
+		#  80: 10..71
+
+		for row in range(10,16+1):
+			self.CUP(row, inner_l)
+			self.EL(1)
+			self.CUP(row, inner_r)
+			self.EL(0)
+
+		self.CUP(17,30)
+		self.EL(2)
+		for col in range(1,width+1):
+			self.HVP(self.h, col)
+			self.write('*')
+			self.HVP(1, col)
+			self.write('*')
+		
+		self.CUP(2,2)
+		for row in range(2,self.h):
+			self.write('+')
+			self.CUB(1)
+			self.IND()
+		
+		self.CUP(self.h-1, width-1)
+		for row in range(self.h-1, 1, -1):
+			self.write('+')
+			self.CUB(1)
+			self.RI()
+			
+		self.CUP(2,1)
+		for row in range(2,self.h):
+			self.write('*')
+			self.CUP(row,width)
+			self.write('*')
+			self.CUB(10)
+			if row<10:
+				self.NEL()
+			else:
+				self.write('\n')
+		
+		self.CUP(2,10)
+		self.CUB(42+hlfxtra)
+		self.CUF(2)
+		for col in range(3, width-1):
+			self.write('+')
+			self.CUF(0)
+			self.CUB(2)
+			self.CUF(1)
+		
+		self.CUP(self.h-1, inner_r-1)
+		self.CUF(42+hlfxtra)
+		self.CUB(2)
+		for col in range(width-2, 2, -1):
+			self.write('+')
+			self.CUB(1)
+			self.CUF(1)
+			self.CUB(0)
+			self.write(chr(8))
+		
+		self.CUP(1,1)
+		self.CUU(10)
+		self.CUU(1)
+		self.CUU(0)
+		self.CUP(self.h, width)
+		self.CUD(10)
+		self.CUD(1)
+		self.CUD(0)
+		
+		self.CUP(10, 2+inner_l)
+		for row in range(10,16):
+			for col in range(2+inner_l, inner_r-1):
+				self.write(' ')
+			self.CUD(1)
+			self.CUB(58)
+		
+		self.CUU(5)
+		self.CUF(1)
+		self.write('The screen should be cleared,  and have an unbroken bor-')
+		self.CUP(12, inner_l+3)
+		self.write("der of *'s and +'s around the edge,   and exactly in the")
+		self.CUP(13, inner_l+3)
+		self.write("middle  there should be a frame of E's around this  text")
+		self.CUP(14, inner_l+3)
+		self.write("with  one (1) free position around it.     ")
+		self.holdit()
+
+		# DECAWM demo
+		
+		on_left = "IJKLMNOPQRSTUVWXYZ"
+		on_right = on_left.lower()
+		height = len(on_left)
+		region = self.h-6
+		
+		self.holdit(silent=True, message='before deccolm')
+		self.deccolm(False)
+		width = self.w;
+		
+		self.holdit(silent=True, message='before text')
+		self.println('Test of autowrap, mixing control and print characters.')
+		self.println('The left/right margins should have letters in order:')
+		
+		self.holdit(silent=True)
+		
+		self.DECSTBM(3,region+3)
+		self.decom(True)
+		for i,(left,right) in enumerate(zip(on_left,on_right)):
+			if i%4==0:
+				# draw characters as-is, for reference
+				self.CUP(region+1,1); self.write(left)
+				self.CUP(region+1, width); self.write(right)
+				self.write('\n')
+			elif i%4==1:
+				# simple wrapping
+				self.CUP(region,width); self.write(on_right[i-1]+left)
+				# backspace at right margin
+				self.CUP(region+1,width); self.write(left+'\b '+right+'\n')
+			elif i%4==2:
+				# tab to right margin
+				self.CUP(region+1,width); self.write(left+'\b\b\t\t'+right)
+				self.CUP(region+1,2); self.write('\b'+left+'\n')
+			else:
+				# newline at right margin
+				self.CUP(region+1,width); self.write('\n')
+				self.CUP(region, 1); self.write(left)
+				self.CUP(region, width); self.write(right)
+
+		self.decom(False)
+		self.DECSTBM(0, 0)
+		self.CUP(self.h-2, 1)
 		self.holdit()
