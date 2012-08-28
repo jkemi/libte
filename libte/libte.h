@@ -51,6 +51,12 @@ struct TE_Frontend_ {
 	void (*draw_text)	(void* priv, int x, int y, const symbol_t* symbols, int len);
 	void (*draw_clear)	(void* priv, int x, int y, const symbol_color_t bg_color, int len);
 	void (*draw_cursor)	(void* priv, int x, int y, symbol_t symbol);
+	
+	/**
+	 * Optimized vertical scrolling callback.
+	 * Copy height complete rows starting at row y, byoffset (signed) number of rows (areas might overlap).
+	 * TODO: currently not used.
+	 */
 	void (*draw_move)	(void* priv, int y, int height, int byoffset);
 
 	void (*updated) 	(void* priv);
