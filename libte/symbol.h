@@ -42,7 +42,6 @@ typedef uint32_t symbol_t;
 // bits     987654321
 // fg-color       xxx
 // bg-color    xxx
-typedef uint_fast16_t symbol_data_t;
 typedef uint_fast8_t symbol_color_t;
 
 
@@ -89,11 +88,11 @@ static inline symbol_t symbol_set_attributes(symbol_t sym, symbol_attributes_t a
 }
 
 static inline symbol_t symbol_set_fg(symbol_t sym, symbol_color_t col) {
-	return sym | ((symbol_t)col << SYMBOL_FG_SHIFTS);
+	return (sym & ~SYMBOL_FG_MASK) | ((symbol_t)col << SYMBOL_FG_SHIFTS);
 }
 
 static inline symbol_t symbol_set_bg(symbol_t sym, symbol_color_t col) {
-	return sym | ((symbol_t)col << SYMBOL_BG_SHIFTS);
+	return (sym & ~SYMBOL_BG_MASK) | ((symbol_t)col << SYMBOL_BG_SHIFTS);
 }
 
 static inline symbol_t symbol_make(symbol_color_t fg, symbol_color_t bg, symbol_attributes_t attributes, uint32_t cp) {
