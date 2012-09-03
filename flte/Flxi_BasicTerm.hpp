@@ -82,7 +82,8 @@ public:
 // Private member fields
 //
 private:
-	uint64_t	last_draw;
+	const te_color_t*	_palette;
+	uint64_t			_last_draw;
 
 	// font stuff
 	struct {
@@ -136,6 +137,7 @@ private:
 	void fe_title(const int32_t* text, int len);
 	void fe_request_resize(int width, int height);
 	void fe_position(int offset, int size);
+	void fe_palette(int offset, int count, const te_color_t* data);
 
 	void fe_send_back(const int32_t* data, int len);
 	void fe_set_clipboard (te_clipbuf_t clipbuf, const int32_t* text, int len);

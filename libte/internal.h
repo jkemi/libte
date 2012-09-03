@@ -100,7 +100,7 @@ typedef enum {
 	// Screen mode (DECSCNM)
 	//
 	// Set selects reverse screen, a white screen background with black characters.
-	// Currently ignored
+	// reverses default fg/bg
 	MODE_SCREEN			= (1<<11),
 
 	// Bracketed paste mode (xterm)
@@ -179,6 +179,8 @@ struct TE_Backend_ {
 	int selend_x, selend_y;
 	int selpos_x, selpos_y;		// used with SELSTATE_MARKING
 
+	te_color_t palette[TE_COLOR_COUNT];
+
 	struct Parser_* parser;
 	struct Viewport_* viewport;
 };
@@ -192,6 +194,7 @@ void be_scroll_region(TE* te, uint start_y, uint end_y, int num);	// does clear
 void be_clear_area(TE* te, int start_x, int start_y, int end_x, int end_y);
 void be_move_cursor(TE* te, int x, int y);
 void be_switch_buffer(TE* te, bool alt, bool erase_on_alt);
+void be_screen_mode(TE* te, bool enable);
 
 // terminal actions
 static inline int be_get_mode(TE* te) { return te->mode_flags; }
@@ -223,6 +226,9 @@ static inline void fe_updated		(TE* te)
 
 static inline void fe_position		(TE* te, int offset, int size)
 	{ te->fe->position(te->fe_priv, offset, size); }
+
+static inline void fe_palette	(TE* te, int offset, int count, const te_color_t* data)
+	{ te->fe->palette(te->fe_priv, offset, count, data); }
 
 static inline void fe_draw_text		(TE* te, int x, int y, const symbol_t* symbols, int len)
 	{ te->fe->draw_text(te->fe_priv, x, y, symbols, len); }

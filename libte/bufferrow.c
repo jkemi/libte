@@ -34,11 +34,12 @@ static void _bufrow_ensureCapacity(BufferRow* br, uint capacity) {
 	}
 }
 
-static void _bufrow_pad(BufferRow* br, uint x, int len) {
+static void _bufrow_pad(BufferRow* br, uint x, int len, symbol_t blank) {
 	assert (x+len <= br->capacity);
 
 	for (uint i = x; i < x+len; i++) {
-		br->data[i] = ' ';	// TODO: What style to use here?
+		// should fg,bg,attrs come from currently set attributes?
+		br->data[i] = ' ' | blank;
 	}
 }
 
@@ -57,10 +58,10 @@ void bufrow_clear(BufferRow* br) {
 	br->used = 0;
 }
 
-void bufrow_insert(BufferRow* br, uint x, const symbol_t* symbols, uint len) {
+void bufrow_insert(BufferRow* br, uint x, const symbol_t* symbols, uint len, symbol_t blank) {
 	const int trail = br->used-x;
 	if (trail <= 0) {
-		bufrow_replace(br, x, symbols, len);
+		bufrow_replace(br, x, symbols, len, blank);
 	} else {
 		_bufrow_ensureCapacity(br, br->used+len);
 		memmove(br->data+x+len, br->data+x, sizeof(symbol_t)*trail);
@@ -69,7 +70,7 @@ void bufrow_insert(BufferRow* br, uint x, const symbol_t* symbols, uint len) {
 	}
 }
 
-void bufrow_replace(BufferRow* br, uint x, const symbol_t* symbols, uint len) {
+void bufrow_replace(BufferRow* br, uint x, const symbol_t* symbols, uint len, symbol_t blank) {
 	if (len == 0) {
 		return;
 	}
@@ -79,21 +80,31 @@ void bufrow_replace(BufferRow* br, uint x, const symbol_t* symbols, uint len) {
 	}
 
 	if (x > br->used) {
-		_bufrow_pad(br, br->used, x-br->used);
+		_bufrow_pad(br, br->used, x-br->used, blank);
 	}
 
 	memcpy(br->data+x, symbols, sizeof(symbol_t)*len);
 	br->used = uint_max(x+len, br->used);
 }
 
-void bufrow_fill(BufferRow* br, uint x, const symbol_t value, uint len) {
+void bufrow_reset(BufferRow* br, const symbol_t* symbols, uint len) {
+	if (len > br->capacity) {
+		_bufrow_ensureCapacity(br, len);
+	}
+	
+	memcpy(br->data, symbols, sizeof(symbol_t)*len);
+	br->used = len;
+}
+
+
+void bufrow_fill(BufferRow* br, uint x, const symbol_t value, uint len, symbol_t blank) {
 	if (x+len > br->capacity) {
 		_bufrow_ensureCapacity(br, x+len);
 	}
 
 	assert (x <= br->used);
 	if (x > br->used) {
-		_bufrow_pad(br, br->used, x-br->used);
+		_bufrow_pad(br, br->used, x-br->used, blank);
 	}
 
 	for (uint i = x; i < x+len; i++) {

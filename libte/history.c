@@ -89,7 +89,7 @@ void history_fetch(History* hist, BufferRow* row) {
 	if (e->data != NULL) {
 		hist->size--;
 
-		bufrow_replace(row, 0, e->data, e->size);
+		bufrow_reset(row, e->data, e->size);
 
 		free(e->data);
 		e->data = NULL;

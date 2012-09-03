@@ -51,6 +51,7 @@ public:
 				&_impl_send_back,
 				&_impl_request_resize,
 				&_impl_position,
+				&_impl_palette,
 
 				&_impl_set_clipboard,
 				&_impl_request_clipboard,
@@ -62,6 +63,13 @@ public:
 		}
 		_te = te_create(&_callbacks, this, width, height, options, options_size);
 		return _te != NULL;
+	}
+	
+	/**
+	 * Get palette
+	 */
+	const te_color_t* teGetPalette() {
+		return te_get_palette(_te);
 	}
 
 	/**
@@ -164,6 +172,7 @@ protected:
 	virtual void fe_send_back(const int32_t* data, int len) = 0;
 	virtual void fe_request_resize(int width, int height) = 0;
 	virtual void fe_position(int offset, int size) = 0;
+	virtual void fe_palette(int offset, int count, const te_color_t* data) = 0;
 	virtual void fe_set_clipboard (te_clipbuf_t clipbuf, const int32_t* text, int len) = 0;
 	virtual void* fe_request_clipboard (te_clipbuf_t clipbuf, int32_t* const* text, int* size) = 0;
 	virtual void fe_request_clipboard_done (void* token) = 0;
@@ -203,20 +212,18 @@ private:
 	static void _impl_position (void* priv, int offset, int size) {
 		((LibTE*)priv)->fe_position(offset, size);
 	}
-
+	static void _impl_palette (void* priv, int offset, int count, const te_color_t* data) {
+		((LibTE*)priv)->fe_palette(offset, count, data);
+	}
 	static void _impl_set_clipboard (void* priv, te_clipbuf_t clipbuf, const int32_t* text, int len) {
 		((LibTE*)priv)->fe_set_clipboard(clipbuf, text, len);
 	}
-
 	static void* _impl_request_clipboard (void* priv, te_clipbuf_t clipbuf, int32_t* const* text, int* size) {
 		return ((LibTE*)priv)->fe_request_clipboard(clipbuf, text, size);
 	}
-
 	static void _impl_request_clipboard_done (void* priv, void* token) {
 		((LibTE*)priv)->fe_request_clipboard_done(token);
 	}
-
-
 };
 
 #endif // TE_LIBTE_HPP_

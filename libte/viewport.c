@@ -44,11 +44,15 @@ void viewport_reshape(TE* te, uint w, uint h) {
 	dirty_reshape(&te->viewport->dirty, h, w);
 }
 
-void viewport_taint (TE* te, uint y, uint x, uint len) {
+void viewport_taint (TE* te, uint y, uint x, uint width) {
 	y += te->viewport->offset;
 	if (y < te->height) {
-		dirty_taint(&te->viewport->dirty, y, x, x+len);
+		dirty_taint(&te->viewport->dirty, y, x, x+width);
 	}
+}
+
+void viewport_taint_colors (TE* te, uint first, uint count) {
+	viewport_taint_all(te);
 }
 
 void viewport_taint_all	(TE* te) {
@@ -173,7 +177,7 @@ void viewport_request_redraw(TE* te, int x, int y, int w, int h, bool force) {
 		}
 		const int b = int_max(0, dirtend-dirtstart-a);
 		if (b > 0) {
-			fe_draw_clear(te, dirtstart+a, rowno, SYMBOL_BG_DEFAULT, b);
+			fe_draw_clear(te, dirtstart+a, rowno, te->bg_color, b);
 		}
 
 		dirty_cleanse(&te->viewport->dirty, rowno, dirtstart, dirtend);

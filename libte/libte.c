@@ -170,10 +170,10 @@ void be_input(TE* te, const int32_t* text, size_t len) {
 					bufrow_remove(row, te->cursor_x+n, trail, te->width);
 				}
 
-				bufrow_insert(row, te->cursor_x, syms, n);
+				bufrow_insert(row, te->cursor_x, syms, n, symbol_make_style(te->fg_color, te->bg_color, te->attributes));
 				viewport_taint(te, te->cursor_y, te->cursor_x, te->width-te->cursor_x);
 			} else {
-				bufrow_replace(row, te->cursor_x, syms, n);
+				bufrow_replace(row, te->cursor_x, syms, n, symbol_make_style(te->fg_color, te->bg_color, te->attributes));
 				viewport_taint(te, te->cursor_y, te->cursor_x, n);
 			}
 
@@ -196,10 +196,10 @@ void be_input(TE* te, const int32_t* text, size_t len) {
 			syms[i] = sym;
 		}
 		if (be_is_mode_set(te, MODE_INSERT)) {
-			bufrow_insert(row, te->cursor_x, syms, n);
+			bufrow_insert(row, te->cursor_x, syms, n, symbol_make_style(te->fg_color, te->bg_color, te->attributes));
 			viewport_taint(te, te->cursor_y, te->cursor_x, te->width-te->cursor_x);
 		} else {
-			bufrow_replace(row, te->cursor_x, syms, n);
+			bufrow_replace(row, te->cursor_x, syms, n, symbol_make_style(te->fg_color, te->bg_color, te->attributes));
 			viewport_taint(te, te->cursor_y, te->cursor_x, n);
 		}
 
@@ -209,7 +209,7 @@ void be_input(TE* te, const int32_t* text, size_t len) {
 		// the line, update last cell
 		if (len > n) {
 			syms[0] = style | text[len-1];
-			bufrow_replace(row, te->width-1, syms, 1);
+			bufrow_replace(row, te->width-1, syms, 1, symbol_make_style(te->fg_color, te->bg_color, te->attributes));
 		}
 	}
 }
@@ -246,7 +246,7 @@ void be_clear_area(TE* te, int xpos, int ypos, int width, int height)
 
 	for (int y=ypos; y < ypos+height; y++) {
 		BufferRow* row = buffer_get_row(te->buffer, y);
-		bufrow_fill(row, xpos, sym, width);
+		bufrow_fill(row, xpos, sym, width, symbol_make_style(te->fg_color, te->bg_color, te->attributes));
 		viewport_taint(te, y, xpos, width);
 	}
 }
@@ -291,6 +291,24 @@ void be_switch_buffer(TE* te, bool alt, bool erase_display_on_alt) {
 	viewport_report_scroll(te);
 }
 
+void be_screen_mode(TE* te, bool enable) {
+	if (be_is_mode_flag(te, MODE_SCREEN) == enable) {
+		return;
+	}
+	
+	if (enable) {
+		be_set_mode_flag(te, MODE_SCREEN);
+	} else {
+		be_clear_mode_flag(te, MODE_SCREEN);
+	}
+
+	te_color_t tmp = te->palette[TE_COLOR_TEXT_FG];
+	te->palette[TE_COLOR_TEXT_FG] = te->palette[TE_COLOR_TEXT_BG];
+	te->palette[TE_COLOR_TEXT_BG] = tmp;
+	fe_palette(te, TE_COLOR_TEXT_FG, 2, te->palette+TE_COLOR_TEXT_FG);
+	viewport_taint_colors(te, TE_COLOR_TEXT_FG, 2);
+}
+
 TE* te_new(const TE_Frontend* fe, void* fe_priv, int w, int h)
 {
 	TE* te = xnew(TE, 1);
@@ -329,8 +347,8 @@ TE* te_new(const TE_Frontend* fe, void* fe_priv, int w, int h)
 
 	// Setup current attributes
 	te->attributes = 0;
-	te->fg_color = SYMBOL_FG_DEFAULT;
-	te->bg_color = SYMBOL_BG_DEFAULT;
+	te->fg_color = TE_COLOR_TEXT_FG;
+	te->bg_color = TE_COLOR_TEXT_BG;
 
 	// Setup flags
 	be_set_mode(te, MODE_AUTOWRAP);
@@ -355,6 +373,39 @@ TE* te_new(const TE_Frontend* fe, void* fe_priv, int w, int h)
 	te->mouse_buttons = TE_MOUSE_NONE;
 
 	te->selstate = SELSTATE_NONE;
+
+	const te_color_t defpal[] = {
+		{229,229,229},	// TEXT_FG
+		{64,64,64},	// TEXT_BG
+		{},	// MOUSE_FG
+		{},	// MOUSE_BG
+		{},	// SEL_FG
+		{}, // SEL_BG
+
+		// ANSI (PC colors from: http://en.wikipedia.org/wiki/ANSI_escape_code)
+		{0,0,0},		// BLACK
+		{170,0,0},		// RED
+		{0,170,0},		// GREEN
+		{170,170,0},	// YELLOW
+		{0,0,170},		// BLUE
+		{170,0,170},	// MAGENTA
+		{0,170,170},	// CYAN
+		{170,170,170},	// GRAY
+
+#if (TE_COLOR_MODE > 8)
+		{85,85,85},		// DARKGRAY
+		{255,85,85},	// RED
+		{85,255,85},	// GREEN
+		{255,255,85},	// YELLOW
+		{85,85,255},	// BLUE
+		{255,85,255},	// MAGENTA
+		{85,255,255},	// CYAN
+		{255,255,255},	// WHITE
+#endif
+	};
+
+	memcpy(te->palette, defpal, sizeof(defpal));
+	// TODO: setup color ramp for 88,256
 
 	return te;
 }
@@ -391,6 +442,17 @@ void te_destroy(TE_Backend* te) {
 	buffer_term(&te->alt_buffer);
 	history_clear(&te->alt_history);
 	parser_delete(te->parser);
+}
+
+void te_alter_palette(TE_Backend* te, int first, int count, const te_color_t* data) {
+	count = uint_min(count, TE_COLOR_COUNT);
+	memcpy(te->palette+first,data,sizeof(te_color_t)*count);
+	viewport_taint_colors(te, first, count);
+	fe_updated(te);
+}
+
+const te_color_t* te_get_palette(TE_Backend* te) {
+	return te->palette;
 }
 
 void te_resize(TE_Backend* te, int width, int height) {

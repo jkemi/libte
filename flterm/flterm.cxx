@@ -261,7 +261,7 @@ static int _globalEventHandler(int event) {
 
 int main(int argc, char** argv)
 {
-	DEBUGF("libte compile version: %s, linked version: %s\n", TE_HEADER_VERSION, te_binary_version_string);
+	DEBUGF("libte compile version: %s, linked version: %s (colors: %d)\n", TE_HEADER_VERSION, te_binary_version_string, TE_COLOR_COUNT);
 
 	// TODO: make configurable? or use "" for default?
 	if (setlocale(LC_ALL, "en_US.UTF-8") == NULL) {

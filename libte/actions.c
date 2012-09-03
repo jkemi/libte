@@ -155,8 +155,8 @@ void ac_index_up(TE* te)
 // TODO: should alternative buffer also be cleared here?
 void ac_reset(TE* te)
 {
-	te->bg_color = SYMBOL_BG_DEFAULT;
-	te->fg_color = SYMBOL_FG_DEFAULT;
+	te->bg_color = TE_COLOR_TEXT_BG;
+	te->fg_color = TE_COLOR_TEXT_FG;
 	te->scroll_top = 0;
 	te->scroll_bot = te->height-1;
 	memset(te->tab_stops, 0, sizeof(bool)*te->width);
@@ -174,6 +174,8 @@ void ac_reset(TE* te)
 	history_clear(&te->norm_history);
 	viewport_set(te, 0);
 	viewport_taint_all(te);
+	
+	be_screen_mode(te, false);
 }
 
 // Cursor Backward P s Times (default = 1) (CUB)
@@ -308,7 +310,7 @@ void ac_set_mode(TE* te)  // h
 		case 1:	be_set_mode_flag(te, MODE_CURSORAPP);	break;	// Normal Cursor Keys (DECCKM)
 //		case 2:													// Designate VT52 mode (DECANM).
 		case 3:													// 132 Column Mode (DECCOLM)
-			fe_request_resize(te, 132, te->height);
+			fe_request_resize(te, 132, uint_max(te->height, 24));
 			be_clear_area(te, 0, 0, te->width, te->height);
 			// TODO: these are if frontend doesn't honor resize.
 			// what about tab-stops?? should we perhaps force te_resize() instead
@@ -317,7 +319,7 @@ void ac_set_mode(TE* te)  // h
 			be_move_cursor(te, 0, 0);
 			break;
 		case 4:	break;											// Scrolling (DECSCLM)
-		case 5: be_set_mode_flag(te, MODE_SCREEN);		break;	// Screen mode (DECSCNM)
+		case 5:	be_screen_mode(te, true); break;				// Screen mode (DECSCNM)
 		case 6:													// Origin mode (DECOM)
 			be_set_mode_flag(te, MODE_ORIGIN);
 			be_move_cursor(te, 0, te->scroll_top);
@@ -389,7 +391,7 @@ void ac_clear_mode(TE* te)  // l
 		case 1:	be_clear_mode_flag(te, MODE_CURSORAPP);		break;	// Normal Cursor Keys (DECCKM)
 //		case 2:	current_state = vt52_normal_state; break;			// Designate VT52 mode (DECANM).
 		case 3:
-			fe_request_resize(te, 80, te->height);					// 132 Column Mode (DECCOLM)
+			fe_request_resize(te, 80, uint_max(te->height, 24));	// 132 Column Mode (DECCOLM)
 			be_clear_area(te, 0, 0, te->width, te->height);
 			
 			// TODO: these are if frontend doesn't honor resize.
@@ -399,7 +401,7 @@ void ac_clear_mode(TE* te)  // l
 			be_move_cursor(te, 0, 0);
 			break;
 		case 4: break;												// Scrolling (DECSCLM)
-		case 5: be_clear_mode_flag(te, MODE_SCREEN);			break;	// Screen mode (DECSCNM)
+		case 5: be_screen_mode(te, false); break;					// Screen mode (DECSCNM)
 		case 6:														// Origin mode (DECOM)
 				be_clear_mode_flag(te, MODE_ORIGIN);
 				be_move_cursor(te, 0, 1);
@@ -493,9 +495,15 @@ void ac_set_margins(TE* te)
 	t = int_clamp(parser_get_param(te->parser,0,1), 1, te->height);
 	b = int_clamp(parser_get_param(te->parser,1,te->height), 1, te->height);
 
-	DEBUGF("scrolling region set to: %d,%d\n", t,b);
-	te->scroll_top = t-1;
-	te->scroll_bot = b-1;
+	if (t>=b) {
+		DEBUGF("ignoring illegal scrolling region: %d,%d, resetting to none\n", t,b);
+		te->scroll_top = 1;
+		te->scroll_bot = te->height-1;
+	} else {
+		DEBUGF("scrolling region set to: %d,%d\n", t,b);
+		te->scroll_top = t-1;
+		te->scroll_bot = b-1;
+	}
 
 	if (be_is_mode_flag(te, MODE_ORIGIN)) {
 		be_move_cursor(te, 0, te->scroll_top);
@@ -602,8 +610,8 @@ void ac_char_attrs(TE* te)
 
 	if (nparams == 0){
 		te->attributes = 0;
-		te->fg_color = SYMBOL_FG_DEFAULT;
-		te->bg_color = SYMBOL_BG_DEFAULT;
+		te->fg_color = TE_COLOR_TEXT_FG;
+		te->bg_color = TE_COLOR_TEXT_BG;
 		return;
 	}
 
@@ -612,22 +620,28 @@ void ac_char_attrs(TE* te)
 		const int p = params[n];
 		if (p/10 == 4) {
 			if (p%10 == 9) {
-				te->bg_color = SYMBOL_BG_DEFAULT;
+				te->bg_color = TE_COLOR_TEXT_BG;
 			} else {
-				te->bg_color = int_clamp(p%10, 0, 7);
+				te->bg_color = TE_COLOR_ANSI+int_clamp(p%10, 0, 7);
 			}
 		} else if (p/10 == 3) {
 			if (p%10 == 9) {
-				te->fg_color = SYMBOL_FG_DEFAULT;
+				te->fg_color = TE_COLOR_TEXT_FG;
 			} else {
-				te->fg_color = int_clamp(p%10, 0, 7);
+				te->fg_color = TE_COLOR_ANSI+int_clamp(p%10, 0, 7);
 			}
+#if (TE_COLOR_MODE > 8)
+		} else if (p/10 == 9) {
+			te->fg_color = TE_COLOR_ANSI+8+int_clamp(p%10, 0, 7);
+		} else if (p/10 == 10) {
+			te->bg_color = TE_COLOR_ANSI+8+int_clamp(p%10, 0, 7);
+#endif
 		} else {
 			switch (p) {
 			case 0:
 				te->attributes = 0;
-				te->fg_color = SYMBOL_FG_DEFAULT;
-				te->bg_color = SYMBOL_BG_DEFAULT;
+				te->fg_color = TE_COLOR_TEXT_FG;
+				te->bg_color = TE_COLOR_TEXT_BG;
 				break;
 			case 1: te->attributes |= SYMBOL_BOLD; 	break;
 			case 4: te->attributes |= SYMBOL_UNDERLINE; break;
@@ -639,8 +653,8 @@ void ac_char_attrs(TE* te)
 			case 27:  te->attributes &= (~SYMBOL_INVERSE);	break;
 
 			case 100:
-				te->fg_color = SYMBOL_FG_DEFAULT;
-				te->bg_color = SYMBOL_BG_DEFAULT;
+				te->fg_color = TE_COLOR_TEXT_FG;
+				te->bg_color = TE_COLOR_TEXT_BG;
 				break;
 
 			default:
@@ -674,7 +688,7 @@ void ac_insert_char(TE* te)
 	symbol_t fillsym = symbol_make(te->fg_color, te->bg_color, te->attributes, ' ');
 
 	if (n >= mx) {
-		bufrow_fill(row, te->cursor_x, fillsym, mx);
+		bufrow_fill(row, te->cursor_x, fillsym, mx, symbol_make_style(te->fg_color, te->bg_color, te->attributes));
 	} else {
 		int trail = (te->cursor_x+n) - te->width;
 
@@ -687,7 +701,7 @@ void ac_insert_char(TE* te)
 		for (int i = 0; i < n; i++) {
 			buf[i] = fillsym;
 		}
-		bufrow_insert(row, te->cursor_x, buf, n);
+		bufrow_insert(row, te->cursor_x, buf, n, symbol_make_style(te->fg_color, te->bg_color, te->attributes));
 	}
 
 	viewport_taint(te, te->cursor_y, te->cursor_x, mx);
@@ -702,7 +716,7 @@ void ac_screen_align(TE* te)
 {
 	te->scroll_top=0;
 	te->scroll_bot=te->height-1;
-	const symbol_t style = symbol_make_style(7,0,0);
+	const symbol_t style = symbol_make_style(TE_COLOR_TEXT_FG,TE_COLOR_TEXT_BG,0);
 	const symbol_t sym = 'E' | style;
 
 	// TODO: fixup
@@ -714,7 +728,7 @@ void ac_screen_align(TE* te)
 	for (int y=0; y<te->height; y++) {
 		BufferRow* row = buffer_get_row(te->buffer, y);
 		viewport_taint(te, y, 0, te->width);
-		bufrow_replace(row, 0, syms, te->width);
+		bufrow_replace(row, 0, syms, te->width, symbol_make_style(te->fg_color, te->bg_color, te->attributes));
 	}
 	
 	be_move_cursor(te, 0, 0);

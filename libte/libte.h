@@ -43,11 +43,21 @@ typedef enum _te_selection {
 	TE_CLIPBUF_CLIPBOARD	= (1<<1),	///< clipboard data
 } te_clipbuf_t;
 
+typedef struct _te_color {
+	uint8_t r;
+	uint8_t g;
+	uint8_t b;
+} __attribute__((packed)) te_color_t;
+
 /**
  * This struct defines the callbacks made from terminal backend to frontend
  */
 struct TE_Frontend_ {
-	// Drawing methods
+
+//
+// ==== Draw methods - these (and only these) will be called from te_request_redraw() ====
+//
+
 	void (*draw_text)	(void* priv, int x, int y, const symbol_t* symbols, int len);
 	void (*draw_clear)	(void* priv, int x, int y, const symbol_color_t bg_color, int len);
 	void (*draw_cursor)	(void* priv, int x, int y, symbol_t symbol);
@@ -59,15 +69,31 @@ struct TE_Frontend_ {
 	 */
 	void (*draw_move)	(void* priv, int y, int height, int byoffset);
 
+//
+// ==== Other callbacks ====
+//
+
+	/** Called when visible output has changed. Indicates that a redraw is needed. */
 	void (*updated) 	(void* priv);
+
+	/** Called when terminal is reset */
 	void (*reset)		(void* priv);
 	void (*bell) 		(void* priv);
+	
+	/** Called when window title is requested to change */
 	void (*title) 		(void* priv, const int32_t* text, int len);
+	
+	/** Called when data should be sent back to terminal child process. */
 	void (*send_back)	(void* priv, const int32_t* data, int len);
 
 	/** terminal application requested a new size, honor by resizing frontend window, signalling pty, and call te_resize() */
 	void (*request_resize) (void* priv, int width, int height);
+	
+	/** set scroll position */
 	void (*position) (void* priv, int offset, int size);
+
+	/** palette changed */
+	void (*palette) (void* priv, int offset, int count, const te_color_t* data);
 
 	/**
 	 * Called when terminal application requests copy to clipboard.
@@ -187,6 +213,9 @@ TE_EXPORT extern const int		te_binary_version[3];
 
 TE_EXPORT TE_Backend* te_create(const TE_Frontend* front, void* user, int width, int height, const void* options, size_t options_size);
 TE_EXPORT void te_destroy(TE_Backend* te);
+
+TE_EXPORT void te_alter_palette(TE_Backend* te, int first, int count, const te_color_t* data);
+TE_EXPORT const te_color_t* te_get_palette(TE_Backend* te);
 
 /**
  * Resize terminal

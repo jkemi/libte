@@ -21,10 +21,11 @@ void viewport_reshape	(TE* te, uint w, uint h);
  * Mark portions of line y dirty.
  * \param y	line to taint
  * \param start_x	first dirty col
- * \param len		number to taint
+ * \param width		number to taint
  */
-void viewport_taint		(TE* te, uint y, uint start_x, uint end_x);
+void viewport_taint		(TE* te, uint y, uint start_x, uint width);
 void viewport_taint_all	(TE* te);
+void viewport_taint_colors (TE* te, uint first, uint count);
 void viewport_report_scroll	(TE* te);
 void viewport_move		(TE* te, uint y, uint n, int offset);
 

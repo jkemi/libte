@@ -35,123 +35,6 @@ namespace Flx {
 namespace VT {
 namespace impl {
 
-// VT100 color table - map Colors to FL-colors:
-static const Fl_Color col_table[] = {
-	// NORMAL
-	FL_BLACK,			// 0 BLACK
-	FL_DARK_RED,		// 1 RED
-	FL_DARK_GREEN,		// 2 GREEN
-	FL_DARK_YELLOW,		// 3 YELLOW
-	FL_DARK_BLUE,		// 4 BLUE
-	FL_DARK_MAGENTA,	// 5 MAGENTA
-	FL_DARK_CYAN,		// 6 CYAN
-	FL_WHITE,			// 7 WHITE
-
-	// "Bright"
-	FL_GRAY0,
-	FL_RED,
-	FL_GREEN,
-	FL_YELLOW,
-	FL_BLUE,
-	FL_MAGENTA,
-	FL_CYAN,
-	FL_WHITE,
-
-	/*
-	FL_BLACK,
-	fl_rgb_color(139, 0, 0),		// RED
-	fl_rgb_color(0, 139, 0),		// GREEN
-	fl_rgb_color(139, 139, 0),		// YELLOW
-	fl_rgb_color(0, 0, 139),		// BLUE
-	fl_rgb_color(139, 0, 139),		// MAGENTA
-	fl_rgb_color(0, 139, 139),		// CYAN
-	fl_rgb_color(167, 167, 167),	// WHITE
-	FL_DARK_BLUE,
-	FL_DARK_CYAN,
-	FL_DARK_RED,
-	FL_DARK_YELLOW,
-	FL_DARK_GREEN,
-	FL_DARK_MAGENTA,*/
-/*
-	fl_rgb_color(0,0,0),		// DARK BLACK
-	fl_rgb_color(133,0,11),		// DARK RED
-	fl_rgb_color(39,152,5),		// DARK GREEN
-	fl_rgb_color(136,136,4),	// DARK YELLOW
-	fl_rgb_color(0,14,170),		// DARK BLUE
-	fl_rgb_color(155,0,169),	// DARK MAGENTA
-	fl_rgb_color(32,149,165),	// DARK CYAN
-	fl_rgb_color(178,178,178),	// DARK WHITE
-
-	fl_rgb_color(102,102,102),	// BLACK
-	fl_rgb_color(216,0,6),		// RED
-	fl_rgb_color(55,213,6),		// GREEN
-	fl_rgb_color(225,226,9),	// YELLOW
-	fl_rgb_color(0,20,255),		// BLUE
-	fl_rgb_color(211,0,234),	// MAGENTA
-	fl_rgb_color(0,224,255),	// CYAN
-	fl_rgb_color(223,233,255),	// WHITE
-*/
-};
-
-static const uint8_t col_palette[] = {
-	// Normal
-	0,0,0,			// BLACK
-	128,0,0,		// RED
-	0,128,0,		// GREEN
-	128,128,0,		// YELLOW
-	0,0,128,		// BLUE
-	128,0,128,		// MAGENTA
-	0,128,128,		// CYAN
-	128,128,128,	// WHITE
-
-	// Bright
-	0,0,0,			// BLACK
-	255,0,0,		// RED
-	0,255,0,		// GREEN
-	255,255,0,		// YELLOW
-	0,0,255,		// BLUE
-	255,0,255,		// MAGENTA
-	0,255,255,		// CYAN
-	255,255,255,	// WHITE
-
-/*
-	0,0,0,			// BLACK
-	139,0,0,		// RED
-	0,139,0,		// GREEN
-	139,139,0,		// YELLOW
-	0,0,139,		// BLUE
-	139,0,139,		// MAGENTA
-	0,139,139,		// CYAN
-	167,167,167,	// WHITE
-	0,0,128,		// DARK BLUE
-	128,128,128,	// DARK CYAN
-	128,0,0,		// DARK RED
-	128,128,0,		// DARK YELLOW
-	0,128,0,		// DARK GREEN
-	128,0,128,		// DARK MAGENTA
-*/
-
-/*
-	0,0,0,			// DARK BLACK
-	133,0,11,		// DARK RED
-	39,152,5,		// DARK GREEN
-	136,136,4,		// DARK YELLOW
-	0,14,140,		// DARK BLUE
-	155,0,169,		// DARK MAGENTA
-	32,149,165,		// DARK CYAN
-	178,178,178,	// DARK WHITE
-	102,102,102,	// BLACK
-	216,0,6,		// RED
-	55,213,6,		// GREEN
-	225,226,9,		// YELLOW
-	0,20,255,		// BLUE
-	211,0,234,		// MAGENTA
-	225,224,255,	// CYAN
-	223,233,255,	// WHITE
-*/
-};
-
-
 static uint64_t getCurrentTime_us(void) {
 	struct timeval tv;
 	if (gettimeofday(&tv, NULL) == -1) {
@@ -203,8 +86,10 @@ BasicTerm::BasicTerm (	int fontsize,
 
 
 	// Size of graphics area in cells
-	gfx.ncols = (w()-Fl::box_dw(box())) / font.pixw;
-	gfx.nrows = (h()-Fl::box_dh(box())) / font.pixh;
+//	gfx.ncols = (w()-Fl::box_dw(box())) / font.pixw;
+//	gfx.nrows = (h()-Fl::box_dh(box())) / font.pixh;
+	gfx.ncols = 80;
+	gfx.nrows = 24;
 
 	// Size of graphics area in pixels
 	gfx.pixw = gfx.ncols*font.pixw;
@@ -231,13 +116,8 @@ BasicTerm::~BasicTerm() {
 
 void BasicTerm::init() {
 	teInit(gfx.ncols, gfx.nrows, NULL, 0);
+	_palette=teGetPalette();
 	_child_handler->resizeSlave(gfx.ncols, gfx.nrows);
-
-	const int pixwidth = (gfx.ncols*font.pixw)+Fl::box_dw(box());
-	const int pixheight = (gfx.nrows*font.pixh)+Fl::box_dh(box());
-
-	printf("requested size %d %d\n", gfx.ncols, gfx.nrows);
-	_event_handler->event_want_size(pixwidth, pixheight);
 
 	// Size limits are determined by:
 	//  - Height at least 2 lines (for scroll margins)
@@ -250,6 +130,12 @@ void BasicTerm::init() {
 	const int maxh = (256-32+1)*font.pixh+Fl::box_dh(box());
 
 	_event_handler->event_size_range(minw, minh, maxw, maxh, font.pixw, font.pixh);
+
+	const int pixwidth = (gfx.ncols*font.pixw)+Fl::box_dw(box());
+	const int pixheight = (gfx.nrows*font.pixh)+Fl::box_dh(box());
+
+	printf("requested size %d %d\n", gfx.ncols, gfx.nrows);
+	_event_handler->event_want_size(pixwidth, pixheight);
 }
 
 int32_t BasicTerm::_s_fltkToCP(const char* text, size_t len) {
@@ -503,6 +389,14 @@ void BasicTerm::resize(int x, int y, int W, int H)
 
 		printf("terminal resized to: %d, %d\n", gfx.ncols, gfx.nrows);
 	}
+	
+	// TOOD: still bleeds borders on OSX, this kinda works
+/*	int pixwidth = (gfx.ncols*font.pixw)+Fl::box_dw(box());
+	int pixheight = (gfx.nrows*font.pixh)+Fl::box_dh(box());
+	if (w() != pixwidth || h() != pixheight) {
+		_event_handler->event_want_size(pixwidth, pixheight);
+	}
+*/
 }
 
 /************************************************************************/
@@ -534,7 +428,7 @@ void BasicTerm::draw(void)
 	// restore the clipping rectangle...
 	fl_pop_clip();
 
-	last_draw = getCurrentTime_us();
+	_last_draw = getCurrentTime_us();
 }
 
 
@@ -591,16 +485,22 @@ void BasicTerm::fe_draw_text(int xpos, int ypos, const symbol_t* symbols, int le
 			bg_color = tmp;
 		}
 
-		Fl_Color bg = col_table[bg_color];
-		fl_color(bg);
+		te_color_t bg = _palette[bg_color];
+		fl_color(bg.r, bg.g, bg.b);
 		fl_rectf(xp, yp, font.pixw, font.pixh);
 
 		if (cp != ' ') {
-			Fl_Color fg = col_table[fg_color];
+// TODO: this is a hack, should probably live in libte??
+#if (TE_COLOR_MODE > 8)
+			if (attrs & SYMBOL_BOLD && fg_color > TE_COLOR_ANSI && fg_color < TE_COLOR_ANSI+8) {
+				fg_color += 8;
+			}
+#endif
+			te_color_t fg = _palette[fg_color];
 			char buf[6];
 			const int l = fl_utf8encode(cp, buf);
 			buf[l] = '\0';
-			fl_color(fg);
+			fl_color(fg.r, fg.g, fg.b);
 
 			// BOLD and BLINK
 			if ((attrs & (SYMBOL_BOLD|SYMBOL_BLINK)) == (SYMBOL_BOLD|SYMBOL_BLINK)) {
@@ -629,35 +529,15 @@ void BasicTerm::fe_draw_clear(int xpos, int ypos, const symbol_color_t bg_color,
 	int xp = xo + xpos*font.pixw;
 	const int yp = yo + ypos*font.pixh;
 
-	assert (bg_color >= 0 && bg_color <= 7);
-	Fl_Color bg = col_table[bg_color];
+	te_color_t bg = _palette[bg_color];
 
-	fl_color(bg);
+	fl_color(bg.r, bg.g, bg.b);
 	fl_rectf(xp, yp, font.pixw*len, font.pixh);
 }
 
 void BasicTerm::fe_draw_cursor(int xpos, int ypos, symbol_t symbol) {
 	fe_draw_text(xpos, ypos, &symbol, 1);
 	return;
-	
-	/*
-	const int xp = x() + gfx.xoff + font.pixw * xpos;
-	const int yp = y() + gfx.yoff + font.pixh * ypos;
-
-	assert (fg_color >= 0 && fg_color <= 7);
-
-	if (attrs & SYMBOL_INVERSE) {
-		symbol_color_t tmp = fg_color;
-		fg_color = bg_color;
-		bg_color = tmp;
-	}
-	
-	const Fl_Color fg = col_table[fg_color];
-
-	// now draw a simple box cursor
-	fl_color(fg);
-	fl_rectf(xp, yp, font.pixw, font.pixh);
-	 */
 }
 
 void BasicTerm::fe_draw_move(int y, int height, int byoffset) {
@@ -665,13 +545,13 @@ void BasicTerm::fe_draw_move(int y, int height, int byoffset) {
 }
 
 void BasicTerm::fe_updated() {
-	const uint64_t now = getCurrentTime_us();
-	if (now-last_draw < _DEFER_DRAWING_US) {
+//	const uint64_t now = getCurrentTime_us();
+//	if (now-last_draw < _DEFER_DRAWING_US) {
 		Fl::remove_timeout(&_s_deferred_update_cb, this);
 		Fl::add_timeout(_DEFERRED_DRAWING_DELAY, &_s_deferred_update_cb, this);
 		return;
-	}
-	damage(FL_DAMAGE_USER1);
+//	}
+//	damage(FL_DAMAGE_USER1);
 }
 
 void BasicTerm::fe_reset() {
@@ -701,6 +581,10 @@ void BasicTerm::fe_request_resize(int width, int height) {
 
 void BasicTerm::fe_position(int offset, int size) {
 	_event_handler->event_scrollposition(offset, size);
+}
+	
+void BasicTerm::fe_palette(int offset, int count, const te_color_t *data) {
+	_palette = teGetPalette();
 }
 
 void BasicTerm::fe_set_clipboard (te_clipbuf_t clipbuf, const int32_t* text, int len) {
