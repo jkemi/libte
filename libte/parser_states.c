@@ -165,6 +165,7 @@ static const StateOption state_csi[] = {
     { '?', &_parser_set_intermediate,	state_csi },
     { '"', &_parser_set_intermediate,	state_csi },
     { '!', &_parser_set_intermediate,	state_csi },
+    { '>', &_parser_set_intermediate,	state_csi },
     { '0', &_parser_param_digit,	state_csi },
     { '1', &_parser_param_digit,	state_csi },
     { '2', &_parser_param_digit,	state_csi },

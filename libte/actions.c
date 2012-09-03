@@ -267,7 +267,15 @@ void ac_line_position(TE* te)
 // 	Send Device Attributes (Primary DA)
 void ac_device_attrib(TE* te)
 {
-	fe_send_back_char(te, "\033[?1;2c");
+	// TODO: vim needs this! verify function
+	if (parser_get_intermediate(te->parser) == '>') {	// Secondary DA
+//		fe_send_back_char(te, "\033[>1;" "080" ";0c"); // VT220
+		fe_send_back_char(te, "\033[>86;" TE_HEADER_VERSION ";0c");	// breaks vim?
+	} else if (parser_get_intermediate(te->parser) == '?') {
+	} else {
+		fe_send_back_char(te, "\033[?1;2c");	// VT100 with advanced video
+//		fe_send_back_char(te, "\033[?60;1;2;6;8;9;15;c"); // VT220
+	}
 }
 
 // Delete P s Character(s) (default = 1) (DCH)
