@@ -136,6 +136,8 @@ void be_input(TE* te, const int32_t* text, size_t len) {
 	symbol_t syms[te->width];
 	symbol_t style = symbol_make_style(te->fg_color, te->bg_color, te->attributes);
 
+	//TODO: charset must be honored even when not in AUTOWRAP mode!!
+	
 	if (be_is_mode_set(te, MODE_AUTOWRAP)) {
 		while (len > 0) {
 			BufferRow* row = buffer_get_row(te->buffer, te->cursor_y);

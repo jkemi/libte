@@ -22,7 +22,7 @@
 
 // TODO: this basically disables first param
 #define _DEFER_DRAWING_US	2000000		// if drawing occured within this time from last draw, reset draw timer to _DEFERRED_DRAWING_DELAY
-#define _DEFERRED_DRAWING_DELAY	(1.0/100)	// delay (in seconds) until we perform actual drawing (if _DEFER_DRAWING_US matched)
+#define _DEFERRED_DRAWING_DELAY	(1.0/50)	// delay (in seconds) until we perform actual drawing (if _DEFER_DRAWING_US matched)
 
 
 #ifndef FLTE_ENABLE_FT
