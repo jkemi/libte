@@ -128,10 +128,10 @@ typedef uint_fast8_t symbol_color_t;
 #define TE_COLOR_COUNT	(TE_COLOR_ANSI+TE_COLOR_MODE)
 
 // TODO: These are the needed attributes
-#define SYMBOL_BOLD			(1<<0)
-#define SYMBOL_BLINK		(1<<1)
-#define SYMBOL_INVERSE		(1<<2)
-#define SYMBOL_UNDERLINE	(1<<3)
+#define SYMBOL_BOLD			(1<<0)	// 0001
+#define SYMBOL_BLINK		(1<<1)	// 0010
+#define SYMBOL_INVERSE		(1<<2)	// 0100
+#define SYMBOL_UNDERLINE	(1<<3)	// 1000
 
 
 typedef uint_fast8_t symbol_attributes_t;

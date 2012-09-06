@@ -479,23 +479,25 @@ void BasicTerm::fe_draw_text(int xpos, int ypos, const symbol_t* symbols, int le
 		const symbol_attributes_t attrs = symbol_get_attributes(sym);
 		symbol_color_t bg_color = symbol_get_bg(sym);
 		symbol_color_t fg_color = symbol_get_fg(sym);
+
+		// TODO: this is a hack, should probably live in libte??
+#if (TE_COLOR_MODE > 8)
+		if (attrs & SYMBOL_BOLD && fg_color >= TE_COLOR_ANSI && fg_color < TE_COLOR_ANSI+8) {
+			fg_color += 8;
+		}
+#endif
+		
 		if (attrs & SYMBOL_INVERSE) {
 			symbol_color_t tmp = fg_color;
 			fg_color = bg_color;
 			bg_color = tmp;
 		}
-
+		
 		te_color_t bg = _palette[bg_color];
 		fl_color(bg.r, bg.g, bg.b);
 		fl_rectf(xp, yp, font.pixw, font.pixh);
 
 		if (cp != ' ') {
-// TODO: this is a hack, should probably live in libte??
-#if (TE_COLOR_MODE > 8)
-			if (attrs & SYMBOL_BOLD && fg_color > TE_COLOR_ANSI && fg_color < TE_COLOR_ANSI+8) {
-				fg_color += 8;
-			}
-#endif
 			te_color_t fg = _palette[fg_color];
 			char buf[6];
 			const int l = fl_utf8encode(cp, buf);
@@ -536,6 +538,14 @@ void BasicTerm::fe_draw_clear(int xpos, int ypos, const symbol_color_t bg_color,
 }
 
 void BasicTerm::fe_draw_cursor(int xpos, int ypos, symbol_t symbol) {
+#ifndef NDEBUG
+/*	fprintf(stderr, "drawing cursor at %d, %d: 0x%x fg:%d bg:%d '%c' (%d)\n",
+		xpos, ypos,
+		symbol_get_attributes(symbol),
+		symbol_get_fg(symbol), symbol_get_bg(symbol),
+		symbol_get_codepoint(symbol), symbol_get_codepoint(symbol)
+	);*/
+#endif
 	fe_draw_text(xpos, ypos, &symbol, 1);
 	return;
 }
