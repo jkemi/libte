@@ -24,6 +24,7 @@
 #include "libte/LibTE.hpp"
 
 #ifndef NDEBUG
+#include <stdarg.h>
 static void _debugf (const char* label, const char* file, const char* func, int line, const char* format, ...)
 {
 	fprintf (stderr, "%s %s (%d) : %s: ", label, file, line, func);
