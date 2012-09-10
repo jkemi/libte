@@ -130,13 +130,24 @@ static const keymap _keys_common[] = {
 	{TE_KEY_UNDEFINED,	NULL}
 };
 
+static inline int32_t _cp_replace(const te_chartable_entry_t* charset, int32_t cp) {
+	// Find replacement in selected charset
+	for (const te_chartable_entry_t* ce = charset; ce->from != '\0'; ce++) {
+		if (ce->from == cp) {
+			return ce->to;
+		}
+	}
+
+	return cp;
+}
+
 // This receives plain input characters (no line-breaks, control-characters etc)
 void be_input(TE* te, const int32_t* text, size_t len) {
 	// TODO: remove temporary stack buffer from here..
 	symbol_t syms[te->width];
 	symbol_t style = symbol_make_style(te->fg_color, te->bg_color, te->attributes);
 
-	//TODO: charset must be honored even when not in AUTOWRAP mode!!
+	const te_chartable_entry_t* charset = (te->charset == 0) ? te->charset_g0 : te->charset_g1;
 	
 	if (be_is_mode_set(te, MODE_AUTOWRAP)) {
 		while (len > 0) {
@@ -144,22 +155,8 @@ void be_input(TE* te, const int32_t* text, size_t len) {
 
 			const size_t n = uint_min(len, te->width-te->cursor_x);
 			for (size_t i = 0; i < n; i++) {
-				int32_t cp = text[i];
-
-				const te_chartable_entry_t* charset;
-
-				if (te->charset == 0) {
-					charset = te->charset_g0;
-				} else {
-					charset = te->charset_g1;
-				}
 				// Find replacement in selected charset
-				for (const te_chartable_entry_t* ce = charset; ce->from != '\0'; ce++) {
-					if (ce->from == cp) {
-						cp = ce->to;
-						break;
-					}
-				}
+				const int32_t cp = _cp_replace(charset, text[i]);
 				const symbol_t sym = style | cp;
 				syms[i] = sym;
 			}
@@ -192,7 +189,8 @@ void be_input(TE* te, const int32_t* text, size_t len) {
 		size_t n = uint_min(len, te->width-te->cursor_x-1);
 
 		for (size_t i = 0; i < n; i++) {
-			const symbol_t sym = style | text[i];
+			const int32_t cp = _cp_replace(charset, text[i]);
+			const symbol_t sym = style | cp;
 			syms[i] = sym;
 		}
 		if (be_is_mode_set(te, MODE_INSERT)) {
@@ -208,7 +206,7 @@ void be_input(TE* te, const int32_t* text, size_t len) {
 		// There were more data than we have remaining space on
 		// the line, update last cell
 		if (len > n) {
-			syms[0] = style | text[len-1];
+			syms[0] = style | _cp_replace(charset, text[len-1]);
 			bufrow_replace(row, te->width-1, syms, 1, symbol_make_style(te->fg_color, te->bg_color, te->attributes));
 		}
 	}
