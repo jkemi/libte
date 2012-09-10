@@ -109,11 +109,11 @@ void PtyIO::_fromSlave(int fd) {
 
 	_fill += bytesread;
 
-	int32_t	cpbuf[1024];
+	int32_t	cpbuf[_BUFSIZE];
 	size_t cpcount;
 
 
-	if (str_mbs_to_cps_n(cpbuf, _buf, 1024, _fill, &cpcount, &bytesread) != 0) {
+	if (str_mbs_to_cps_n(cpbuf, _buf, sizeof(cpbuf)/sizeof(int32_t), _fill, &cpcount, &bytesread) != 0) {
 		//TODO: this happens.. try pilned sedan "å" så skiter det sig nog..
 		_fill = 0;
 		return;
