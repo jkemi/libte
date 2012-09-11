@@ -73,7 +73,6 @@ BasicTerm::BasicTerm (	int fontsize,
 
 	// Size of cell in pixels
 #ifdef FLTE_ENABLE_FT
-	tr_init(col_palette);
 	font.pixw = tr_width();
 	font.pixh = tr_height();
 #else
@@ -117,6 +116,9 @@ BasicTerm::~BasicTerm() {
 void BasicTerm::init() {
 	teInit(gfx.ncols, gfx.nrows, NULL, 0);
 	_palette=teGetPalette();
+#ifdef FLTE_ENABLE_FT
+	tr_init(_palette);
+#endif
 	_child_handler->resizeSlave(gfx.ncols, gfx.nrows);
 
 	// Size limits are determined by:
@@ -462,16 +464,12 @@ void BasicTerm::fe_draw_text(int xpos, int ypos, const symbol_t* symbols, int le
 				bg_color = symbol_get_fg(sym);
 			}
 
-			Fl_Color bg = col_table[bg_color];
-			fl_color(bg);
+			te_color_t bg = _palette[bg_color];
+			fl_color(bg.r, bg.g, bg.b);
 			fl_rectf(xp, yp, font.pixw, font.pixh);
 		} else {
 			const symbol_attributes_t attrs = symbol_get_attributes(sym);
 			symbol_color_t fg_color = symbol_get_fg(sym);
-			if (attrs & SYMBOL_INVERSE) {
-				fg_color = symbol_get_bg(sym);
-			}
-
 			const uint8_t* fontdata = tr_get(sym);
 			fl_draw_image(fontdata, xp, yp, font.pixw, font.pixh, 3);
 		}

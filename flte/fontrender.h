@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-void	tr_init(const uint8_t* palette);
+void	tr_init(const te_color_t* palette);
 void	tr_term(void);
 
 // Returns character width in pixels

@@ -20,7 +20,7 @@ static struct {
 	CacheElem**	data;
 } _cache;
 
-static const uint8_t* _palette;
+static const te_color_t* _palette = NULL;
 
 static void _cache_init(void) {
 	_cache.size = 0;
@@ -148,13 +148,13 @@ static void _render_glyph(CacheElem* dest, symbol_t sym) {
 
 	FT_Bitmap_Convert(_library, monobmp, &bmp, 1);
 
-	const int8_t fg_r = _palette[fg_color*3+0];
-	const int8_t fg_g = _palette[fg_color*3+1];
-	const int8_t fg_b = _palette[fg_color*3+2];
+	const uint8_t fg_r = _palette[fg_color].r;
+	const uint8_t fg_g = _palette[fg_color].g;
+	const uint8_t fg_b = _palette[fg_color].b;
 
-	const int8_t bg_r = _palette[bg_color*3+0];
-	const int8_t bg_g = _palette[bg_color*3+1];
-	const int8_t bg_b = _palette[bg_color*3+2];
+	const uint8_t bg_r = _palette[bg_color].r;
+	const uint8_t bg_g = _palette[bg_color].g;
+	const uint8_t bg_b = _palette[bg_color].b;
 
 	for (int y = 0; y < bmp.rows; y++) {
 		const uint8_t* srcrow = (const uint8_t*)bmp.buffer + y*bmp.pitch;
@@ -180,7 +180,7 @@ static void _render_glyph(CacheElem* dest, symbol_t sym) {
 	FT_Bitmap_Done(_library, &bmp);
 }
 
-void tr_init(const uint8_t* palette) {
+void tr_init(const te_color_t* palette) {
 	_palette = palette;
 	FT_Error error = FT_Init_FreeType(&_library);
 	if (error) {
