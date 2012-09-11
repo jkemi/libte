@@ -177,7 +177,7 @@ void viewport_request_redraw(TE* te, int x, int y, int w, int h, bool force) {
 		}
 		const int b = int_max(0, dirtend-dirtstart-a);
 		if (b > 0) {
-			fe_draw_clear(te, dirtstart+a, rowno, te->bg_color, b);
+			fe_draw_clear(te, dirtstart+a, rowno, TE_COLOR_TEXT_BG, b);
 		}
 
 		dirty_cleanse(&te->viewport->dirty, rowno, dirtstart, dirtend);
