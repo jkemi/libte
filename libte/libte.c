@@ -358,6 +358,8 @@ TE* te_new(const TE_Frontend* fe, void* fe_priv, int w, int h)
 	te->charset_g1 = chartable_us;
 
 	te->stored.attributes = te->attributes;
+	te->stored.fg = te->fg_color;
+	te->stored.bg = te->bg_color;
 	te->stored.autowrap = true;
 	te->stored.cursor_x = 0;
 	te->stored.cursor_y = 0;
@@ -754,7 +756,7 @@ void te_debug(TE_Backend* te, FILE* where) {
 	fprintf(where, "Cursor Keys Mode:        %s\n", be_is_mode_set(te, MODE_CURSORAPP) ? "on" : "off");
 	fprintf(where, "Application Keypad Mode: %s\n", be_is_mode_set(te, MODE_KEYAPP) ? "on" : "off");
 	fprintf(where, "dimensions WxH = %dx%d\n", te->width, te->height);
-	fprintf(where, "fg: %d  bg: %d\n", te->fg_color, te->bg_color);
+	fprintf(where, "fg: %d  bg: %d\n", (int)te->fg_color, (int)te->bg_color);
 	fprintf(where, "current charset (GR) %d\n", te->charset);
 	fprintf(where, "charset g0 us %d uk %d dec %d\n", te->charset_g0==chartable_us, te->charset_g0==chartable_uk, te->charset_g0==chartable_special);
 	fprintf(where, "charset g1 us %d uk %d dec %d\n", te->charset_g1==chartable_us, te->charset_g1==chartable_uk, te->charset_g1==chartable_special);

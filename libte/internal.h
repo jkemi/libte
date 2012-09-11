@@ -158,6 +158,8 @@ struct TE_Backend_ {
 	// Used by store-cursor / restore-cursor (DECSC/DECRC)
 	struct {
 		int cursor_x, cursor_y;
+		symbol_color_t	fg;
+		symbol_color_t	bg;
 		symbol_attributes_t attributes;
 		bool autowrap;
 		int charset;

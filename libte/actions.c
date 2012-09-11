@@ -88,6 +88,8 @@ void ac_keypad_application(TE* te) {
 // Save Cursor (DECSC)
 void ac_save_cursor(TE* te)
 {
+	te->stored.fg = te->fg_color;
+	te->stored.bg = te->bg_color;
 	te->stored.attributes = te->attributes;
 	te->stored.cursor_x = te->cursor_x;
 	te->stored.cursor_y = te->cursor_y;
@@ -101,6 +103,8 @@ void ac_save_cursor(TE* te)
 void ac_restore_cursor(TE* te)
 {
 	te->attributes = te->stored.attributes;
+	te->fg_color = te->stored.fg;
+	te->bg_color = te->stored.bg;
 	if (te->stored.autowrap) {
 		be_set_mode_flag(te, MODE_AUTOWRAP);
 	} else {
