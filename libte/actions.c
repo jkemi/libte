@@ -327,6 +327,7 @@ void ac_set_mode(TE* te)  // h
 		case 7:	be_set_mode_flag(te, MODE_AUTOWRAP);	break;	// Wraparound Mode (DECAWM)
 		case 8:	break;											// Auto repeating (DECARM)
 //		case 9:													// X10 mouse mode
+		case 12: break;											// set blink mode
 		case 25:												// Hide Cursor (DECTCEM)
 			be_clear_mode_flag(te, MODE_CURSORINVISIBLE);
 			be_move_cursor(te, te->cursor_x, te->cursor_y);
@@ -409,6 +410,7 @@ void ac_clear_mode(TE* te)  // l
 		case 7:	be_clear_mode_flag(te, MODE_AUTOWRAP);			break;	// Wraparound Mode (DECAWM)
 		case 8: break;													// Auto repeating (DECARM)
 //		case 9:															// X10 mouse mode
+		case 12: break;													// stop blinking
 		case 25:														// Hide Cursor (DECTCEM)
 			be_set_mode_flag(te, MODE_CURSORINVISIBLE);	break;
 			be_move_cursor(te, te->cursor_x, te->cursor_y);
