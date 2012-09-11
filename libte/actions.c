@@ -497,7 +497,7 @@ void ac_set_margins(TE* te)
 
 	if (t>=b) {
 		DEBUGF("ignoring illegal scrolling region: %d,%d, resetting to none\n", t,b);
-		te->scroll_top = 1;
+		te->scroll_top = 0;
 		te->scroll_bot = te->height-1;
 	} else {
 		DEBUGF("scrolling region set to: %d,%d\n", t,b);
