@@ -93,7 +93,7 @@ typedef uint64_t symbol_t;
 // bits     987654321
 // fg-color       xxx
 // bg-color    xxx
-typedef uint_fast8_t symbol_color_t;
+typedef uint_fast16_t symbol_color_t;
 
 
 #define TE_COLOR_TEXT_FG		0	///< default text foreground color

@@ -403,8 +403,63 @@ TE* te_new(const TE_Frontend* fe, void* fe_priv, int w, int h)
 	};
 
 	memcpy(te->palette, defpal, sizeof(defpal));
-	// TODO: setup color ramp for 88,256
-
+#if (TE_COLOR_MODE > 88)
+	// create 256 color map
+	// colors 16-231 are a 6x6x6 color cube
+	te_color_t pal256[256-16];
+	const uint8_t ramp[] = {0x00, 0x5f, 0x87, 0xaf, 0xd7, 0xff};
+	for (uint red = 0; red < 6; red++) {
+		for (uint green = 0; green < 6; green++) {
+			for (uint blue = 0; blue < 6; blue++) {
+				uint index = red*36+green*6+blue;
+//				pal256[index].r = (red * 85)/2;	// fixed point mult by 42.5
+//				pal256[index].g = (green * 85)/2;
+//				pal256[index].b = (blue * 85)/2;
+				pal256[index].r = ramp[red];
+				pal256[index].g = ramp[green];
+				pal256[index].b = ramp[blue];
+			}
+		}
+	}
+	
+	// colors 232-255 are a grayscale ramp, intentionally leaving out black and white
+	for (uint gray = 0; gray < 24; gray++) {
+		uint level = (gray * 10) + 8;
+		uint index = 232-16+gray;
+		pal256[index].r = level;
+		pal256[index].g = level;
+		pal256[index].b = level;
+	}
+	
+	memcpy(te->palette+(TE_COLOR_ANSI+16), pal256, sizeof(pal256));
+#elif (TE_COLOR_MODE > 16)
+	// create 88 color map
+	// colors 16-79 are a 4x4x4 color cube
+	te_color_t pal88[88-16];
+	const uint8_t ramp[] = {0, 0x8b, 0xcd, 0xff};
+	for (uint red = 0; red < 4; red++) {
+		for (uint green = 0; green < 4; green++) {
+			for (uint blue = 0; blue < 4; blue++) {
+				uint index = red*16+green*4+blue;
+				pal88[index].r = ramp[red];
+				pal88[index].g = ramp[green];
+				pal88[index].b = ramp[blue];
+			}
+		}
+	}
+	
+	// colors 80-87 are a grayscale ramp, intentionally leaving out black and white
+	for (uint gray = 0; gray < 8; gray++) {
+		uint level = ((gray+1)*256)/10;
+		uint index = 80-16+gray;
+		pal88[index].r = level;
+		pal88[index].g = level;
+		pal88[index].b = level;
+	}
+	
+	memcpy(te->palette+(TE_COLOR_ANSI+16), pal88, sizeof(pal88));	
+#endif
+	
 	return te;
 }
 
@@ -688,6 +743,7 @@ void te_debug(TE_Backend* te, FILE* where) {
 	fprintf(where, "Cursor Keys Mode:        %s\n", be_is_mode_set(te, MODE_CURSORAPP) ? "on" : "off");
 	fprintf(where, "Application Keypad Mode: %s\n", be_is_mode_set(te, MODE_KEYAPP) ? "on" : "off");
 	fprintf(where, "dimensions WxH = %dx%d\n", te->width, te->height);
+	fprintf(where, "fg: %d  bg: %d\n", te->fg_color, te->bg_color);
 	fprintf(where, "current charset (GR) %d\n", te->charset);
 	fprintf(where, "charset g0 us %d uk %d dec %d\n", te->charset_g0==chartable_us, te->charset_g0==chartable_uk, te->charset_g0==chartable_special);
 	fprintf(where, "charset g1 us %d uk %d dec %d\n", te->charset_g1==chartable_us, te->charset_g1==chartable_uk, te->charset_g1==chartable_special);
