@@ -10,10 +10,16 @@
 
 #include <stdint.h>
 
-//#undef TE_EXT
-#define TE_EXT
 
-#ifndef TE_EXT
+// 32-bit layout
+// all unicode, only 8 colors
+// aaaa ffff bbbb cccc cccc cccc cccc cccc
+//	- = unused
+//  a = attributes
+//  f = foreground
+//  b = background
+//  c = codepoint
+#if 0
 
 // Contains one ISO10646 character with color information and attributes.
 // UNICODE 6.1 spans 0-10FFFF (21 bits) we use 20 (last bit is private use, plane 16)
@@ -25,15 +31,6 @@
 //
 typedef uint32_t symbol_t;
 
-#if 1
-
-// 32-bit layout
-// aaaa ffff bbbb cccc cccc cccc cccc cccc
-//	- = unused
-//  a = attributes
-//  f = foreground
-//  b = background
-//  c = codepoint
 #define SYMBOL_ATTRIBUTES_SHIFTS	(28)
 #define SYMBOL_ATTRIBUTES_MASK		(0xf<<SYMBOL_ATTRIBUTES_SHIFTS)	// 4 bits
 #define SYMBOL_FG_SHIFTS			(24)
@@ -44,7 +41,8 @@ typedef uint32_t symbol_t;
 #define SYMBOL_CP_MASK				(0xfffff<<SYMBOL_CP_SHIFTS)		// 20 bits
 #define SYMBOL_COLOR_BITS			4
 
-#else
+#endif
+
 
 // Alternate 32-bit layout (knowing that only non-western codepoints exists beyond 2fff)
 // that will allow 7 bits of color information (128 colors)
@@ -53,6 +51,10 @@ typedef uint32_t symbol_t;
 //  f = foreground
 //  b = background
 //  c = codepoint
+#if 1
+
+typedef uint32_t symbol_t;
+
 #define SYMBOL_ATTRIBUTES_SHIFTS	(28)
 #define SYMBOL_ATTRIBUTES_MASK		(0xf<<SYMBOL_ATTRIBUTES_SHIFTS)	// 4 bits
 #define SYMBOL_FG_SHIFTS			(21)
@@ -66,9 +68,6 @@ typedef uint32_t symbol_t;
 
 #endif
 
-#else
-
-typedef uint64_t symbol_t;
 
 // 64-bit layout
 // ---- ---- --aa aaff ffff fffb bbbb bbbb ---- ---- ---- cccc cccc cccc cccc cccc
@@ -76,6 +75,10 @@ typedef uint64_t symbol_t;
 //  f = foreground
 //  b = background
 //  c = codepoint
+#if 0
+
+typedef uint64_t symbol_t;
+
 #define SYMBOL_ATTRIBUTES_SHIFTS	(50)
 #define SYMBOL_ATTRIBUTES_MASK		(0xfL<<SYMBOL_ATTRIBUTES_SHIFTS)	// 4 bits
 #define SYMBOL_FG_SHIFTS			(32)
