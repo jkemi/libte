@@ -502,7 +502,7 @@ void ac_set_margins(TE* te)
 		te->scroll_top = 0;
 		te->scroll_bot = te->height-1;
 	} else {
-		DEBUGF("scrolling region set to: %d,%d\n", t,b);
+		//DEBUGF("scrolling region set to: %d,%d\n", t,b);
 		te->scroll_top = t-1;
 		te->scroll_bot = b-1;
 	}
@@ -844,6 +844,7 @@ void ac_osc (TE* te) {
 		fe_title(te, data, size);
 		break;
 	case '1':	// icon name
+		break;
 	default:
 		WARNF("unknown osc code '%c' with data of len: %ld", osc, size);
 	}

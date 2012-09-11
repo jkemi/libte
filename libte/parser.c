@@ -150,7 +150,7 @@ void _parser_osc_end(TE* te) {
 //		printf("got osc put: '%d' '%c'\n", i, tmp[i]);
 	}
 	tmp[te->parser->osc_size] = '\0';
-	printf("got osc data: '%s'\n", tmp);
+	DEBUGF("got osc data: '%s'\n", tmp);
 	free(tmp);
 #endif
 	ac_osc(te);
@@ -208,7 +208,7 @@ void _parser_next_param(TE* te)
 void _parser_normal_input(TE* te)
 {
 	if (*te->parser->input_data < 32) {
-		DEBUGF("%d is unhandled... mkay, ignoring\n", *te->parser->input_data);
+		DEBUGF("%d is unhandled..., ignoring\n", *te->parser->input_data);
 		return;
 	}
 

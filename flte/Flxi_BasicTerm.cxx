@@ -255,9 +255,9 @@ bool BasicTerm::_handle_keyevent(void) {
 
 		te_modifier_t mod = getTeKeyModifiers();
 
-#ifndef NDEBUG
-		printf("cp was: %d mod was %d\n", cp, mod);
-#endif
+//#ifndef NDEBUG
+//		printf("cp was: %d mod was %d\n", cp, mod);
+//#endif
 
 		if (cp >= 0) {
 			teHandleKeypress(cp, mod);

@@ -559,6 +559,17 @@ void te_request_redraw(TE_Backend* te, int x, int y, int w, int h, int force) {
 }
 
 void te_process_input(TE_Backend* te, const int32_t* data, size_t len) {
+#if 0
+	fprintf(stderr, "input %ld cps\n", len);
+	for (uint i=0; i<len; i++) {
+		int32_t cp = data[i];
+		if (cp >= 32 && cp<128) {
+			fprintf(stderr, " %d: %d ('%c')\n", i, cp, cp);
+		} else {
+			fprintf(stderr, " %d: %d\n", i, cp);
+		}
+	}
+#endif
 	parser_input(te->parser, len, data, te);
 	fe_updated(te);
 }
