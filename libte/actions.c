@@ -627,7 +627,7 @@ void ac_char_attrs(TE* te)
 		if (p/10 == 4) {
 			if (p%10 == 9) {
 				te->bg_color = TE_COLOR_TEXT_BG;
-			} if (p%10 == 8) {
+			} else if (p%10 == 8) {
 				// 48;5;bg-color
 				if (n+2<nparams && params[n+1]==5) {
 					if (params[n+2] < TE_COLOR_MODE) {
@@ -641,7 +641,7 @@ void ac_char_attrs(TE* te)
 		} else if (p/10 == 3) {
 			if (p%10 == 9) {
 				te->fg_color = TE_COLOR_TEXT_FG;
-			} if (p%10 == 8) {
+			} else if (p%10 == 8) {
 				// 38;5;fg-color
 				if (n+2<nparams && params[n+1]==5) {
 					if (params[n+2] < TE_COLOR_MODE) {
