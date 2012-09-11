@@ -51,7 +51,7 @@ typedef uint32_t symbol_t;
 //  f = foreground
 //  b = background
 //  c = codepoint
-#if 1
+#if 0
 
 typedef uint32_t symbol_t;
 
@@ -75,7 +75,7 @@ typedef uint32_t symbol_t;
 //  f = foreground
 //  b = background
 //  c = codepoint
-#if 0
+#if 1
 
 typedef uint64_t symbol_t;
 
