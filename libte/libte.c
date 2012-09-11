@@ -436,10 +436,12 @@ TE_Backend* te_create(const TE_Frontend* front, void* user, int width, int heigh
 void te_destroy(TE_Backend* te) {
 	viewport_term(te);
 	buffer_term(&te->norm_buffer);
-	history_clear(&te->norm_history);
+	history_term(&te->norm_history);
 	buffer_term(&te->alt_buffer);
-	history_clear(&te->alt_history);
+	history_term(&te->alt_history);
 	parser_delete(te->parser);
+	free(te->tab_stops);
+	free(te);
 }
 
 void te_alter_palette(TE_Backend* te, int first, int count, const te_color_t* data) {
