@@ -172,7 +172,7 @@ void ac_reset(TE* te)
 	te->buffer = &te->norm_buffer;
 	te->history = &te->norm_history;
 
-	buffer_clear(te->buffer);
+	buffer_clear(te->buffer, symbol_make(te->fg_color, te->bg_color, te->attributes, ' '));
 	be_move_cursor(te, 0, 0);
 
 	history_clear(&te->norm_history);

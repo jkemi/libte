@@ -78,9 +78,9 @@ void history_store(History* hist, const BufferRow* row) {
 	e->size = row->used;
 }
 
-void history_fetch(History* hist, BufferRow* row) {
+void history_fetch(History* hist, BufferRow* row, symbol_t blank) {
 	if (hist->capacity == 0) {
-		bufrow_clear(row);
+		bufrow_clear(row, blank);
 		return;
 	}
 	hist->pos--;
@@ -95,6 +95,6 @@ void history_fetch(History* hist, BufferRow* row) {
 		e->data = NULL;
 		e->size = 0;
 	} else {
-		bufrow_clear(row);
+		bufrow_clear(row, blank);
 	}
 }

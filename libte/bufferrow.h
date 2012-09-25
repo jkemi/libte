@@ -16,12 +16,14 @@ typedef struct {
 	uint		used;
 	uint		capacity;
 	symbol_t*	data;
+	symbol_t	erase;
 } BufferRow;
 
-BufferRow* bufrow_new(void);
+BufferRow* bufrow_new(symbol_t blank);
 void bufrow_free(BufferRow* br);
 
-void bufrow_clear(BufferRow* br);
+void bufrow_clear(BufferRow* br, symbol_t blank);
+void bufrow_trim(BufferRow* br);
 void bufrow_insert(BufferRow* br, uint x, const symbol_t* symbols, uint len, symbol_t blank);
 void bufrow_replace(BufferRow* br, uint x, const symbol_t* symbols, uint len, symbol_t blank);
 void bufrow_reset(BufferRow* br, const symbol_t* symbols, uint len);

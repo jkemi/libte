@@ -32,6 +32,6 @@ uint history_size(History* hist);
 uint history_peek(History* hist, uint age, symbol_t* dest, uint n);
 
 void history_store(History* hist, const BufferRow* row);
-void history_fetch(History* hist, BufferRow* row);
+void history_fetch(History* hist, BufferRow* row, symbol_t blank);
 
 #endif /* HISTORY_H_ */

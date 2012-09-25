@@ -146,6 +146,7 @@ void viewport_request_redraw(TE* te, int x, int y, int w, int h, bool force) {
     	const symbol_t* data;
 		int ndata;
 
+		symbol_t erase = 0;
     	const int age = offset - rowno;
     	if (age > 0) {
     		data = buf;
@@ -154,6 +155,7 @@ void viewport_request_redraw(TE* te, int x, int y, int w, int h, bool force) {
         	BufferRow* row = buffer_get_row(te->buffer, rowno-offset);
     		data = row->data;
     		ndata = row->used;
+			erase = row->erase;
     	}
 /*
 		if (te->selstate == SELSTATE_MARKED) {
@@ -177,7 +179,11 @@ void viewport_request_redraw(TE* te, int x, int y, int w, int h, bool force) {
 		}
 		const int b = int_max(0, dirtend-dirtstart-a);
 		if (b > 0) {
-			fe_draw_clear(te, dirtstart+a, rowno, TE_COLOR_TEXT_BG, b);
+			if (erase>0) {
+				fe_draw_clear(te, dirtstart+a, rowno, symbol_get_bg(erase), b);
+			} else {
+				fe_draw_clear(te, dirtstart+a, rowno, TE_COLOR_TEXT_BG, b);
+			}
 		}
 
 		dirty_cleanse(&te->viewport->dirty, rowno, dirtstart, dirtend);
@@ -197,8 +203,10 @@ void viewport_request_redraw(TE* te, int x, int y, int w, int h, bool force) {
 				sym = row->data[xpos];
 				symbol_attributes_t attrs = symbol_get_attributes(sym) ^ SYMBOL_INVERSE;
 				sym = symbol_set_attributes(sym, attrs);
-			} else {	// cursor beyond existing data
-				sym = symbol_make(te->bg_color, te->fg_color, te->attributes, ' ');
+			} else {	// cursor beyond existing data (TODO: can this happen?)
+				sym = row->erase;
+				symbol_attributes_t attrs = symbol_get_attributes(sym) ^ SYMBOL_INVERSE;
+				sym = symbol_set_attributes(sym, attrs);
 			}
 
 			fe_draw_cursor(te, xpos, ypos, sym);

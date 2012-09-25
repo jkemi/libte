@@ -22,13 +22,13 @@ typedef struct {
 	uint		ncols;
 } Buffer;
 
-void buffer_init(Buffer* buf, History* hist, uint nrows, uint ncols);
+void buffer_init(Buffer* buf, History* hist, uint nrows, uint ncols, symbol_t blank);
 void buffer_term(Buffer* buf);
-void buffer_clear(Buffer* buf);
-void buffer_reshape(Buffer* buf, uint nrows, uint ncols);
+void buffer_clear(Buffer* buf, symbol_t blank);
+void buffer_reshape(Buffer* buf, uint nrows, uint ncols, symbol_t blank);
 //void buffer_scroll(Buffer* buf, uint top, uint bottom, int byoffset);
-void buffer_scroll_up(Buffer* buf, uint top, uint bottom);
-void buffer_scroll_down(Buffer* buf, uint top, uint bottom);
+void buffer_scroll_up(Buffer* buf, uint top, uint bottom, symbol_t blank);
+void buffer_scroll_down(Buffer* buf, uint top, uint bottom, symbol_t blank);
 
 static inline BufferRow* buffer_get_row(Buffer* buf, uint rowno) {
 	return buf->rows[rowno];

@@ -215,10 +215,10 @@ void be_input(TE* te, const int32_t* text, size_t len) {
 void be_scroll_region(TE* te, uint start_y, uint end_y, int num)
 {
 	for (int i = 0; i < num; i++) {
-		buffer_scroll_up(te->buffer, start_y, end_y);
+		buffer_scroll_up(te->buffer, start_y, end_y, symbol_make(te->fg_color, te->bg_color, te->attributes, ' '));
 	}
 	for (int i = num; i < 0; i++) {
-		buffer_scroll_down(te->buffer, start_y, end_y);
+		buffer_scroll_down(te->buffer, start_y, end_y, symbol_make(te->fg_color, te->bg_color, te->attributes, ' '));
 	}
 
 	if (num > 0) {
@@ -244,7 +244,8 @@ void be_clear_area(TE* te, int xpos, int ypos, int width, int height)
 
 	for (int y=ypos; y < ypos+height; y++) {
 		BufferRow* row = buffer_get_row(te->buffer, y);
-		bufrow_fill(row, xpos, sym, width, symbol_make_style(te->fg_color, te->bg_color, te->attributes));
+		bufrow_fill(row, xpos, sym, width, symbol_make(te->fg_color, te->bg_color, te->attributes, ' '));
+//		bufrow_trim(row);
 		viewport_taint(te, y, xpos, width);
 	}
 }
@@ -277,7 +278,7 @@ void be_switch_buffer(TE* te, bool alt, bool erase_display_on_alt) {
 		te->buffer = &te->alt_buffer;
 		te->history = &te->alt_history;
 		if (erase_display_on_alt) {
-			buffer_clear(&te->alt_buffer);
+			buffer_clear(&te->alt_buffer, symbol_make(te->fg_color, te->bg_color, te->attributes, ' '));
 		}
 		viewport_set(te, 0);
 	} else {
@@ -319,12 +320,17 @@ TE* te_new(const TE_Frontend* fe, void* fe_priv, int w, int h)
 	te->width = w;
 	te->height = h;
 
+	// Setup current attributes
+	te->attributes = 0;
+	te->fg_color = TE_COLOR_TEXT_FG;
+	te->bg_color = TE_COLOR_TEXT_BG;
+	
 
 	history_init(&te->norm_history, 1000);		// TODO: make configurable
-	buffer_init(&te->norm_buffer, &te->norm_history, h, w);
+	buffer_init(&te->norm_buffer, &te->norm_history, h, w, symbol_make(te->fg_color, te->bg_color, te->attributes, ' '));
 
 	history_init(&te->alt_history, 0);
-	buffer_init(&te->alt_buffer, &te->alt_history, h, w);
+	buffer_init(&te->alt_buffer, &te->alt_history, h, w, symbol_make(te->fg_color, te->bg_color, te->attributes, ' '));
 
 	te->buffer = &te->norm_buffer;
 	te->history = &te->norm_history;
@@ -342,11 +348,6 @@ TE* te_new(const TE_Frontend* fe, void* fe_priv, int w, int h)
 	// Setup scrolling
 	te->scroll_top = 0;
 	te->scroll_bot = te->height-1;
-
-	// Setup current attributes
-	te->attributes = 0;
-	te->fg_color = TE_COLOR_TEXT_FG;
-	te->bg_color = TE_COLOR_TEXT_BG;
 
 	// Setup flags
 	be_set_mode(te, MODE_AUTOWRAP);
@@ -540,8 +541,8 @@ void te_resize(TE_Backend* te, int width, int height) {
 	int cy = int_min(te->height-1, te->cursor_y);
 	be_move_cursor(te, cx, cy);
 
-	buffer_reshape(&te->norm_buffer, height, width);
-	buffer_reshape(&te->alt_buffer, height, width);
+	buffer_reshape(&te->norm_buffer, height, width,symbol_make(te->fg_color, te->bg_color, te->attributes, ' '));
+	buffer_reshape(&te->alt_buffer, height, width,symbol_make(te->fg_color, te->bg_color, te->attributes, ' '));
 
 	viewport_reshape(te, width, height);
 

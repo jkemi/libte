@@ -13,13 +13,14 @@
 
 #include "bufferrow.h"
 
-static void _bufrow_init(BufferRow* br, uint initsize) {
+static void _bufrow_init(BufferRow* br, uint initsize, symbol_t blank) {
 	if (initsize < 32) {
 		initsize = 32;
 	}
 	br->used = 0;
 	br->capacity = initsize;
 	br->data = xnew(symbol_t, initsize);
+	br->erase = blank;
 }
 
 static void _bufrow_ensureCapacity(BufferRow* br, uint capacity) {
@@ -34,6 +35,7 @@ static void _bufrow_ensureCapacity(BufferRow* br, uint capacity) {
 	}
 }
 
+// pad interval [x,x+len) with 'blank'
 static void _bufrow_pad(BufferRow* br, uint x, int len, symbol_t blank) {
 	assert (x+len <= br->capacity);
 
@@ -43,9 +45,9 @@ static void _bufrow_pad(BufferRow* br, uint x, int len, symbol_t blank) {
 	}
 }
 
-BufferRow* bufrow_new(void) {
+BufferRow* bufrow_new(symbol_t blank) {
 	BufferRow* br = xnew(BufferRow, 1);
-	_bufrow_init(br, 32);
+	_bufrow_init(br, 32, blank);
 	return br;
 }
 
@@ -54,10 +56,34 @@ void bufrow_free(BufferRow* br) {
 	free(br);
 }
 
-void bufrow_clear(BufferRow* br) {
+void bufrow_clear(BufferRow* br, symbol_t blank) {
 	br->used = 0;
+	br->erase = blank;
 }
 
+void bufrow_trim(BufferRow* br) {
+	if (br->used == 0) {
+		return;
+	}
+	
+	const symbol_t tail = br->data[br->used-1];
+	if (symbol_get_codepoint(tail) != ' ') {
+		return;
+	}
+
+	int trimmed=0;
+	br->erase = tail;
+	for (int i=br->used-1; i>=0; i--) {
+		if (br->data[i] != tail) {
+			break;
+		}
+		trimmed++;
+	}
+	
+	br->used -= trimmed;
+}
+
+// inserts symbols at interval [x,x+len) padding with 'blank' if needed
 void bufrow_insert(BufferRow* br, uint x, const symbol_t* symbols, uint len, symbol_t blank) {
 	const int trail = br->used-x;
 	if (trail <= 0) {
@@ -70,6 +96,7 @@ void bufrow_insert(BufferRow* br, uint x, const symbol_t* symbols, uint len, sym
 	}
 }
 
+// replace symbols at interval [x,x+len) with symbols
 void bufrow_replace(BufferRow* br, uint x, const symbol_t* symbols, uint len, symbol_t blank) {
 	if (len == 0) {
 		return;
