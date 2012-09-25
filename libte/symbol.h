@@ -167,6 +167,10 @@ static inline symbol_t symbol_set_bg(symbol_t sym, symbol_color_t col) {
 	return (sym & ~SYMBOL_BG_MASK) | ((symbol_t)col << SYMBOL_BG_SHIFTS);
 }
 
+static inline symbol_t symbol_set_cp(symbol_t sym, int32_t cp) {
+	return (sym & ~SYMBOL_CP_MASK) | ((symbol_t)cp << SYMBOL_CP_SHIFTS);
+}
+
 /**
  * Swaps FG<->BG color of symbol
  */
