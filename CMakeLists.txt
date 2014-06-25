@@ -47,10 +47,15 @@ IF (NOT ${CMAKE_BUILD_TYPE} STREQUAL "Debug")
 		CONCAT (CMAKE_EXE_LINKER_FLAGS "-Xlinker --no-export-dynamic")
 		CONCAT (CMAKE_EXE_LINKER_FLAGS_MINSIZEREL "-Xlinker --strip-all")
 
-		CONCAT (CMAKE_C_FLAGS_MINSIZEREL -flto -flto-partition=none -fomit-frame-pointer -ffast-math -mfpmath=sse)
-		CONCAT (CMAKE_CXX_FLAGS_MINSIZEREL -flto -flto-partition=none -fomit-frame-pointer -ffast-math -mfpmath=sse)
-		CONCAT (CMAKE_EXE_LINKER_FLAGS_MINSIZEREL -Xlinker --strip-all)
+		CONCAT (CMAKE_C_FLAGS_MINSIZEREL -fomit-frame-pointer -ffast-math -mfpmath=sse)
+		CONCAT (CMAKE_CXX_FLAGS_MINSIZEREL -fomit-frame-pointer -ffast-math -mfpmath=sse)
 
+		# GCC 4.9 has issues/difficulties regarding lto, so only enable for < gcc 4.9
+		IF (CMAKE_C_COMPILER_VERSION VERSION_LESS 4.9)
+			CONCAT (CMAKE_C_FLAGS_MINSIZEREL -flto -flto-partition=none)
+			CONCAT (CMAKE_CXX_FLAGS_MINSIZEREL -flto -flto-partition=none)
+		ENDIF ()
+		CONCAT (CMAKE_EXE_LINKER_FLAGS_MINSIZEREL -Xlinker --strip-all)
 	ENDIF (CMAKE_COMPILER_IS_GNUCC AND NOT APPLE)
 ENDIF ()
 
