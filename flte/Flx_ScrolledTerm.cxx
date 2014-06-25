@@ -148,7 +148,7 @@ ScrolledTerm::ScrolledTerm(		IResizableParent* parenth, SlaveIO* childh,
 
 	_impl->scrollbar = new Fl_Scrollbar(x, y, SCROLLBAR_WIDTH, ih);
 	_impl->scrollbar->step(1);
-	_impl->scrollbar->callback(& (impl::ScrolledTermPriv::_widget_cb), _impl);
+    _impl->scrollbar->callback((impl::ScrolledTermPriv::_widget_cb), _impl);
 
 	end();
 
